@@ -1,4 +1,4 @@
-FROM node:20-alpine AS base
+FROM node:20-slim AS base
 WORKDIR /app
 ENV NODE_ENV=production
 
@@ -9,9 +9,10 @@ RUN npm ci
 
 # ── prisma generate ───────────────────────────────────────────────────────────
 FROM deps AS prisma
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 COPY prisma ./prisma
 COPY prisma.config.ts ./
-RUN npm run db:generate
+RUN ./node_modules/.bin/prisma generate
 
 # ── builder ───────────────────────────────────────────────────────────────────
 FROM prisma AS builder
@@ -20,7 +21,8 @@ RUN npm run build
 
 # ── runner ────────────────────────────────────────────────────────────────────
 FROM base AS runner
-RUN addgroup --system --gid 1001 nodejs && \
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/* && \
+    addgroup --system --gid 1001 nodejs && \
     adduser  --system --uid 1001 nextjs
 
 COPY --from=builder /app/public          ./public
