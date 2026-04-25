@@ -58,6 +58,7 @@ services:
       # Override localhost URLs with Docker service hostnames
       DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/oncall?schema=public"
       REDIS_URL: "redis://redis:6379"
+      KEYCLOAK_ISSUER: "http://keycloak:8080/realms/oncall"
     ports:
       - "3000:3000"
     depends_on:
@@ -75,6 +76,7 @@ services:
     environment:
       DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/oncall?schema=public"
       REDIS_URL: "redis://redis:6379"
+      KEYCLOAK_ISSUER: "http://keycloak:8080/realms/oncall"
     depends_on:
       postgres:
         condition: service_healthy
