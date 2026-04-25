@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { SystemRole } from "@/app/generated/prisma/client";
 import { UserRoleActions } from "./user-role-actions";
+import { CreateUserButton } from "./create-user-button";
 
 export const metadata = { title: "Quản lý người dùng" };
 
@@ -44,9 +45,12 @@ export default async function UsersPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-xl font-semibold text-gray-900">Người dùng</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Quản lý vai trò và trạng thái tài khoản</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-gray-900">Người dùng</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Quản lý vai trò và trạng thái tài khoản</p>
+        </div>
+        <CreateUserButton />
       </div>
 
       <div className="grid grid-cols-3 gap-4">

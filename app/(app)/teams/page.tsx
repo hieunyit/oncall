@@ -34,9 +34,12 @@ export default async function TeamsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Nhóm</h1>
         {currentUser.systemRole === "ADMIN" && (
-          <button className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+          <Link
+            href="/teams/new"
+            className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700"
+          >
             + Tạo nhóm
-          </button>
+          </Link>
         )}
       </div>
 

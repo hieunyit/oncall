@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/rbac";
-import { ok, unauthorized, forbidden, handleError } from "@/lib/api-response";
+import { ok, created, unauthorized, forbidden, conflict, handleError } from "@/lib/api-response";
 import { SystemRole } from "@/app/generated/prisma/client";
 
 const ListQuerySchema = z.object({
@@ -52,6 +52,41 @@ export async function GET(req: NextRequest) {
     ]);
 
     return ok({ users, total, page: query.page, limit: query.limit });
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
+const CreateUserSchema = z.object({
+  email: z.string().email(),
+  fullName: z.string().min(1).max(100),
+  systemRole: z.nativeEnum(SystemRole).optional(),
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    const actor = await getSessionUser();
+    if (!actor) return unauthorized();
+    if (actor.systemRole !== SystemRole.ADMIN) return forbidden();
+
+    const body = await req.json().catch(() => null);
+    if (!body) return conflict("Invalid JSON");
+
+    const data = CreateUserSchema.parse(body);
+
+    const existing = await prisma.user.findUnique({ where: { email: data.email } });
+    if (existing) return conflict("Email đã tồn tại trong hệ thống.");
+
+    const user = await prisma.user.create({
+      data: {
+        email: data.email,
+        fullName: data.fullName,
+        systemRole: data.systemRole ?? SystemRole.USER,
+      },
+      select: { id: true, email: true, fullName: true, systemRole: true, isActive: true, createdAt: true },
+    });
+
+    return created(user);
   } catch (error) {
     return handleError(error);
   }
