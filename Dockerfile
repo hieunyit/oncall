@@ -5,7 +5,7 @@ WORKDIR /app
 # ── all deps (dev + prod) — needed for build and workers ─────────────────────
 FROM base AS deps-all
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm install
 
 # ── app builder ───────────────────────────────────────────────────────────────
 FROM deps-all AS builder
