@@ -12,6 +12,7 @@ const TimeSlotSchema = z.object({
   startMinute: z.number().int().min(0).max(59),
   endHour: z.number().int().min(0).max(23),
   endMinute: z.number().int().min(0).max(59),
+  daysOfWeek: z.array(z.number().int().min(0).max(6)).optional(),
 });
 
 const UpdatePolicySchema = z.object({

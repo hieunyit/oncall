@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PolicyForm } from "@/components/policy/policy-form";
 import { PublishBatchForm } from "../../teams/[id]/publish-batch-form";
 import { BatchList } from "./batch-list";
+import { DeletePolicyButton } from "./delete-policy-button";
 
 export default async function PolicyDetailPage({
   params,
@@ -85,7 +86,10 @@ export default async function PolicyDetailPage({
 
       {isManager ? (
         <>
-          <h1 className="text-2xl font-bold text-gray-900">Chỉnh sửa chính sách</h1>
+          <div className="flex items-center justify-between gap-4">
+            <h1 className="text-2xl font-bold text-gray-900">Chỉnh sửa chính sách</h1>
+            <DeletePolicyButton policyId={policy.id} policyName={policy.name} />
+          </div>
           <PolicyForm
             teams={teams}
             escalationPolicies={escalationPolicies}

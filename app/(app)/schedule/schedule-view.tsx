@@ -123,6 +123,10 @@ export function ScheduleView({
         isManager={isManager}
         teamMembers={teamMembers}
         onOverride={isManager ? setOverrideShift : undefined}
+        onShiftClick={(shift) => {
+          setSelectedShift(shift);
+          setSelectedDay(null);
+        }}
         onDayClick={(day, dayShifts) => {
           setSelectedDay(day);
           setSelectedDayShifts(dayShifts);

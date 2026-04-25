@@ -31,6 +31,7 @@ interface WeekCalendarProps {
   teamMembers?: TeamMember[];
   onOverride?: (shift: ShiftBlock) => void;
   onDayClick?: (day: Date, shifts: ShiftBlock[]) => void;
+  onShiftClick?: (shift: ShiftBlock) => void;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -47,6 +48,7 @@ export function WeekCalendar({
   isManager,
   onOverride,
   onDayClick,
+  onShiftClick,
 }: WeekCalendarProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
@@ -105,9 +107,10 @@ export function WeekCalendar({
                 return (
                   <div
                     key={shift.id}
-                    className={`rounded-md border px-1.5 py-1 text-xs leading-tight relative group ${colorClass} ${shift.isMe ? "font-medium" : ""}`}
+                    className={`rounded-md border px-1.5 py-1 text-xs leading-tight relative group ${colorClass} ${shift.isMe ? "font-medium" : ""} ${onShiftClick ? "cursor-pointer" : ""}`}
                     onMouseEnter={() => setHoveredId(shift.id)}
                     onMouseLeave={() => setHoveredId(null)}
+                    onClick={() => onShiftClick?.(shift)}
                   >
                     {shift.isOverride && (
                       <span className="inline-block text-[10px] bg-amber-200 text-amber-800 rounded px-0.5 mb-0.5">override</span>

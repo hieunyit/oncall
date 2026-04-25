@@ -6,6 +6,7 @@ import { TeamMemberActions } from "./team-member-actions";
 import { AddMemberForm } from "./add-member-form";
 import { PublishBatchForm } from "./publish-batch-form";
 import { NotificationChannels } from "./notification-channels";
+import { DeleteTeamButton } from "./delete-team-button";
 
 export default async function TeamDetailPage({
   params,
@@ -72,21 +73,26 @@ export default async function TeamDetailPage({
         <span className="text-gray-900 font-medium">{team.name}</span>
       </div>
 
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{team.name}</h1>
           {team.description && (
             <p className="text-gray-500 mt-1">{team.description}</p>
           )}
         </div>
-        {isManager && (
-          <Link
-            href={`/policies/new?teamId=${id}`}
-            className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            + Chính sách mới
-          </Link>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          {currentUser.systemRole === "ADMIN" && (
+            <DeleteTeamButton teamId={id} teamName={team.name} />
+          )}
+          {isManager && (
+            <Link
+              href={`/policies/new?teamId=${id}`}
+              className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              + Chính sách mới
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Members table */}
