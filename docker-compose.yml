@@ -51,11 +51,12 @@ services:
   migrate:
     build:
       context: .
-      target: migrator
+      target: workers-runner
     container_name: oncall_migrate
     env_file: .env
     environment:
       DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/oncall?schema=public"
+    command: npx prisma migrate deploy
     depends_on:
       postgres:
         condition: service_healthy
