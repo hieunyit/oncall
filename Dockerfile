@@ -1,4 +1,5 @@
 FROM node:20-slim AS base
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # ── all deps (dev + prod) — needed for build and workers ─────────────────────
