@@ -9,6 +9,7 @@ RUN npm ci
 
 # ── builder ───────────────────────────────────────────────────────────────────
 FROM deps AS builder
+ENV NEXT_TELEMETRY_DISABLED=1
 COPY . .
 RUN npm run build
 
