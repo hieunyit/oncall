@@ -9,7 +9,6 @@ RUN npm ci
 
 # ── prisma generate ───────────────────────────────────────────────────────────
 FROM deps AS prisma
-RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 COPY prisma ./prisma
 COPY prisma.config.ts ./
 RUN ./node_modules/.bin/prisma generate
@@ -21,8 +20,7 @@ RUN npm run build
 
 # ── runner ────────────────────────────────────────────────────────────────────
 FROM base AS runner
-RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/* && \
-    addgroup --system --gid 1001 nodejs && \
+RUN addgroup --system --gid 1001 nodejs && \
     adduser  --system --uid 1001 nextjs
 
 COPY --from=builder /app/public          ./public
