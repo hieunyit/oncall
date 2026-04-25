@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { PolicyForm } from "@/components/policy/policy-form";
+import { PublishBatchForm } from "../../teams/[id]/publish-batch-form";
 
 export default async function PolicyDetailPage({
   params,
@@ -54,7 +55,6 @@ export default async function PolicyDetailPage({
     }),
   ]);
 
-  // Recent shifts from this policy
   const recentShifts = await prisma.shift.findMany({
     where: { policyId: id },
     include: {
@@ -62,7 +62,7 @@ export default async function PolicyDetailPage({
       confirmation: { select: { status: true } },
     },
     orderBy: { startsAt: "asc" },
-    take: 10,
+    take: 20,
   });
 
   return (
@@ -107,12 +107,31 @@ export default async function PolicyDetailPage({
         </div>
       )}
 
-      {/* Shifts preview */}
-      {recentShifts.length > 0 && (
-        <section className="bg-white rounded-xl border border-gray-200">
-          <div className="px-5 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">Ca trực sắp tới</h2>
+      {/* Generate shifts */}
+      {isManager && (
+        <section className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <h2 className="font-semibold text-gray-900">Sinh ca trực</h2>
+              <p className="text-sm text-gray-500 mt-0.5">
+                Tạo lịch trực từ hôm nay theo chính sách vòng lặp. Ca đã tồn tại sẽ bỏ qua (idempotent).
+              </p>
+            </div>
+            <PublishBatchForm policyId={policy.id} policyName={policy.name} />
           </div>
+        </section>
+      )}
+
+      {/* Shifts table */}
+      <section className="bg-white rounded-xl border border-gray-200">
+        <div className="px-5 py-4 border-b border-gray-100">
+          <h2 className="font-semibold text-gray-900">Ca trực ({recentShifts.length})</h2>
+        </div>
+        {recentShifts.length === 0 ? (
+          <p className="px-5 py-8 text-center text-gray-400 text-sm">
+            Chưa có ca trực nào.{isManager && ' Nhấn "Publish lịch" để sinh ca trực.'}
+          </p>
+        ) : (
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
@@ -125,15 +144,9 @@ export default async function PolicyDetailPage({
             <tbody className="divide-y divide-gray-100">
               {recentShifts.map((s) => (
                 <tr key={s.id}>
-                  <td className="px-4 py-2 text-gray-700">
-                    {s.startsAt.toLocaleString("vi-VN")}
-                  </td>
-                  <td className="px-4 py-2 text-gray-700">
-                    {s.endsAt.toLocaleString("vi-VN")}
-                  </td>
-                  <td className="px-4 py-2 font-medium text-gray-900">
-                    {s.assignee.fullName}
-                  </td>
+                  <td className="px-4 py-2 text-gray-700">{s.startsAt.toLocaleString("vi-VN")}</td>
+                  <td className="px-4 py-2 text-gray-700">{s.endsAt.toLocaleString("vi-VN")}</td>
+                  <td className="px-4 py-2 font-medium text-gray-900">{s.assignee.fullName}</td>
                   <td className="px-4 py-2">
                     <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
                       s.confirmation?.status === "CONFIRMED" ? "bg-green-100 text-green-700" :
@@ -147,8 +160,8 @@ export default async function PolicyDetailPage({
               ))}
             </tbody>
           </table>
-        </section>
-      )}
+        )}
+      </section>
     </div>
   );
 }

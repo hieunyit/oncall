@@ -255,7 +255,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
             <StatRow label="Đã duyệt" value={swapMap["APPROVED"] ?? 0} valueClass="text-green-600" />
             <StatRow
               label="Từ chối"
-              value={(swapMap["REJECTED_BY_TARGET"] ?? 0) + (swapMap["REJECTED_BY_ADMIN"] ?? 0)}
+              value={swapMap["REJECTED"] ?? 0}
               valueClass="text-red-600"
             />
             <StatRow label="Đã hủy" value={swapMap["CANCELLED"] ?? 0} valueClass="text-gray-400" />

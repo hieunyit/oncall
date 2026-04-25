@@ -21,7 +21,7 @@ export function NewTeamForm() {
     });
     setSaving(false);
     if (res.ok) {
-      const team = await res.json();
+      const { data: team } = await res.json();
       router.push(`/teams/${team.id}`);
       router.refresh();
     } else {

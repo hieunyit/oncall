@@ -36,6 +36,7 @@ export function IntegrationCard({
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [toggling, setToggling] = useState(false);
+  const [toggleError, setToggleError] = useState<string | null>(null);
 
   const webhookUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/api/webhook/${integration.token}`;
 
@@ -47,13 +48,23 @@ export function IntegrationCard({
 
   const toggleActive = async () => {
     setToggling(true);
-    await fetch(`/api/integrations/${integration.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isActive: !integration.isActive }),
-    });
-    setToggling(false);
-    router.refresh();
+    setToggleError(null);
+    try {
+      const res = await fetch(`/api/integrations/${integration.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !integration.isActive }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error ?? "Không thể cập nhật");
+      }
+      router.refresh();
+    } catch (e) {
+      setToggleError(e instanceof Error ? e.message : "Lỗi");
+    } finally {
+      setToggling(false);
+    }
   };
 
   return (
@@ -94,6 +105,9 @@ export function IntegrationCard({
         )}
       </div>
 
+      {toggleError && (
+        <p className="px-5 pb-2 text-xs text-red-600">{toggleError}</p>
+      )}
       {/* Webhook URL */}
       <div className="px-5 pb-4">
         <p className="text-xs font-medium text-gray-500 mb-1.5">Webhook URL</p>
