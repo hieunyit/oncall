@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: "20"
+  DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/oncall_test?schema=public"
+  REDIS_URL: "redis://localhost:6379"
+  AUTH_SECRET: "test-secret-for-ci-only-32-chars!!"
+  AUTH_URL: "http://localhost:3000"
+  KEYCLOAK_CLIENT_ID: "oncall"
+  KEYCLOAK_CLIENT_SECRET: "test"
+  KEYCLOAK_ISSUER: "http://localhost:8080/realms/oncall"
+  RESEND_API_KEY: "re_test"
+  RESEND_FROM_EMAIL: "oncall@test.com"
+  TELEGRAM_BOT_TOKEN: "test"
+  TELEGRAM_WEBHOOK_SECRET: "test"
+  NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: ./node_modules/.bin/prisma generate
+
+      - name: Type check
+        run: ./node_modules/.bin/tsc --noEmit
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: ./node_modules/.bin/prisma generate
+
+      - name: Run tests
+        run: npm test -- --reporter=verbose
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: ./node_modules/.bin/prisma generate
+
+      - name: Build Next.js app
+        run: npm run build
+        env:
+          SKIP_ENV_VALIDATION: "1"
