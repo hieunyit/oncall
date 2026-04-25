@@ -4,11 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser, requireTeamRole, isNextResponse } from "@/lib/rbac";
 import { ok, created, noContent, badRequest, unauthorized, notFound, handleError } from "@/lib/api-response";
 import { ChannelType, TeamRole } from "@/app/generated/prisma/client";
+import type { Prisma } from "@/app/generated/prisma/client";
 
 const ChannelSchema = z.object({
   type: z.nativeEnum(ChannelType),
   name: z.string().min(1).max(80),
-  configJson: z.record(z.unknown()),
+  configJson: z.record(z.string(), z.unknown()),
   isActive: z.boolean().optional(),
 });
 
@@ -51,7 +52,13 @@ export async function POST(
 
     const data = ChannelSchema.parse(body);
     const channel = await prisma.teamNotificationChannel.create({
-      data: { teamId: id, ...data, isActive: data.isActive ?? true },
+      data: {
+        teamId: id,
+        type: data.type,
+        name: data.name,
+        isActive: data.isActive ?? true,
+        configJson: data.configJson as Prisma.InputJsonValue,
+      },
     });
     return created(channel);
   } catch (error) {

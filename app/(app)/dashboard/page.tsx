@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { startOfDay, endOfDay, format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { ShiftStatus, ConfirmationStatus, SwapStatus, DeliveryStatus } from "@/app/generated/prisma/client";
+import { ShiftStatus, ConfirmationStatus, SwapStatus, DeliveryStatus, AlertStatus } from "@/app/generated/prisma/client";
 import Link from "next/link";
 
 export const metadata = { title: "Dashboard" };
@@ -14,7 +14,12 @@ export default async function DashboardPage() {
 
   const currentUser = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true, fullName: true, systemRole: true },
+    select: {
+      id: true,
+      fullName: true,
+      systemRole: true,
+      teamMembers: { select: { teamId: true } },
+    },
   });
   if (!currentUser) redirect("/login");
 
@@ -22,13 +27,17 @@ export default async function DashboardPage() {
   const dayStart = startOfDay(today);
   const dayEnd = endOfDay(today);
 
+  const myTeamIds = currentUser.teamMembers.map((m) => m.teamId);
+
   const [
     todayShifts,
     pendingConfirmations,
     openSwaps,
     failedDeliveries,
+    firingAlerts,
     upcomingShifts,
     activeOnCallShifts,
+    recentFiringAlerts,
   ] = await Promise.all([
     prisma.shift.count({
       where: {
@@ -54,6 +63,12 @@ export default async function DashboardPage() {
     currentUser.systemRole === "ADMIN"
       ? prisma.notificationDelivery.count({ where: { status: DeliveryStatus.FAILED } })
       : Promise.resolve(0),
+    prisma.alert.count({
+      where: {
+        status: AlertStatus.FIRING,
+        integration: currentUser.systemRole === "ADMIN" ? {} : { teamId: { in: myTeamIds } },
+      },
+    }),
     prisma.shift.findMany({
       where: {
         assigneeId: currentUser.id,
@@ -67,7 +82,7 @@ export default async function DashboardPage() {
       orderBy: { startsAt: "asc" },
       take: 5,
     }),
-    // Who's on-call now: active shifts across all teams, no overrides
+    // Who's on-call now
     prisma.shift.findMany({
       where: {
         startsAt: { lte: today },
@@ -96,6 +111,18 @@ export default async function DashboardPage() {
       },
       orderBy: { policy: { team: { name: "asc" } } },
     }),
+    // Recent firing alerts for my teams
+    prisma.alert.findMany({
+      where: {
+        status: AlertStatus.FIRING,
+        integration: currentUser.systemRole === "ADMIN" ? {} : { teamId: { in: myTeamIds } },
+      },
+      include: {
+        integration: { select: { name: true, team: { select: { name: true } } } },
+      },
+      orderBy: { triggeredAt: "desc" },
+      take: 5,
+    }),
   ]);
 
   return (
@@ -120,15 +147,57 @@ export default async function DashboardPage() {
           color={openSwaps > 0 ? "orange" : "green"}
           href="/swaps"
         />
-        {currentUser.systemRole === "ADMIN" && (
+        <StatCard
+          label="Alerts đang cháy"
+          value={firingAlerts}
+          color={firingAlerts > 0 ? "red" : "green"}
+          href="/alerts"
+        />
+        {currentUser.systemRole === "ADMIN" && failedDeliveries > 0 && (
           <StatCard
             label="Thông báo lỗi"
             value={failedDeliveries}
-            color={failedDeliveries > 0 ? "red" : "green"}
+            color="red"
             href="/notifications"
           />
         )}
       </div>
+
+      {/* Firing alerts */}
+      {recentFiringAlerts.length > 0 && (
+        <div className="bg-white rounded-xl border border-red-200">
+          <div className="px-5 py-4 border-b border-red-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
+              <h2 className="font-semibold text-gray-900">Alerts đang cháy</h2>
+              <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
+                {firingAlerts}
+              </span>
+            </div>
+            <Link href="/alerts?status=FIRING" className="text-sm text-red-600 hover:text-red-700">
+              Xem tất cả →
+            </Link>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {recentFiringAlerts.map((alert) => (
+              <div key={alert.id} className="px-5 py-3.5 flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{alert.title}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {alert.integration.team.name} · {alert.integration.name} ·{" "}
+                    {format(alert.triggeredAt, "HH:mm dd/MM", { locale: vi })}
+                  </p>
+                </div>
+                {alert.severity && (
+                  <span className="text-xs font-medium uppercase text-red-600 shrink-0">
+                    {alert.severity}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Who's on-call right now */}
       <div className="bg-white rounded-xl border border-gray-200">

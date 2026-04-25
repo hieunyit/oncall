@@ -32,3 +32,8 @@ FROM deps-all AS workers-runner
 ENV NODE_ENV=production
 COPY . .
 CMD ["node", "--require", "tsx/esm", "workers/index.ts"]
+
+# ── migrator (runs prisma migrate deploy then exits) ─────────────────────────
+FROM deps-all AS migrator
+COPY prisma ./prisma
+CMD ["npx", "prisma", "migrate", "deploy"]
