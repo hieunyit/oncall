@@ -4,6 +4,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { PolicyForm } from "@/components/policy/policy-form";
 import { PublishBatchForm } from "../../teams/[id]/publish-batch-form";
+import { BatchList } from "./batch-list";
 
 export default async function PolicyDetailPage({
   params,
@@ -55,6 +56,15 @@ export default async function PolicyDetailPage({
     }),
   ]);
 
+  const recentBatches = await prisma.scheduleBatch.findMany({
+    where: { policyId: id },
+    include: {
+      _count: { select: { shifts: { where: { status: { not: "CANCELLED" } } } } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 10,
+  });
+
   const recentShifts = await prisma.shift.findMany({
     where: { policyId: id },
     include: {
@@ -91,6 +101,7 @@ export default async function PolicyDetailPage({
               reminderLeadHours: policy.reminderLeadHours,
               maxGenerateWeeks: policy.maxGenerateWeeks,
               escalationPolicyId: policy.escalationPolicyId,
+              timeSlots: policy.timeSlots as Array<{ label: string; startHour: number; startMinute: number; endHour: number; endMinute: number }> | null,
             }}
           />
         </>
@@ -121,6 +132,14 @@ export default async function PolicyDetailPage({
           </div>
         </section>
       )}
+
+      {/* Batch list */}
+      <section className="bg-white rounded-xl border border-gray-200">
+        <div className="px-5 py-4 border-b border-gray-100">
+          <h2 className="font-semibold text-gray-900">Lô lịch ({recentBatches.length})</h2>
+        </div>
+        <BatchList batches={recentBatches} />
+      </section>
 
       {/* Shifts table */}
       <section className="bg-white rounded-xl border border-gray-200">

@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { startOfDay, endOfDay, format } from "date-fns";
+import { startOfDay, endOfDay, format, formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { ShiftStatus, ConfirmationStatus, SwapStatus, DeliveryStatus, AlertStatus } from "@/app/generated/prisma/client";
 import Link from "next/link";
@@ -82,7 +82,6 @@ export default async function DashboardPage() {
       orderBy: { startsAt: "asc" },
       take: 5,
     }),
-    // Who's on-call now
     prisma.shift.findMany({
       where: {
         startsAt: { lte: today },
@@ -111,7 +110,6 @@ export default async function DashboardPage() {
       },
       orderBy: { policy: { team: { name: "asc" } } },
     }),
-    // Recent firing alerts for my teams
     prisma.alert.findMany({
       where: {
         status: AlertStatus.FIRING,
@@ -134,24 +132,49 @@ export default async function DashboardPage() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Ca trực hôm nay" value={todayShifts} color="blue" href="/schedule" />
+        <StatCard
+          label="Ca trực hôm nay"
+          value={todayShifts}
+          color="blue"
+          href="/schedule"
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          }
+        />
         <StatCard
           label="Chờ xác nhận"
           value={pendingConfirmations}
           color={pendingConfirmations > 0 ? "yellow" : "green"}
           href="/schedule"
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          }
         />
         <StatCard
           label="Yêu cầu đổi ca"
           value={openSwaps}
           color={openSwaps > 0 ? "orange" : "green"}
           href="/swaps"
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+          }
         />
         <StatCard
           label="Alerts đang cháy"
           value={firingAlerts}
           color={firingAlerts > 0 ? "red" : "green"}
           href="/alerts"
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          }
         />
         {currentUser.systemRole === "ADMIN" && failedDeliveries > 0 && (
           <StatCard
@@ -159,37 +182,45 @@ export default async function DashboardPage() {
             value={failedDeliveries}
             color="red"
             href="/notifications"
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+            }
           />
         )}
       </div>
 
-      {/* Firing alerts */}
+      {/* Firing alerts — alarming section */}
       {recentFiringAlerts.length > 0 && (
-        <div className="bg-white rounded-xl border border-red-200">
-          <div className="px-5 py-4 border-b border-red-100 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
-              <h2 className="font-semibold text-gray-900">Alerts đang cháy</h2>
-              <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
+        <div className="rounded-xl border border-red-300 bg-red-50 overflow-hidden">
+          <div className="px-5 py-3.5 bg-red-100 border-b border-red-200 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <span className="relative flex h-3 w-3 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
+              </span>
+              <h2 className="font-semibold text-red-900">Alerts đang cháy</h2>
+              <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded-full font-bold">
                 {firingAlerts}
               </span>
             </div>
-            <Link href="/alerts?status=FIRING" className="text-sm text-red-600 hover:text-red-700">
+            <Link href="/alerts?status=FIRING" className="text-sm text-red-700 hover:text-red-900 font-medium">
               Xem tất cả →
             </Link>
           </div>
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-red-100">
             {recentFiringAlerts.map((alert) => (
               <div key={alert.id} className="px-5 py-3.5 flex items-center justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{alert.title}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-sm font-semibold text-red-900 truncate">{alert.title}</p>
+                  <p className="text-xs text-red-600 mt-0.5">
                     {alert.integration.team.name} · {alert.integration.name} ·{" "}
-                    {format(alert.triggeredAt, "HH:mm dd/MM", { locale: vi })}
+                    {formatDistanceToNow(alert.triggeredAt, { addSuffix: true, locale: vi })}
                   </p>
                 </div>
                 {alert.severity && (
-                  <span className="text-xs font-medium uppercase text-red-600 shrink-0">
+                  <span className="text-xs font-bold uppercase bg-red-200 text-red-800 px-2 py-0.5 rounded shrink-0">
                     {alert.severity}
                   </span>
                 )}
@@ -202,16 +233,24 @@ export default async function DashboardPage() {
       {/* Who's on-call right now */}
       <div className="bg-white rounded-xl border border-gray-200">
         <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse shrink-0" />
+          <span className="relative flex h-2.5 w-2.5 shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
+          </span>
           <h2 className="font-semibold text-gray-900">Ai đang trực?</h2>
           <span className="text-xs text-gray-400 ml-1">
             {format(today, "HH:mm dd/MM/yyyy", { locale: vi })}
           </span>
         </div>
         {activeOnCallShifts.length === 0 ? (
-          <p className="px-5 py-8 text-center text-gray-400 text-sm">
-            Không có ca trực nào đang hoạt động.
-          </p>
+          <div className="px-5 py-10 text-center">
+            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-2">
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-gray-400 text-sm">Không có ca trực nào đang hoạt động.</p>
+          </div>
         ) : (
           <div className="divide-y divide-gray-50">
             {activeOnCallShifts.map((shift) => {
@@ -259,56 +298,85 @@ export default async function DashboardPage() {
       <div className="bg-white rounded-xl border border-gray-200">
         <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
           <h2 className="font-semibold text-gray-900">Ca trực sắp tới của tôi</h2>
-          <Link href="/schedule" className="text-sm text-blue-600 hover:text-blue-700">
+          <Link href="/schedule" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
             Xem tất cả →
           </Link>
         </div>
-        <div className="divide-y divide-gray-50">
-          {upcomingShifts.length === 0 ? (
-            <p className="px-5 py-8 text-center text-gray-400 text-sm">
-              Không có ca trực nào sắp tới.
-            </p>
-          ) : (
-            upcomingShifts.map((shift) => (
-              <div key={shift.id} className="px-5 py-4 flex items-center justify-between">
-                <div>
+        {upcomingShifts.length === 0 ? (
+          <div className="px-5 py-10 text-center">
+            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-2">
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <p className="text-gray-400 text-sm">Không có ca trực nào sắp tới.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-50">
+            {upcomingShifts.map((shift, idx) => (
+              <div key={shift.id} className="px-5 py-4 flex items-center gap-4">
+                <div className="flex flex-col items-center shrink-0 w-10">
+                  <div className={`w-3 h-3 rounded-full border-2 ${idx === 0 ? "bg-indigo-500 border-indigo-500" : "bg-white border-gray-300"}`} />
+                  {idx < upcomingShifts.length - 1 && (
+                    <div className="w-0.5 flex-1 bg-gray-100 mt-1 h-full min-h-[1.5rem]" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-900 text-sm">{shift.policy.name}</p>
                   <p className="text-xs text-gray-500 mt-0.5">
                     {format(shift.startsAt, "EEEE dd/MM, HH:mm", { locale: vi })}
                     {" → "}
                     {format(shift.endsAt, "HH:mm dd/MM", { locale: vi })}
                   </p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {formatDistanceToNow(shift.startsAt, { addSuffix: true, locale: vi })}
+                  </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <ConfirmBadge status={shift.confirmation?.status} />
                   {shift.confirmation?.status === "PENDING" && (
                     <Link
                       href={`/confirm/${shift.confirmation.token}`}
-                      className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-lg font-medium hover:bg-blue-100"
+                      className="text-xs px-2.5 py-1 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700"
                     >
                       Xác nhận
                     </Link>
                   )}
                 </div>
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
 function StatCard({
-  label, value, color, href,
+  label, value, color, href, icon,
 }: {
-  label: string; value: number; color: "blue" | "green" | "yellow" | "orange" | "red"; href: string;
+  label: string; value: number; color: "blue" | "green" | "yellow" | "orange" | "red"; href: string; icon: React.ReactNode;
 }) {
-  const textColor = { blue: "text-blue-700", green: "text-green-700", yellow: "text-yellow-700", orange: "text-orange-700", red: "text-red-700" };
+  const palette = {
+    blue:   { border: "border-l-blue-500",   bg: "bg-blue-50",   icon: "text-blue-500",   value: "text-blue-700"   },
+    green:  { border: "border-l-green-500",  bg: "bg-green-50",  icon: "text-green-500",  value: "text-green-700"  },
+    yellow: { border: "border-l-yellow-500", bg: "bg-yellow-50", icon: "text-yellow-500", value: "text-yellow-700" },
+    orange: { border: "border-l-orange-500", bg: "bg-orange-50", icon: "text-orange-500", value: "text-orange-700" },
+    red:    { border: "border-l-red-500",    bg: "bg-red-50",    icon: "text-red-500",    value: "text-red-700"    },
+  };
+  const p = palette[color];
   return (
-    <Link href={href} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-sm transition-shadow">
-      <p className="text-sm text-gray-500">{label}</p>
-      <p className={`text-3xl font-bold mt-1 ${textColor[color]}`}>{value}</p>
+    <Link
+      href={href}
+      className={`bg-white rounded-xl border border-gray-200 border-l-4 ${p.border} p-5 hover:shadow-md transition-shadow flex items-start gap-3`}
+    >
+      <div className={`w-9 h-9 rounded-lg ${p.bg} flex items-center justify-center shrink-0 ${p.icon}`}>
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <p className="text-xs text-gray-500 leading-tight">{label}</p>
+        <p className={`text-2xl font-bold mt-0.5 ${p.value}`}>{value}</p>
+      </div>
     </Link>
   );
 }

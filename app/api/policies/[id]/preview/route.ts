@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser, requireTeamRole, isNextResponse } from "@/lib/rbac";
 import { ok, unauthorized, notFound, badRequest, handleError } from "@/lib/api-response";
 import { TeamRole } from "@/app/generated/prisma/client";
-import { generateShifts } from "@/lib/rotation/engine";
+import { generateShifts, TimeSlot } from "@/lib/rotation/engine";
 import { addWeeks } from "date-fns";
 
 const PreviewQuerySchema = z.object({
@@ -57,7 +57,12 @@ export async function GET(
       backupId: undefined,
     }));
 
-    const shifts = generateShifts(policy, participants, rangeStart, rangeEnd);
+    const shifts = generateShifts(
+      { ...policy, timeSlots: policy.timeSlots as TimeSlot[] | null | undefined },
+      participants,
+      rangeStart,
+      rangeEnd
+    );
 
     const memberMap = Object.fromEntries(
       policy.team.members.map((m) => [m.user.id, m.user])

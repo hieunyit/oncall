@@ -70,7 +70,8 @@ export const ModelName = {
   UserNotificationRule: 'UserNotificationRule',
   AuditLog: 'AuditLog',
   AlertIntegration: 'AlertIntegration',
-  Alert: 'Alert'
+  Alert: 'Alert',
+  ShiftTask: 'ShiftTask'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -181,6 +182,7 @@ export const RotationPolicyScalarFieldEnum = {
   confirmationDueHours: 'confirmationDueHours',
   reminderLeadHours: 'reminderLeadHours',
   maxGenerateWeeks: 'maxGenerateWeeks',
+  timeSlots: 'timeSlots',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -394,6 +396,20 @@ export const AlertScalarFieldEnum = {
 export type AlertScalarFieldEnum = (typeof AlertScalarFieldEnum)[keyof typeof AlertScalarFieldEnum]
 
 
+export const ShiftTaskScalarFieldEnum = {
+  id: 'id',
+  shiftId: 'shiftId',
+  title: 'title',
+  isCompleted: 'isCompleted',
+  completedAt: 'completedAt',
+  order: 'order',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ShiftTaskScalarFieldEnum = (typeof ShiftTaskScalarFieldEnum)[keyof typeof ShiftTaskScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -402,19 +418,19 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
-export const JsonNullValueInput = {
-  JsonNull: JsonNull
-} as const
-
-export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
-
-
 export const NullableJsonNullValueInput = {
   DbNull: DbNull,
   JsonNull: JsonNull
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

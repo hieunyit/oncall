@@ -6,6 +6,14 @@ import { ok, created, unauthorized, handleError } from "@/lib/api-response";
 import { CadenceKind, TeamRole } from "@/app/generated/prisma/client";
 import { writeAuditLog } from "@/lib/audit";
 
+const TimeSlotSchema = z.object({
+  label: z.string(),
+  startHour: z.number().int().min(0).max(23),
+  startMinute: z.number().int().min(0).max(59),
+  endHour: z.number().int().min(0).max(23),
+  endMinute: z.number().int().min(0).max(59),
+});
+
 const CreatePolicySchema = z.object({
   teamId: z.string().uuid(),
   name: z.string().min(1).max(200),
@@ -17,6 +25,7 @@ const CreatePolicySchema = z.object({
   reminderLeadHours: z.array(z.number().int().positive()).default([24, 2]),
   maxGenerateWeeks: z.number().int().min(1).max(52).default(4),
   escalationPolicyId: z.string().uuid().nullable().optional(),
+  timeSlots: z.array(TimeSlotSchema).optional(),
 });
 
 export async function GET(req: NextRequest) {

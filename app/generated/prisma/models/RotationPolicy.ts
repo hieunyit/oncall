@@ -86,6 +86,7 @@ export type RotationPolicyCountAggregateOutputType = {
   confirmationDueHours: number
   reminderLeadHours: number
   maxGenerateWeeks: number
+  timeSlots: number
   isActive: number
   createdAt: number
   updatedAt: number
@@ -153,6 +154,7 @@ export type RotationPolicyCountAggregateInputType = {
   confirmationDueHours?: true
   reminderLeadHours?: true
   maxGenerateWeeks?: true
+  timeSlots?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -257,6 +259,7 @@ export type RotationPolicyGroupByOutputType = {
   confirmationDueHours: number
   reminderLeadHours: number[]
   maxGenerateWeeks: number
+  timeSlots: runtime.JsonValue | null
   isActive: boolean
   createdAt: Date
   updatedAt: Date
@@ -297,6 +300,7 @@ export type RotationPolicyWhereInput = {
   confirmationDueHours?: Prisma.IntFilter<"RotationPolicy"> | number
   reminderLeadHours?: Prisma.IntNullableListFilter<"RotationPolicy">
   maxGenerateWeeks?: Prisma.IntFilter<"RotationPolicy"> | number
+  timeSlots?: Prisma.JsonNullableFilter<"RotationPolicy">
   isActive?: Prisma.BoolFilter<"RotationPolicy"> | boolean
   createdAt?: Prisma.DateTimeFilter<"RotationPolicy"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RotationPolicy"> | Date | string
@@ -318,6 +322,7 @@ export type RotationPolicyOrderByWithRelationInput = {
   confirmationDueHours?: Prisma.SortOrder
   reminderLeadHours?: Prisma.SortOrder
   maxGenerateWeeks?: Prisma.SortOrder
+  timeSlots?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -342,6 +347,7 @@ export type RotationPolicyWhereUniqueInput = Prisma.AtLeast<{
   confirmationDueHours?: Prisma.IntFilter<"RotationPolicy"> | number
   reminderLeadHours?: Prisma.IntNullableListFilter<"RotationPolicy">
   maxGenerateWeeks?: Prisma.IntFilter<"RotationPolicy"> | number
+  timeSlots?: Prisma.JsonNullableFilter<"RotationPolicy">
   isActive?: Prisma.BoolFilter<"RotationPolicy"> | boolean
   createdAt?: Prisma.DateTimeFilter<"RotationPolicy"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RotationPolicy"> | Date | string
@@ -363,6 +369,7 @@ export type RotationPolicyOrderByWithAggregationInput = {
   confirmationDueHours?: Prisma.SortOrder
   reminderLeadHours?: Prisma.SortOrder
   maxGenerateWeeks?: Prisma.SortOrder
+  timeSlots?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -388,6 +395,7 @@ export type RotationPolicyScalarWhereWithAggregatesInput = {
   confirmationDueHours?: Prisma.IntWithAggregatesFilter<"RotationPolicy"> | number
   reminderLeadHours?: Prisma.IntNullableListFilter<"RotationPolicy">
   maxGenerateWeeks?: Prisma.IntWithAggregatesFilter<"RotationPolicy"> | number
+  timeSlots?: Prisma.JsonNullableWithAggregatesFilter<"RotationPolicy">
   isActive?: Prisma.BoolWithAggregatesFilter<"RotationPolicy"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"RotationPolicy"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"RotationPolicy"> | Date | string
@@ -403,6 +411,7 @@ export type RotationPolicyCreateInput = {
   confirmationDueHours?: number
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -424,6 +433,7 @@ export type RotationPolicyUncheckedCreateInput = {
   confirmationDueHours?: number
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -441,6 +451,7 @@ export type RotationPolicyUpdateInput = {
   confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -462,6 +473,7 @@ export type RotationPolicyUncheckedUpdateInput = {
   confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -481,6 +493,7 @@ export type RotationPolicyCreateManyInput = {
   confirmationDueHours?: number
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -496,6 +509,7 @@ export type RotationPolicyUpdateManyMutationInput = {
   confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -513,6 +527,7 @@ export type RotationPolicyUncheckedUpdateManyInput = {
   confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -548,6 +563,7 @@ export type RotationPolicyCountOrderByAggregateInput = {
   confirmationDueHours?: Prisma.SortOrder
   reminderLeadHours?: Prisma.SortOrder
   maxGenerateWeeks?: Prisma.SortOrder
+  timeSlots?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -741,6 +757,7 @@ export type RotationPolicyCreateWithoutTeamInput = {
   confirmationDueHours?: number
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -760,6 +777,7 @@ export type RotationPolicyUncheckedCreateWithoutTeamInput = {
   confirmationDueHours?: number
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -808,6 +826,7 @@ export type RotationPolicyScalarWhereInput = {
   confirmationDueHours?: Prisma.IntFilter<"RotationPolicy"> | number
   reminderLeadHours?: Prisma.IntNullableListFilter<"RotationPolicy">
   maxGenerateWeeks?: Prisma.IntFilter<"RotationPolicy"> | number
+  timeSlots?: Prisma.JsonNullableFilter<"RotationPolicy">
   isActive?: Prisma.BoolFilter<"RotationPolicy"> | boolean
   createdAt?: Prisma.DateTimeFilter<"RotationPolicy"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RotationPolicy"> | Date | string
@@ -823,6 +842,7 @@ export type RotationPolicyCreateWithoutScheduleBatchesInput = {
   confirmationDueHours?: number
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -843,6 +863,7 @@ export type RotationPolicyUncheckedCreateWithoutScheduleBatchesInput = {
   confirmationDueHours?: number
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -875,6 +896,7 @@ export type RotationPolicyUpdateWithoutScheduleBatchesInput = {
   confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -895,6 +917,7 @@ export type RotationPolicyUncheckedUpdateWithoutScheduleBatchesInput = {
   confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -911,6 +934,7 @@ export type RotationPolicyCreateWithoutShiftsInput = {
   confirmationDueHours?: number
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -931,6 +955,7 @@ export type RotationPolicyUncheckedCreateWithoutShiftsInput = {
   confirmationDueHours?: number
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -963,6 +988,7 @@ export type RotationPolicyUpdateWithoutShiftsInput = {
   confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -983,6 +1009,7 @@ export type RotationPolicyUncheckedUpdateWithoutShiftsInput = {
   confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -999,6 +1026,7 @@ export type RotationPolicyCreateWithoutEscalationPolicyInput = {
   confirmationDueHours?: number
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1018,6 +1046,7 @@ export type RotationPolicyUncheckedCreateWithoutEscalationPolicyInput = {
   confirmationDueHours?: number
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1062,6 +1091,7 @@ export type RotationPolicyCreateManyTeamInput = {
   confirmationDueHours?: number
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1077,6 +1107,7 @@ export type RotationPolicyUpdateWithoutTeamInput = {
   confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1096,6 +1127,7 @@ export type RotationPolicyUncheckedUpdateWithoutTeamInput = {
   confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1114,6 +1146,7 @@ export type RotationPolicyUncheckedUpdateManyWithoutTeamInput = {
   confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1130,6 +1163,7 @@ export type RotationPolicyCreateManyEscalationPolicyInput = {
   confirmationDueHours?: number
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1145,6 +1179,7 @@ export type RotationPolicyUpdateWithoutEscalationPolicyInput = {
   confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1164,6 +1199,7 @@ export type RotationPolicyUncheckedUpdateWithoutEscalationPolicyInput = {
   confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1182,6 +1218,7 @@ export type RotationPolicyUncheckedUpdateManyWithoutEscalationPolicyInput = {
   confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1239,6 +1276,7 @@ export type RotationPolicySelect<ExtArgs extends runtime.Types.Extensions.Intern
   confirmationDueHours?: boolean
   reminderLeadHours?: boolean
   maxGenerateWeeks?: boolean
+  timeSlots?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1261,6 +1299,7 @@ export type RotationPolicySelectCreateManyAndReturn<ExtArgs extends runtime.Type
   confirmationDueHours?: boolean
   reminderLeadHours?: boolean
   maxGenerateWeeks?: boolean
+  timeSlots?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1280,6 +1319,7 @@ export type RotationPolicySelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   confirmationDueHours?: boolean
   reminderLeadHours?: boolean
   maxGenerateWeeks?: boolean
+  timeSlots?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1299,12 +1339,13 @@ export type RotationPolicySelectScalar = {
   confirmationDueHours?: boolean
   reminderLeadHours?: boolean
   maxGenerateWeeks?: boolean
+  timeSlots?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type RotationPolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "teamId" | "escalationPolicyId" | "name" | "cadence" | "cronExpression" | "shiftDurationHours" | "handoverOffsetMinutes" | "confirmationDueHours" | "reminderLeadHours" | "maxGenerateWeeks" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["rotationPolicy"]>
+export type RotationPolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "teamId" | "escalationPolicyId" | "name" | "cadence" | "cronExpression" | "shiftDurationHours" | "handoverOffsetMinutes" | "confirmationDueHours" | "reminderLeadHours" | "maxGenerateWeeks" | "timeSlots" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["rotationPolicy"]>
 export type RotationPolicyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   team?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
   escalationPolicy?: boolean | Prisma.RotationPolicy$escalationPolicyArgs<ExtArgs>
@@ -1341,6 +1382,7 @@ export type $RotationPolicyPayload<ExtArgs extends runtime.Types.Extensions.Inte
     confirmationDueHours: number
     reminderLeadHours: number[]
     maxGenerateWeeks: number
+    timeSlots: runtime.JsonValue | null
     isActive: boolean
     createdAt: Date
     updatedAt: Date
@@ -1782,6 +1824,7 @@ export interface RotationPolicyFieldRefs {
   readonly confirmationDueHours: Prisma.FieldRef<"RotationPolicy", 'Int'>
   readonly reminderLeadHours: Prisma.FieldRef<"RotationPolicy", 'Int[]'>
   readonly maxGenerateWeeks: Prisma.FieldRef<"RotationPolicy", 'Int'>
+  readonly timeSlots: Prisma.FieldRef<"RotationPolicy", 'Json'>
   readonly isActive: Prisma.FieldRef<"RotationPolicy", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"RotationPolicy", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"RotationPolicy", 'DateTime'>

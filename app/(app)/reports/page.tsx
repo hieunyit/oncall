@@ -138,11 +138,12 @@ export default async function ReportsPage({ searchParams }: PageProps) {
   };
 
   const totalShifts = shiftStats.reduce((s, r) => s + r._count.id, 0);
+  const maxShiftCount = shiftStats[0]?._count.id ?? 1;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-xl font-semibold text-gray-900">Báo cáo</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Báo cáo</h1>
         <ReportsFilters
           monthOptions={monthOptions}
           selectedMonth={selectedMonth}
@@ -156,19 +157,51 @@ export default async function ReportsPage({ searchParams }: PageProps) {
         {format(monthStart, "dd/MM/yyyy", { locale: vi })} –{" "}
         {format(monthEnd, "dd/MM/yyyy", { locale: vi })}
         {teamFilter && teams.find((t) => t.id === teamFilter) && (
-          <> · {teams.find((t) => t.id === teamFilter)!.name}</>
+          <> · <span className="font-medium text-gray-700">{teams.find((t) => t.id === teamFilter)!.name}</span></>
         )}
       </p>
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <SummaryCard label="Tổng ca trực" value={totalShifts} color="blue" />
-        <SummaryCard label="Tổng alerts" value={alertTotal} color={alertTotal > 0 ? "red" : "green"} />
-        <SummaryCard label="Yêu cầu đổi ca" value={swapTotal} color="orange" />
+        <SummaryCard
+          label="Tổng ca trực"
+          value={totalShifts}
+          color="blue"
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          }
+        />
+        <SummaryCard
+          label="Tổng alerts"
+          value={alertTotal}
+          color={alertTotal > 0 ? "red" : "green"}
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          }
+        />
+        <SummaryCard
+          label="Yêu cầu đổi ca"
+          value={swapTotal}
+          color="orange"
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+          }
+        />
         <SummaryCard
           label="Avg ack time"
           value={avgAckMs !== null ? formatDuration(avgAckMs) : "—"}
           color="purple"
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          }
         />
       </div>
 
@@ -184,15 +217,22 @@ export default async function ReportsPage({ searchParams }: PageProps) {
             <div className="divide-y divide-gray-50">
               {shiftStats.map((s) => {
                 const user = usersMap[s.assigneeId];
-                const pct = Math.round((s._count.id / shiftStats[0]._count.id) * 100);
+                const pct = Math.round((s._count.id / maxShiftCount) * 100);
+                const totalPct = totalShifts > 0 ? Math.round((s._count.id / totalShifts) * 100) : 0;
                 return (
                   <div key={s.assigneeId} className="px-5 py-3">
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-sm text-gray-700">{user?.fullName ?? s.assigneeId}</span>
-                      <span className="text-sm font-semibold text-gray-900">{s._count.id} ca</span>
+                      <span className="text-sm text-gray-700 font-medium">{user?.fullName ?? s.assigneeId}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400">{totalPct}%</span>
+                        <span className="text-sm font-bold text-gray-900">{s._count.id} ca</span>
+                      </div>
                     </div>
-                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${pct}%` }} />
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-indigo-500 rounded-full transition-all"
+                        style={{ width: `${pct}%` }}
+                      />
                     </div>
                   </div>
                 );
@@ -208,9 +248,9 @@ export default async function ReportsPage({ searchParams }: PageProps) {
           </div>
           <div className="px-5 py-4 space-y-3">
             <StatRow label="Tổng alerts" value={alertTotal} />
-            <StatRow label="Đang cháy" value={alertMap["FIRING"] ?? 0} valueClass="text-red-600" />
-            <StatRow label="Đã nhận" value={alertMap["ACKNOWLEDGED"] ?? 0} valueClass="text-yellow-600" />
-            <StatRow label="Đã giải quyết" value={alertMap["RESOLVED"] ?? 0} valueClass="text-green-600" />
+            <StatRow label="Đang cháy" value={alertMap["FIRING"] ?? 0} valueClass="text-red-600 font-bold" dotClass="bg-red-500" />
+            <StatRow label="Đã nhận" value={alertMap["ACKNOWLEDGED"] ?? 0} valueClass="text-yellow-600" dotClass="bg-yellow-500" />
+            <StatRow label="Đã giải quyết" value={alertMap["RESOLVED"] ?? 0} valueClass="text-green-600" dotClass="bg-green-500" />
             <StatRow
               label="Tỷ lệ giải quyết"
               value={alertTotal > 0 ? `${Math.round(((alertMap["RESOLVED"] ?? 0) / alertTotal) * 100)}%` : "—"}
@@ -228,10 +268,10 @@ export default async function ReportsPage({ searchParams }: PageProps) {
           </div>
           <div className="px-5 py-4 space-y-3">
             <StatRow label="Tổng xác nhận" value={confirmTotal} />
-            <StatRow label="Đã xác nhận" value={confirmMap["CONFIRMED"] ?? 0} valueClass="text-green-600" />
-            <StatRow label="Chờ xác nhận" value={confirmMap["PENDING"] ?? 0} valueClass="text-yellow-600" />
-            <StatRow label="Từ chối" value={confirmMap["DECLINED"] ?? 0} valueClass="text-red-600" />
-            <StatRow label="Hết hạn" value={confirmMap["EXPIRED"] ?? 0} valueClass="text-gray-400" />
+            <StatRow label="Đã xác nhận" value={confirmMap["CONFIRMED"] ?? 0} valueClass="text-green-600" dotClass="bg-green-500" />
+            <StatRow label="Chờ xác nhận" value={confirmMap["PENDING"] ?? 0} valueClass="text-yellow-600" dotClass="bg-yellow-500" />
+            <StatRow label="Từ chối" value={confirmMap["DECLINED"] ?? 0} valueClass="text-red-600" dotClass="bg-red-500" />
+            <StatRow label="Hết hạn" value={confirmMap["EXPIRED"] ?? 0} valueClass="text-gray-400" dotClass="bg-gray-300" />
             <StatRow
               label="Tỷ lệ xác nhận"
               value={confirmTotal > 0 ? `${Math.round(((confirmMap["CONFIRMED"] ?? 0) / confirmTotal) * 100)}%` : "—"}
@@ -246,19 +286,21 @@ export default async function ReportsPage({ searchParams }: PageProps) {
           </div>
           <div className="px-5 py-4 space-y-3">
             <StatRow label="Tổng yêu cầu" value={swapTotal} />
-            <StatRow label="Đang chờ" value={swapMap["REQUESTED"] ?? 0} valueClass="text-yellow-600" />
+            <StatRow label="Đang chờ" value={swapMap["REQUESTED"] ?? 0} valueClass="text-yellow-600" dotClass="bg-yellow-500" />
             <StatRow
               label="Chờ admin duyệt"
               value={swapMap["ACCEPTED_BY_TARGET"] ?? 0}
               valueClass="text-blue-600"
+              dotClass="bg-blue-500"
             />
-            <StatRow label="Đã duyệt" value={swapMap["APPROVED"] ?? 0} valueClass="text-green-600" />
+            <StatRow label="Đã duyệt" value={swapMap["APPROVED"] ?? 0} valueClass="text-green-600" dotClass="bg-green-500" />
             <StatRow
               label="Từ chối"
               value={swapMap["REJECTED"] ?? 0}
               valueClass="text-red-600"
+              dotClass="bg-red-500"
             />
-            <StatRow label="Đã hủy" value={swapMap["CANCELLED"] ?? 0} valueClass="text-gray-400" />
+            <StatRow label="Đã hủy" value={swapMap["CANCELLED"] ?? 0} valueClass="text-gray-400" dotClass="bg-gray-300" />
           </div>
         </div>
       </div>
@@ -270,22 +312,30 @@ function SummaryCard({
   label,
   value,
   color,
+  icon,
 }: {
   label: string;
   value: number | string;
   color: string;
+  icon: React.ReactNode;
 }) {
-  const colorMap: Record<string, string> = {
-    blue: "text-blue-700",
-    green: "text-green-700",
-    red: "text-red-700",
-    orange: "text-orange-700",
-    purple: "text-purple-700",
+  const palette: Record<string, { border: string; bg: string; icon: string; value: string }> = {
+    blue:   { border: "border-l-blue-500",   bg: "bg-blue-50",   icon: "text-blue-500",   value: "text-blue-700"   },
+    green:  { border: "border-l-green-500",  bg: "bg-green-50",  icon: "text-green-500",  value: "text-green-700"  },
+    red:    { border: "border-l-red-500",    bg: "bg-red-50",    icon: "text-red-500",    value: "text-red-700"    },
+    orange: { border: "border-l-orange-500", bg: "bg-orange-50", icon: "text-orange-500", value: "text-orange-700" },
+    purple: { border: "border-l-purple-500", bg: "bg-purple-50", icon: "text-purple-500", value: "text-purple-700" },
   };
+  const p = palette[color] ?? palette.blue;
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <p className="text-sm text-gray-500">{label}</p>
-      <p className={`text-3xl font-bold mt-1 ${colorMap[color] ?? "text-gray-900"}`}>{value}</p>
+    <div className={`bg-white rounded-xl border border-gray-200 border-l-4 ${p.border} p-5 flex items-start gap-3`}>
+      <div className={`w-9 h-9 rounded-lg ${p.bg} flex items-center justify-center shrink-0 ${p.icon}`}>
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <p className="text-xs text-gray-500 leading-tight">{label}</p>
+        <p className={`text-2xl font-bold mt-0.5 ${p.value}`}>{value}</p>
+      </div>
     </div>
   );
 }
@@ -294,15 +344,20 @@ function StatRow({
   label,
   value,
   valueClass,
+  dotClass,
 }: {
   label: string;
   value: number | string;
   valueClass?: string;
+  dotClass?: string;
 }) {
   return (
-    <div className="flex items-center justify-between">
-      <span className="text-sm text-gray-500">{label}</span>
-      <span className={`text-sm font-semibold ${valueClass ?? "text-gray-900"}`}>{value}</span>
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2">
+        {dotClass && <span className={`w-2 h-2 rounded-full shrink-0 ${dotClass}`} />}
+        <span className="text-sm text-gray-500">{label}</span>
+      </div>
+      <span className={`text-sm font-semibold tabular-nums ${valueClass ?? "text-gray-900"}`}>{value}</span>
     </div>
   );
 }

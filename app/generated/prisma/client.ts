@@ -141,3 +141,8 @@ export type AlertIntegration = Prisma.AlertIntegrationModel
  * 
  */
 export type Alert = Prisma.AlertModel
+/**
+ * Model ShiftTask
+ * 
+ */
+export type ShiftTask = Prisma.ShiftTaskModel

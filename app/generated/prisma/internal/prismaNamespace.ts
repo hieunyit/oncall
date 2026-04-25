@@ -403,7 +403,8 @@ export const ModelName = {
   UserNotificationRule: 'UserNotificationRule',
   AuditLog: 'AuditLog',
   AlertIntegration: 'AlertIntegration',
-  Alert: 'Alert'
+  Alert: 'Alert',
+  ShiftTask: 'ShiftTask'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -419,7 +420,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "user" | "team" | "teamMember" | "rotationPolicy" | "scheduleBatch" | "shift" | "shiftConfirmation" | "swapRequest" | "teamNotificationChannel" | "notificationMessage" | "notificationDelivery" | "escalationPolicy" | "escalationRule" | "userNotificationRule" | "auditLog" | "alertIntegration" | "alert"
+    modelProps: "account" | "session" | "verificationToken" | "user" | "team" | "teamMember" | "rotationPolicy" | "scheduleBatch" | "shift" | "shiftConfirmation" | "swapRequest" | "teamNotificationChannel" | "notificationMessage" | "notificationDelivery" | "escalationPolicy" | "escalationRule" | "userNotificationRule" | "auditLog" | "alertIntegration" | "alert" | "shiftTask"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1903,6 +1904,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ShiftTask: {
+      payload: Prisma.$ShiftTaskPayload<ExtArgs>
+      fields: Prisma.ShiftTaskFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ShiftTaskFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftTaskPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ShiftTaskFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftTaskPayload>
+        }
+        findFirst: {
+          args: Prisma.ShiftTaskFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftTaskPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ShiftTaskFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftTaskPayload>
+        }
+        findMany: {
+          args: Prisma.ShiftTaskFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftTaskPayload>[]
+        }
+        create: {
+          args: Prisma.ShiftTaskCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftTaskPayload>
+        }
+        createMany: {
+          args: Prisma.ShiftTaskCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ShiftTaskCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftTaskPayload>[]
+        }
+        delete: {
+          args: Prisma.ShiftTaskDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftTaskPayload>
+        }
+        update: {
+          args: Prisma.ShiftTaskUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftTaskPayload>
+        }
+        deleteMany: {
+          args: Prisma.ShiftTaskDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ShiftTaskUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ShiftTaskUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftTaskPayload>[]
+        }
+        upsert: {
+          args: Prisma.ShiftTaskUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftTaskPayload>
+        }
+        aggregate: {
+          args: Prisma.ShiftTaskAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateShiftTask>
+        }
+        groupBy: {
+          args: Prisma.ShiftTaskGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShiftTaskGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ShiftTaskCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShiftTaskCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2034,6 +2109,7 @@ export const RotationPolicyScalarFieldEnum = {
   confirmationDueHours: 'confirmationDueHours',
   reminderLeadHours: 'reminderLeadHours',
   maxGenerateWeeks: 'maxGenerateWeeks',
+  timeSlots: 'timeSlots',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -2247,6 +2323,20 @@ export const AlertScalarFieldEnum = {
 export type AlertScalarFieldEnum = (typeof AlertScalarFieldEnum)[keyof typeof AlertScalarFieldEnum]
 
 
+export const ShiftTaskScalarFieldEnum = {
+  id: 'id',
+  shiftId: 'shiftId',
+  title: 'title',
+  isCompleted: 'isCompleted',
+  completedAt: 'completedAt',
+  order: 'order',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ShiftTaskScalarFieldEnum = (typeof ShiftTaskScalarFieldEnum)[keyof typeof ShiftTaskScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2255,19 +2345,19 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
-export const JsonNullValueInput = {
-  JsonNull: JsonNull
-} as const
-
-export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
-
-
 export const NullableJsonNullValueInput = {
   DbNull: DbNull,
   JsonNull: JsonNull
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -2407,6 +2497,20 @@ export type ListEnumCadenceKindFieldRefInput<$PrismaModel> = FieldRefInputType<$
 
 
 /**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
  * Reference to a field of type 'BatchStatus'
  */
 export type EnumBatchStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BatchStatus'>
@@ -2487,20 +2591,6 @@ export type EnumChannelTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$Pris
  * Reference to a field of type 'ChannelType[]'
  */
 export type ListEnumChannelTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChannelType[]'>
-    
-
-
-/**
- * Reference to a field of type 'Json'
- */
-export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-    
-
-
-/**
- * Reference to a field of type 'QueryMode'
- */
-export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -2717,6 +2807,7 @@ export type GlobalOmitConfig = {
   auditLog?: Prisma.AuditLogOmit
   alertIntegration?: Prisma.AlertIntegrationOmit
   alert?: Prisma.AlertOmit
+  shiftTask?: Prisma.ShiftTaskOmit
 }
 
 /* Types for Logging */

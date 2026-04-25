@@ -6,6 +6,15 @@ import { useRouter } from "next/navigation";
 interface Team { id: string; name: string; }
 interface EscalationPolicy { id: string; name: string; teamId: string; }
 
+interface TimeSlot {
+  label: string;
+  startHour: number;
+  startMinute: number;
+  endHour: number;
+  endMinute: number;
+  daysOfWeek?: number[];
+}
+
 interface PolicyFormProps {
   teams: Team[];
   defaultTeamId?: string;
@@ -22,7 +31,17 @@ interface PolicyFormProps {
     reminderLeadHours: number[];
     maxGenerateWeeks: number;
     escalationPolicyId?: string | null;
+    timeSlots?: TimeSlot[] | null;
   };
+}
+
+function timeToHHMM(hour: number, minute: number): string {
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
+
+function parseHHMM(value: string): { hour: number; minute: number } {
+  const [h, m] = value.split(":").map(Number);
+  return { hour: h ?? 0, minute: m ?? 0 };
 }
 
 export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], initialData }: PolicyFormProps) {
@@ -42,6 +61,14 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
     escalationPolicyId: initialData?.escalationPolicyId ?? "",
   });
 
+  const initialSlots = initialData?.timeSlots ?? [];
+  const [useTimeSlots, setUseTimeSlots] = useState(Array.isArray(initialSlots) && initialSlots.length > 0);
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>(
+    Array.isArray(initialSlots) && initialSlots.length > 0
+      ? initialSlots
+      : []
+  );
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,6 +77,46 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
   }
 
   const teamEscalationPolicies = escalationPolicies.filter((p) => p.teamId === form.teamId);
+
+  function addSlot() {
+    setTimeSlots((prev) => [
+      ...prev,
+      { label: "Ca mới", startHour: 8, startMinute: 0, endHour: 16, endMinute: 0 },
+    ]);
+  }
+
+  function removeSlot(index: number) {
+    setTimeSlots((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function updateSlot(index: number, field: keyof TimeSlot, value: string | number) {
+    setTimeSlots((prev) =>
+      prev.map((slot, i) => (i === index ? { ...slot, [field]: value } : slot))
+    );
+  }
+
+  function updateSlotTime(index: number, field: "start" | "end", value: string) {
+    const { hour, minute } = parseHHMM(value);
+    setTimeSlots((prev) =>
+      prev.map((slot, i) =>
+        i === index
+          ? { ...slot, [`${field}Hour`]: hour, [`${field}Minute`]: minute }
+          : slot
+      )
+    );
+  }
+
+  function toggleSlotDay(index: number, dow: number) {
+    setTimeSlots((prev) =>
+      prev.map((slot, i) => {
+        if (i !== index) return slot;
+        const allDays = [0, 1, 2, 3, 4, 5, 6];
+        const current = (slot.daysOfWeek && slot.daysOfWeek.length > 0) ? slot.daysOfWeek : allDays;
+        const next = current.includes(dow) ? current.filter((d) => d !== dow) : [...current, dow].sort();
+        return { ...slot, daysOfWeek: next.length === 7 ? [] : next };
+      })
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -72,6 +139,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
       reminderLeadHours,
       maxGenerateWeeks: Number(form.maxGenerateWeeks),
       escalationPolicyId: form.escalationPolicyId || null,
+      timeSlots: useTimeSlots ? timeSlots : [],
     };
 
     const url = isEdit ? `/api/policies/${initialData!.id}` : "/api/policies";
@@ -192,6 +260,96 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
           </p>
         )}
       </Field>
+
+      {/* Time slots section */}
+      <div className="border border-gray-200 rounded-lg p-4 space-y-3">
+        <div className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            id="useTimeSlots"
+            checked={useTimeSlots}
+            onChange={(e) => setUseTimeSlots(e.target.checked)}
+            className="w-4 h-4 rounded border-gray-300 text-blue-600"
+          />
+          <label htmlFor="useTimeSlots" className="text-sm font-medium text-gray-700">
+            Dùng khung giờ cố định
+          </label>
+        </div>
+
+        {useTimeSlots && (
+          <div className="space-y-2">
+            <p className="text-xs text-gray-500">
+              Mỗi ngày trong khoảng tạo lịch sẽ có các ca theo khung giờ dưới đây.
+            </p>
+            {timeSlots.map((slot, index) => (
+              <div key={index} className="border border-gray-200 rounded-lg p-3 space-y-2 bg-gray-50/50">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <input
+                    type="text"
+                    value={slot.label}
+                    onChange={(e) => updateSlot(index, "label", e.target.value)}
+                    placeholder="Tên ca"
+                    className="input text-sm w-28"
+                  />
+                  <input
+                    type="time"
+                    value={timeToHHMM(slot.startHour, slot.startMinute)}
+                    onChange={(e) => updateSlotTime(index, "start", e.target.value)}
+                    className="input text-sm"
+                  />
+                  <span className="text-gray-400 text-sm">–</span>
+                  <input
+                    type="time"
+                    value={timeToHHMM(slot.endHour, slot.endMinute)}
+                    onChange={(e) => updateSlotTime(index, "end", e.target.value)}
+                    className="input text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeSlot(index)}
+                    className="ml-auto text-xs px-2 py-1 text-red-500 hover:bg-red-50 rounded"
+                  >
+                    Xoá
+                  </button>
+                </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs text-gray-500 mr-1">Áp dụng:</span>
+                  {[
+                    { dow: 1, label: "T2" }, { dow: 2, label: "T3" }, { dow: 3, label: "T4" },
+                    { dow: 4, label: "T5" }, { dow: 5, label: "T6" }, { dow: 6, label: "T7" }, { dow: 0, label: "CN" },
+                  ].map(({ dow, label }) => {
+                    const active = !slot.daysOfWeek || slot.daysOfWeek.length === 0 || slot.daysOfWeek.includes(dow);
+                    return (
+                      <button
+                        key={dow}
+                        type="button"
+                        onClick={() => toggleSlotDay(index, dow)}
+                        className={`text-xs w-7 h-7 rounded-full font-medium transition-colors ${
+                          active
+                            ? "bg-indigo-600 text-white"
+                            : "bg-white border border-gray-300 text-gray-500 hover:border-indigo-400"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                  <span className="text-xs text-gray-400 ml-1">
+                    {(!slot.daysOfWeek || slot.daysOfWeek.length === 0) ? "(mọi ngày)" : ""}
+                  </span>
+                </div>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addSlot}
+              className="text-xs px-3 py-1.5 bg-gray-50 border border-gray-200 text-gray-600 rounded hover:bg-gray-100"
+            >
+              + Thêm khung giờ
+            </button>
+          </div>
+        )}
+      </div>
 
       <div className="flex items-center gap-3 pt-2">
         <button

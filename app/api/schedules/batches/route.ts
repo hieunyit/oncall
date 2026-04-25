@@ -11,7 +11,7 @@ import {
   handleError,
 } from "@/lib/api-response";
 import { ShiftStatus, ShiftSource, TeamRole } from "@/app/generated/prisma/client";
-import { generateShifts, computeConfirmationDueAt } from "@/lib/rotation/engine";
+import { generateShifts, computeConfirmationDueAt, TimeSlot } from "@/lib/rotation/engine";
 import { writeAuditLog } from "@/lib/audit";
 import { scheduleAllRemindersForBatch } from "@/lib/queue/scheduler";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
@@ -102,7 +102,12 @@ export async function POST(req: NextRequest) {
       userId: m.user.id,
     }));
 
-    const generatedShifts = generateShifts(policy, participants, rangeStart, rangeEnd);
+    const generatedShifts = generateShifts(
+      { ...policy, timeSlots: policy.timeSlots as TimeSlot[] | null | undefined },
+      participants,
+      rangeStart,
+      rangeEnd
+    );
 
     // Create batch + shifts + confirmations in a single transaction
     const batch = await prisma.$transaction(async (tx) => {

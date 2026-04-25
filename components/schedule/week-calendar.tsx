@@ -30,6 +30,7 @@ interface WeekCalendarProps {
   isManager?: boolean;
   teamMembers?: TeamMember[];
   onOverride?: (shift: ShiftBlock) => void;
+  onDayClick?: (day: Date, shifts: ShiftBlock[]) => void;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -45,6 +46,7 @@ export function WeekCalendar({
   currentUserId,
   isManager,
   onOverride,
+  onDayClick,
 }: WeekCalendarProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
@@ -56,10 +58,14 @@ export function WeekCalendar({
       <div className="grid grid-cols-7 border-b border-gray-200">
         {days.map((day) => {
           const isToday = isSameDay(day, today);
+          const dayShiftsForHeader = shifts.filter(
+            (s) => isSameDay(s.startsAt, day) || (s.startsAt <= day && s.endsAt > day)
+          );
           return (
             <div
               key={day.toISOString()}
-              className={`px-2 py-3 text-center text-sm border-r last:border-r-0 border-gray-100 ${isToday ? "bg-blue-50" : ""}`}
+              onClick={() => onDayClick?.(day, dayShiftsForHeader)}
+              className={`px-2 py-3 text-center text-sm border-r last:border-r-0 border-gray-100 ${isToday ? "bg-blue-50" : ""} ${onDayClick ? "cursor-pointer hover:bg-gray-50" : ""}`}
             >
               <p className={`font-medium ${isToday ? "text-blue-700" : "text-gray-600"}`}>
                 {format(day, "EEE", { locale: vi })}

@@ -8,29 +8,37 @@ interface Props {
   policyName: string;
 }
 
-export function PublishBatchForm({ policyId, policyName }: Props) {
+function toDateStr(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+export function PublishBatchForm({ policyId }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [weeks, setWeeks] = useState(4);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const today = new Date();
+  const fourWeeksLater = new Date(today);
+  fourWeeksLater.setDate(fourWeeksLater.getDate() + 28);
+
+  const [rangeStart, setRangeStart] = useState(toDateStr(today));
+  const [rangeEnd, setRangeEnd] = useState(toDateStr(fourWeeksLater));
 
   async function handlePublish() {
     setLoading(true);
     setError(null);
-    const rangeStart = new Date();
-    rangeStart.setHours(0, 0, 0, 0);
 
     const res = await fetch("/api/schedules/batches", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Idempotency-Key": `publish-${policyId}-${rangeStart.toISOString()}-${weeks}w`,
+        "Idempotency-Key": `publish-${policyId}-${rangeStart}-${rangeEnd}`,
       },
       body: JSON.stringify({
         policyId,
-        rangeStart: rangeStart.toISOString(),
-        weeks,
+        rangeStart: new Date(rangeStart + "T00:00:00").toISOString(),
+        rangeEnd: new Date(rangeEnd + "T23:59:59").toISOString(),
       }),
     });
 
@@ -56,16 +64,25 @@ export function PublishBatchForm({ policyId, policyName }: Props) {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <select
-        value={weeks}
-        onChange={(e) => setWeeks(Number(e.target.value))}
-        className="text-xs border border-gray-200 rounded px-2 py-1"
-      >
-        {[1, 2, 4, 8, 12].map((w) => (
-          <option key={w} value={w}>{w} tuần</option>
-        ))}
-      </select>
+    <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-1.5">
+        <label className="text-xs text-gray-600 whitespace-nowrap">Từ ngày</label>
+        <input
+          type="date"
+          value={rangeStart}
+          onChange={(e) => setRangeStart(e.target.value)}
+          className="text-xs border border-gray-200 rounded px-2 py-1"
+        />
+      </div>
+      <div className="flex items-center gap-1.5">
+        <label className="text-xs text-gray-600 whitespace-nowrap">Đến ngày</label>
+        <input
+          type="date"
+          value={rangeEnd}
+          onChange={(e) => setRangeEnd(e.target.value)}
+          className="text-xs border border-gray-200 rounded px-2 py-1"
+        />
+      </div>
       <button
         onClick={handlePublish}
         disabled={loading}

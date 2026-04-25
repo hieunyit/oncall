@@ -1,5 +1,14 @@
-import { addHours, addDays, addWeeks, parseISO, isAfter, isBefore, startOfDay } from "date-fns";
+import { addHours, addDays, addWeeks, isAfter, isBefore, eachDayOfInterval, subDays } from "date-fns";
 import { CadenceKind } from "@/app/generated/prisma/client";
+
+export interface TimeSlot {
+  label: string;
+  startHour: number;
+  startMinute: number;
+  endHour: number;
+  endMinute: number;
+  daysOfWeek?: number[]; // 0=Sun,1=Mon,...,6=Sat; empty/absent = all days
+}
 
 export interface PolicyConfig {
   cadence: CadenceKind;
@@ -8,6 +17,7 @@ export interface PolicyConfig {
   handoverOffsetMinutes: number;
   confirmationDueHours: number;
   reminderLeadHours: number[];
+  timeSlots?: TimeSlot[] | null;
 }
 
 export interface ParticipantSlot {
@@ -32,8 +42,30 @@ export function generateShifts(
   if (participants.length === 0) return [];
 
   const shifts: GeneratedShift[] = [];
-  let current = rangeStart;
   let idx = startingIndex % participants.length;
+
+  if (policy.timeSlots && policy.timeSlots.length > 0) {
+    // Time slot mode: iterate days, generate one shift per slot per day
+    const days = eachDayOfInterval({ start: rangeStart, end: subDays(rangeEnd, 1) });
+    for (const day of days) {
+      const dow = day.getDay(); // 0=Sun,1=Mon,...,6=Sat
+      for (const slot of policy.timeSlots) {
+        if (slot.daysOfWeek && slot.daysOfWeek.length > 0 && !slot.daysOfWeek.includes(dow)) continue;
+        const startsAt = new Date(day);
+        startsAt.setHours(slot.startHour, slot.startMinute, 0, 0);
+        const endsAt = new Date(day);
+        endsAt.setHours(slot.endHour, slot.endMinute, 0, 0);
+        if (endsAt <= startsAt) endsAt.setDate(endsAt.getDate() + 1);
+        if (isAfter(startsAt, rangeEnd)) break;
+        const participant = participants[idx % participants.length];
+        shifts.push({ assigneeId: participant.userId, backupId: participant.backupId, startsAt, endsAt });
+        idx++;
+      }
+    }
+    return shifts;
+  }
+
+  let current = rangeStart;
 
   while (isBefore(current, rangeEnd)) {
     const startsAt = new Date(current);

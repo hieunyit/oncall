@@ -6,6 +6,14 @@ import { ok, noContent, unauthorized, notFound, handleError } from "@/lib/api-re
 import { CadenceKind, TeamRole } from "@/app/generated/prisma/client";
 import { writeAuditLog } from "@/lib/audit";
 
+const TimeSlotSchema = z.object({
+  label: z.string(),
+  startHour: z.number().int().min(0).max(23),
+  startMinute: z.number().int().min(0).max(59),
+  endHour: z.number().int().min(0).max(23),
+  endMinute: z.number().int().min(0).max(59),
+});
+
 const UpdatePolicySchema = z.object({
   name: z.string().min(1).max(200).optional(),
   cadence: z.nativeEnum(CadenceKind).optional(),
@@ -17,6 +25,7 @@ const UpdatePolicySchema = z.object({
   maxGenerateWeeks: z.number().int().min(1).max(52).optional(),
   escalationPolicyId: z.string().uuid().nullable().optional(),
   isActive: z.boolean().optional(),
+  timeSlots: z.array(TimeSlotSchema).optional().nullable(),
 });
 
 export async function GET(
@@ -71,9 +80,16 @@ export async function PATCH(
     if (isNextResponse(result)) return result;
 
     const body = await req.json();
-    const data = UpdatePolicySchema.parse(body);
+    const { escalationPolicyId, timeSlots, ...rest } = UpdatePolicySchema.parse(body);
 
-    const updated = await prisma.rotationPolicy.update({ where: { id }, data });
+    const updated = await prisma.rotationPolicy.update({
+      where: { id },
+      data: {
+        ...rest,
+        ...(escalationPolicyId !== undefined && { escalationPolicyId }),
+        ...(timeSlots !== undefined && { timeSlots: timeSlots ?? [] }),
+      },
+    });
 
     await writeAuditLog({
       actorId: actor.id,
