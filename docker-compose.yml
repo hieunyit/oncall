@@ -49,9 +49,15 @@ services:
       start_period: 30s
 
   app:
-    build: .
+    build:
+      context: .
+      target: runner
     container_name: oncall_app
     env_file: .env
+    environment:
+      # Override localhost URLs with Docker service hostnames
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/oncall?schema=public"
+      REDIS_URL: "redis://redis:6379"
     ports:
       - "3000:3000"
     depends_on:
@@ -61,10 +67,14 @@ services:
         condition: service_healthy
 
   workers:
-    build: .
+    build:
+      context: .
+      target: workers-runner
     container_name: oncall_workers
-    command: ["node", "-r", "tsx/esm", "workers/index.ts"]
     env_file: .env
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/oncall?schema=public"
+      REDIS_URL: "redis://redis:6379"
     depends_on:
       postgres:
         condition: service_healthy

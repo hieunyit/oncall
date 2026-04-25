@@ -1,20 +1,20 @@
 FROM node:20-slim AS base
 WORKDIR /app
-ENV NODE_ENV=production
 
-# ── deps ──────────────────────────────────────────────────────────────────────
-FROM base AS deps
+# ── all deps (dev + prod) — needed for build and workers ─────────────────────
+FROM base AS deps-all
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# ── builder ───────────────────────────────────────────────────────────────────
-FROM deps AS builder
-ENV NEXT_TELEMETRY_DISABLED=1
+# ── app builder ───────────────────────────────────────────────────────────────
+FROM deps-all AS builder
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
 COPY . .
 RUN npm run build
 
-# ── runner ────────────────────────────────────────────────────────────────────
+# ── app runner ────────────────────────────────────────────────────────────────
 FROM base AS runner
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && \
     adduser  --system --uid 1001 nextjs
 
@@ -26,3 +26,9 @@ USER nextjs
 EXPOSE 3000
 ENV PORT=3000 HOSTNAME=0.0.0.0
 CMD ["node", "server.js"]
+
+# ── workers runner ────────────────────────────────────────────────────────────
+FROM deps-all AS workers-runner
+ENV NODE_ENV=production
+COPY . .
+CMD ["node", "--require", "tsx/esm", "workers/index.ts"]
