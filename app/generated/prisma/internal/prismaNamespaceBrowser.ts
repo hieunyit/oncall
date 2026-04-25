@@ -68,7 +68,9 @@ export const ModelName = {
   EscalationPolicy: 'EscalationPolicy',
   EscalationRule: 'EscalationRule',
   UserNotificationRule: 'UserNotificationRule',
-  AuditLog: 'AuditLog'
+  AuditLog: 'AuditLog',
+  AlertIntegration: 'AlertIntegration',
+  Alert: 'Alert'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -356,6 +358,40 @@ export const AuditLogScalarFieldEnum = {
 } as const
 
 export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+
+
+export const AlertIntegrationScalarFieldEnum = {
+  id: 'id',
+  teamId: 'teamId',
+  name: 'name',
+  type: 'type',
+  token: 'token',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AlertIntegrationScalarFieldEnum = (typeof AlertIntegrationScalarFieldEnum)[keyof typeof AlertIntegrationScalarFieldEnum]
+
+
+export const AlertScalarFieldEnum = {
+  id: 'id',
+  integrationId: 'integrationId',
+  title: 'title',
+  message: 'message',
+  severity: 'severity',
+  status: 'status',
+  sourceRef: 'sourceRef',
+  payloadJson: 'payloadJson',
+  triggeredAt: 'triggeredAt',
+  acknowledgedById: 'acknowledgedById',
+  acknowledgedAt: 'acknowledgedAt',
+  resolvedAt: 'resolvedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AlertScalarFieldEnum = (typeof AlertScalarFieldEnum)[keyof typeof AlertScalarFieldEnum]
 
 
 export const SortOrder = {

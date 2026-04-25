@@ -90,6 +90,18 @@ enum NotificationUrgency {
   IMPORTANT
 }
 
+enum AlertStatus {
+  FIRING
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+enum IntegrationType {
+  GENERIC_WEBHOOK
+  PROMETHEUS
+  GRAFANA
+}
+
 // ─── Auth.js tables ──────────────────────────────────────────────────────────
 
 model Account {
@@ -161,6 +173,7 @@ model User {
   swapRequestsTarget     SwapRequest[]        @relation("SwapTarget")
   auditLogs              AuditLog[]
   notificationRules      UserNotificationRule[]
+  acknowledgedAlerts     Alert[]              @relation("AlertAcknowledger")
 
   @@map("users")
 }
@@ -177,6 +190,7 @@ model Team {
   rotationPolicies     RotationPolicy[]
   notificationChannels TeamNotificationChannel[]
   escalationPolicies   EscalationPolicy[]
+  alertIntegrations    AlertIntegration[]
 
   @@map("teams")
 }
@@ -428,4 +442,45 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([actorId, createdAt])
   @@map("audit_logs")
+}
+
+model AlertIntegration {
+  id        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  teamId    String          @map("team_id") @db.Uuid
+  name      String
+  type      IntegrationType @default(GENERIC_WEBHOOK)
+  token     String          @unique @default(dbgenerated("encode(gen_random_bytes(24), 'hex')"))
+  isActive  Boolean         @default(true) @map("is_active")
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+
+  team   Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  alerts Alert[]
+
+  @@index([teamId])
+  @@map("alert_integrations")
+}
+
+model Alert {
+  id               String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  integrationId    String      @map("integration_id") @db.Uuid
+  title            String
+  message          String?
+  severity         String?
+  status           AlertStatus @default(FIRING)
+  sourceRef        String?     @map("source_ref")
+  payloadJson      Json        @map("payload_json")
+  triggeredAt      DateTime    @default(now()) @map("triggered_at")
+  acknowledgedById String?     @map("acknowledged_by") @db.Uuid
+  acknowledgedAt   DateTime?   @map("acknowledged_at")
+  resolvedAt       DateTime?   @map("resolved_at")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+
+  integration  AlertIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  acknowledger User?            @relation("AlertAcknowledger", fields: [acknowledgedById], references: [id])
+
+  @@index([integrationId, triggeredAt])
+  @@index([status])
+  @@map("alerts")
 }

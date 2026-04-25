@@ -123,3 +123,21 @@ export const NotificationUrgency = {
 } as const
 
 export type NotificationUrgency = (typeof NotificationUrgency)[keyof typeof NotificationUrgency]
+
+
+export const AlertStatus = {
+  FIRING: 'FIRING',
+  ACKNOWLEDGED: 'ACKNOWLEDGED',
+  RESOLVED: 'RESOLVED'
+} as const
+
+export type AlertStatus = (typeof AlertStatus)[keyof typeof AlertStatus]
+
+
+export const IntegrationType = {
+  GENERIC_WEBHOOK: 'GENERIC_WEBHOOK',
+  PROMETHEUS: 'PROMETHEUS',
+  GRAFANA: 'GRAFANA'
+} as const
+
+export type IntegrationType = (typeof IntegrationType)[keyof typeof IntegrationType]

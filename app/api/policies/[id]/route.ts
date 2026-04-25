@@ -15,6 +15,7 @@ const UpdatePolicySchema = z.object({
   confirmationDueHours: z.number().int().min(1).optional(),
   reminderLeadHours: z.array(z.number().int().positive()).optional(),
   maxGenerateWeeks: z.number().int().min(1).max(52).optional(),
+  escalationPolicyId: z.string().uuid().nullable().optional(),
   isActive: z.boolean().optional(),
 });
 

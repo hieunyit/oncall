@@ -16,6 +16,7 @@ const CreatePolicySchema = z.object({
   confirmationDueHours: z.number().int().min(1).default(24),
   reminderLeadHours: z.array(z.number().int().positive()).default([24, 2]),
   maxGenerateWeeks: z.number().int().min(1).max(52).default(4),
+  escalationPolicyId: z.string().uuid().nullable().optional(),
 });
 
 export async function GET(req: NextRequest) {

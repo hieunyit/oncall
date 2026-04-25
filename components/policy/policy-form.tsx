@@ -3,14 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-interface Team {
-  id: string;
-  name: string;
-}
+interface Team { id: string; name: string; }
+interface EscalationPolicy { id: string; name: string; teamId: string; }
 
 interface PolicyFormProps {
   teams: Team[];
   defaultTeamId?: string;
+  escalationPolicies?: EscalationPolicy[];
   initialData?: {
     id: string;
     name: string;
@@ -22,10 +21,11 @@ interface PolicyFormProps {
     confirmationDueHours: number;
     reminderLeadHours: number[];
     maxGenerateWeeks: number;
+    escalationPolicyId?: string | null;
   };
 }
 
-export function PolicyForm({ teams, defaultTeamId, initialData }: PolicyFormProps) {
+export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], initialData }: PolicyFormProps) {
   const router = useRouter();
   const isEdit = !!initialData;
 
@@ -39,6 +39,7 @@ export function PolicyForm({ teams, defaultTeamId, initialData }: PolicyFormProp
     confirmationDueHours: initialData?.confirmationDueHours ?? 24,
     reminderLeadHoursRaw: (initialData?.reminderLeadHours ?? [48, 24, 2]).join(", "),
     maxGenerateWeeks: initialData?.maxGenerateWeeks ?? 4,
+    escalationPolicyId: initialData?.escalationPolicyId ?? "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -47,6 +48,8 @@ export function PolicyForm({ teams, defaultTeamId, initialData }: PolicyFormProp
   function set(field: string, value: string | number) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
+
+  const teamEscalationPolicies = escalationPolicies.filter((p) => p.teamId === form.teamId);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -68,6 +71,7 @@ export function PolicyForm({ teams, defaultTeamId, initialData }: PolicyFormProp
       confirmationDueHours: Number(form.confirmationDueHours),
       reminderLeadHours,
       maxGenerateWeeks: Number(form.maxGenerateWeeks),
+      escalationPolicyId: form.escalationPolicyId || null,
     };
 
     const url = isEdit ? `/api/policies/${initialData!.id}` : "/api/policies";
@@ -93,9 +97,7 @@ export function PolicyForm({ teams, defaultTeamId, initialData }: PolicyFormProp
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-          {error}
-        </div>
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>
       )}
 
       <Field label="Nhóm">
@@ -125,11 +127,7 @@ export function PolicyForm({ teams, defaultTeamId, initialData }: PolicyFormProp
       </Field>
 
       <Field label="Chu kỳ">
-        <select
-          value={form.cadence}
-          onChange={(e) => set("cadence", e.target.value)}
-          className="input"
-        >
+        <select value={form.cadence} onChange={(e) => set("cadence", e.target.value)} className="input">
           <option value="DAILY">Hàng ngày</option>
           <option value="WEEKLY">Hàng tuần</option>
           <option value="CUSTOM_CRON">Tùy chỉnh (Cron)</option>
@@ -150,58 +148,49 @@ export function PolicyForm({ teams, defaultTeamId, initialData }: PolicyFormProp
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="Độ dài ca (giờ)">
-          <input
-            required
-            type="number"
-            min={1}
-            max={168}
-            value={form.shiftDurationHours}
-            onChange={(e) => set("shiftDurationHours", e.target.value)}
-            className="input"
-          />
+          <input required type="number" min={1} max={168} value={form.shiftDurationHours}
+            onChange={(e) => set("shiftDurationHours", e.target.value)} className="input" />
         </Field>
         <Field label="Offset bàn giao (phút)">
-          <input
-            type="number"
-            min={0}
-            value={form.handoverOffsetMinutes}
-            onChange={(e) => set("handoverOffsetMinutes", e.target.value)}
-            className="input"
-          />
+          <input type="number" min={0} value={form.handoverOffsetMinutes}
+            onChange={(e) => set("handoverOffsetMinutes", e.target.value)} className="input" />
         </Field>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="Xác nhận trước (giờ)">
-          <input
-            required
-            type="number"
-            min={1}
-            value={form.confirmationDueHours}
-            onChange={(e) => set("confirmationDueHours", e.target.value)}
-            className="input"
-          />
+          <input required type="number" min={1} value={form.confirmationDueHours}
+            onChange={(e) => set("confirmationDueHours", e.target.value)} className="input" />
         </Field>
-        <Field label="Nhắc nhở trước (giờ, cách nhau bằng dấu phẩy)">
-          <input
-            type="text"
-            value={form.reminderLeadHoursRaw}
+        <Field label="Nhắc nhở trước (giờ, cách nhau dấu phẩy)">
+          <input type="text" value={form.reminderLeadHoursRaw}
             onChange={(e) => set("reminderLeadHoursRaw", e.target.value)}
-            placeholder="48, 24, 2"
-            className="input"
-          />
+            placeholder="48, 24, 2" className="input" />
         </Field>
       </div>
 
       <Field label="Tạo trước tối đa (tuần)">
-        <input
-          type="number"
-          min={1}
-          max={52}
-          value={form.maxGenerateWeeks}
-          onChange={(e) => set("maxGenerateWeeks", e.target.value)}
+        <input type="number" min={1} max={52} value={form.maxGenerateWeeks}
+          onChange={(e) => set("maxGenerateWeeks", e.target.value)} className="input" />
+      </Field>
+
+      <Field label="Escalation Chain (tuỳ chọn)">
+        <select
+          value={form.escalationPolicyId}
+          onChange={(e) => set("escalationPolicyId", e.target.value)}
           className="input"
-        />
+        >
+          <option value="">— Không dùng escalation —</option>
+          {teamEscalationPolicies.map((ep) => (
+            <option key={ep.id} value={ep.id}>{ep.name}</option>
+          ))}
+        </select>
+        {form.teamId && teamEscalationPolicies.length === 0 && (
+          <p className="text-xs text-gray-400 mt-1">
+            Nhóm này chưa có escalation chain.{" "}
+            <a href="/escalation/new" className="text-indigo-600 hover:underline">Tạo ngay →</a>
+          </p>
+        )}
       </Field>
 
       <div className="flex items-center gap-3 pt-2">
@@ -212,11 +201,7 @@ export function PolicyForm({ teams, defaultTeamId, initialData }: PolicyFormProp
         >
           {loading ? "Đang lưu..." : isEdit ? "Cập nhật" : "Tạo chính sách"}
         </button>
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="px-4 py-2.5 text-gray-600 hover:text-gray-900"
-        >
+        <button type="button" onClick={() => router.back()} className="px-4 py-2.5 text-gray-600 hover:text-gray-900">
           Huỷ
         </button>
       </div>

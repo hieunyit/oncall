@@ -131,3 +131,13 @@ export type UserNotificationRule = Prisma.UserNotificationRuleModel
  * 
  */
 export type AuditLog = Prisma.AuditLogModel
+/**
+ * Model AlertIntegration
+ * 
+ */
+export type AlertIntegration = Prisma.AlertIntegrationModel
+/**
+ * Model Alert
+ * 
+ */
+export type Alert = Prisma.AlertModel

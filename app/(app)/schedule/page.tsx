@@ -61,6 +61,7 @@ export default async function SchedulePage({ searchParams }: PageProps) {
       assignee: { select: { id: true, fullName: true } },
       policy: { select: { name: true, teamId: true } },
       confirmation: { select: { status: true, token: true } },
+      overrideForShift: { select: { id: true } },
     },
     orderBy: { startsAt: "asc" },
   });
@@ -96,7 +97,7 @@ export default async function SchedulePage({ searchParams }: PageProps) {
     confirmationStatus: s.confirmation?.status ?? null,
     confirmationToken: s.confirmation?.token ?? null,
     isMe: s.assignee.id === currentUser.id,
-    isOverride: false,
+    isOverride: s.overrideForShiftId !== null,
   }));
 
   return (

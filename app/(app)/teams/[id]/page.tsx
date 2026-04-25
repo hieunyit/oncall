@@ -5,6 +5,7 @@ import Link from "next/link";
 import { TeamMemberActions } from "./team-member-actions";
 import { AddMemberForm } from "./add-member-form";
 import { PublishBatchForm } from "./publish-batch-form";
+import { NotificationChannels } from "./notification-channels";
 
 export default async function TeamDetailPage({
   params,
@@ -27,21 +28,16 @@ export default async function TeamDetailPage({
     include: {
       members: {
         include: {
-          user: {
-            select: {
-              id: true,
-              fullName: true,
-              email: true,
-              isActive: true,
-              timezone: true,
-            },
-          },
+          user: { select: { id: true, fullName: true, email: true, isActive: true, timezone: true } },
         },
         orderBy: { order: "asc" },
       },
       rotationPolicies: {
         where: { isActive: true },
         orderBy: { createdAt: "desc" },
+      },
+      notificationChannels: {
+        orderBy: [{ type: "asc" }, { name: "asc" }],
       },
     },
   });
@@ -178,13 +174,24 @@ export default async function TeamDetailPage({
           {team.rotationPolicies.length === 0 && (
             <p className="px-5 py-8 text-center text-gray-400 text-sm">
               Chưa có chính sách xoay vòng. {isManager && (
-                <Link href={`/policies/new?teamId=${id}`} className="text-blue-600">
-                  Tạo ngay
-                </Link>
+                <Link href={`/policies/new?teamId=${id}`} className="text-blue-600">Tạo ngay</Link>
               )}
             </p>
           )}
         </div>
+      </section>
+
+      {/* Notification channels */}
+      <section className="bg-white rounded-xl border border-gray-200">
+        <div className="px-5 py-4 border-b border-gray-100">
+          <h2 className="font-semibold text-gray-900">Kênh thông báo nhóm</h2>
+          <p className="text-xs text-gray-400 mt-0.5">Email, Telegram, Teams — dùng để thông báo sự kiện cho cả nhóm.</p>
+        </div>
+        <NotificationChannels
+          teamId={id}
+          initial={team.notificationChannels}
+          isManager={isManager}
+        />
       </section>
     </div>
   );

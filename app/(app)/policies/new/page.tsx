@@ -19,19 +19,26 @@ export default async function NewPolicyPage({ searchParams }: PageProps) {
   });
   if (!currentUser) redirect("/login");
 
-  const teams = await prisma.team.findMany({
-    where:
-      currentUser.systemRole === "ADMIN"
-        ? {}
-        : { members: { some: { userId: currentUser.id, role: "MANAGER" } } },
-    select: { id: true, name: true },
-    orderBy: { name: "asc" },
-  });
+  const [teams, escalationPolicies] = await Promise.all([
+    prisma.team.findMany({
+      where:
+        currentUser.systemRole === "ADMIN"
+          ? {}
+          : { members: { some: { userId: currentUser.id, role: "MANAGER" } } },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.escalationPolicy.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true, teamId: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
 
   return (
     <div className="max-w-2xl space-y-6">
       <h1 className="text-2xl font-bold text-gray-900">Tạo chính sách xoay vòng</h1>
-      <PolicyForm teams={teams} defaultTeamId={teamId} />
+      <PolicyForm teams={teams} defaultTeamId={teamId} escalationPolicies={escalationPolicies} />
     </div>
   );
 }

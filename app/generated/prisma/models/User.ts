@@ -290,6 +290,7 @@ export type UserWhereInput = {
   swapRequestsTarget?: Prisma.SwapRequestListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
   notificationRules?: Prisma.UserNotificationRuleListRelationFilter
+  acknowledgedAlerts?: Prisma.AlertListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -316,6 +317,7 @@ export type UserOrderByWithRelationInput = {
   swapRequestsTarget?: Prisma.SwapRequestOrderByRelationAggregateInput
   auditLogs?: Prisma.AuditLogOrderByRelationAggregateInput
   notificationRules?: Prisma.UserNotificationRuleOrderByRelationAggregateInput
+  acknowledgedAlerts?: Prisma.AlertOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -345,6 +347,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   swapRequestsTarget?: Prisma.SwapRequestListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
   notificationRules?: Prisma.UserNotificationRuleListRelationFilter
+  acknowledgedAlerts?: Prisma.AlertListRelationFilter
 }, "id" | "email" | "keycloakId">
 
 export type UserOrderByWithAggregationInput = {
@@ -411,6 +414,7 @@ export type UserCreateInput = {
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -437,6 +441,7 @@ export type UserUncheckedCreateInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserUpdateInput = {
@@ -463,6 +468,7 @@ export type UserUpdateInput = {
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -489,6 +495,7 @@ export type UserUncheckedUpdateInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -765,6 +772,22 @@ export type UserUpdateOneWithoutAuditLogsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAuditLogsInput, Prisma.UserUpdateWithoutAuditLogsInput>, Prisma.UserUncheckedUpdateWithoutAuditLogsInput>
 }
 
+export type UserCreateNestedOneWithoutAcknowledgedAlertsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAcknowledgedAlertsInput, Prisma.UserUncheckedCreateWithoutAcknowledgedAlertsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAcknowledgedAlertsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutAcknowledgedAlertsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAcknowledgedAlertsInput, Prisma.UserUncheckedCreateWithoutAcknowledgedAlertsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAcknowledgedAlertsInput
+  upsert?: Prisma.UserUpsertWithoutAcknowledgedAlertsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAcknowledgedAlertsInput, Prisma.UserUpdateWithoutAcknowledgedAlertsInput>, Prisma.UserUncheckedUpdateWithoutAcknowledgedAlertsInput>
+}
+
 export type UserCreateWithoutAccountsInput = {
   id?: string
   email: string
@@ -788,6 +811,7 @@ export type UserCreateWithoutAccountsInput = {
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -813,6 +837,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -854,6 +879,7 @@ export type UserUpdateWithoutAccountsInput = {
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -879,6 +905,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -904,6 +931,7 @@ export type UserCreateWithoutSessionsInput = {
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -929,6 +957,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -970,6 +999,7 @@ export type UserUpdateWithoutSessionsInput = {
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -995,6 +1025,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserCreateWithoutTeamMembersInput = {
@@ -1020,6 +1051,7 @@ export type UserCreateWithoutTeamMembersInput = {
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserUncheckedCreateWithoutTeamMembersInput = {
@@ -1045,6 +1077,7 @@ export type UserUncheckedCreateWithoutTeamMembersInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserCreateOrConnectWithoutTeamMembersInput = {
@@ -1086,6 +1119,7 @@ export type UserUpdateWithoutTeamMembersInput = {
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTeamMembersInput = {
@@ -1111,6 +1145,7 @@ export type UserUncheckedUpdateWithoutTeamMembersInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserCreateWithoutShiftsAsAssigneeInput = {
@@ -1136,6 +1171,7 @@ export type UserCreateWithoutShiftsAsAssigneeInput = {
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserUncheckedCreateWithoutShiftsAsAssigneeInput = {
@@ -1161,6 +1197,7 @@ export type UserUncheckedCreateWithoutShiftsAsAssigneeInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserCreateOrConnectWithoutShiftsAsAssigneeInput = {
@@ -1191,6 +1228,7 @@ export type UserCreateWithoutShiftsAsBackupInput = {
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserUncheckedCreateWithoutShiftsAsBackupInput = {
@@ -1216,6 +1254,7 @@ export type UserUncheckedCreateWithoutShiftsAsBackupInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserCreateOrConnectWithoutShiftsAsBackupInput = {
@@ -1257,6 +1296,7 @@ export type UserUpdateWithoutShiftsAsAssigneeInput = {
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutShiftsAsAssigneeInput = {
@@ -1282,6 +1322,7 @@ export type UserUncheckedUpdateWithoutShiftsAsAssigneeInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserUpsertWithoutShiftsAsBackupInput = {
@@ -1318,6 +1359,7 @@ export type UserUpdateWithoutShiftsAsBackupInput = {
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutShiftsAsBackupInput = {
@@ -1343,6 +1385,7 @@ export type UserUncheckedUpdateWithoutShiftsAsBackupInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserCreateWithoutShiftConfirmationsInput = {
@@ -1368,6 +1411,7 @@ export type UserCreateWithoutShiftConfirmationsInput = {
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserUncheckedCreateWithoutShiftConfirmationsInput = {
@@ -1393,6 +1437,7 @@ export type UserUncheckedCreateWithoutShiftConfirmationsInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserCreateOrConnectWithoutShiftConfirmationsInput = {
@@ -1434,6 +1479,7 @@ export type UserUpdateWithoutShiftConfirmationsInput = {
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutShiftConfirmationsInput = {
@@ -1459,6 +1505,7 @@ export type UserUncheckedUpdateWithoutShiftConfirmationsInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserCreateWithoutSwapRequestsFromInput = {
@@ -1484,6 +1531,7 @@ export type UserCreateWithoutSwapRequestsFromInput = {
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserUncheckedCreateWithoutSwapRequestsFromInput = {
@@ -1509,6 +1557,7 @@ export type UserUncheckedCreateWithoutSwapRequestsFromInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserCreateOrConnectWithoutSwapRequestsFromInput = {
@@ -1539,6 +1588,7 @@ export type UserCreateWithoutSwapRequestsTargetInput = {
   swapRequestsFrom?: Prisma.SwapRequestCreateNestedManyWithoutRequesterInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserUncheckedCreateWithoutSwapRequestsTargetInput = {
@@ -1564,6 +1614,7 @@ export type UserUncheckedCreateWithoutSwapRequestsTargetInput = {
   swapRequestsFrom?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutRequesterInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserCreateOrConnectWithoutSwapRequestsTargetInput = {
@@ -1605,6 +1656,7 @@ export type UserUpdateWithoutSwapRequestsFromInput = {
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSwapRequestsFromInput = {
@@ -1630,6 +1682,7 @@ export type UserUncheckedUpdateWithoutSwapRequestsFromInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserUpsertWithoutSwapRequestsTargetInput = {
@@ -1666,6 +1719,7 @@ export type UserUpdateWithoutSwapRequestsTargetInput = {
   swapRequestsFrom?: Prisma.SwapRequestUpdateManyWithoutRequesterNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSwapRequestsTargetInput = {
@@ -1691,6 +1745,7 @@ export type UserUncheckedUpdateWithoutSwapRequestsTargetInput = {
   swapRequestsFrom?: Prisma.SwapRequestUncheckedUpdateManyWithoutRequesterNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserCreateWithoutNotificationRulesInput = {
@@ -1716,6 +1771,7 @@ export type UserCreateWithoutNotificationRulesInput = {
   swapRequestsFrom?: Prisma.SwapRequestCreateNestedManyWithoutRequesterInput
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserUncheckedCreateWithoutNotificationRulesInput = {
@@ -1741,6 +1797,7 @@ export type UserUncheckedCreateWithoutNotificationRulesInput = {
   swapRequestsFrom?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutRequesterInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserCreateOrConnectWithoutNotificationRulesInput = {
@@ -1782,6 +1839,7 @@ export type UserUpdateWithoutNotificationRulesInput = {
   swapRequestsFrom?: Prisma.SwapRequestUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotificationRulesInput = {
@@ -1807,6 +1865,7 @@ export type UserUncheckedUpdateWithoutNotificationRulesInput = {
   swapRequestsFrom?: Prisma.SwapRequestUncheckedUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserCreateWithoutAuditLogsInput = {
@@ -1832,6 +1891,7 @@ export type UserCreateWithoutAuditLogsInput = {
   swapRequestsFrom?: Prisma.SwapRequestCreateNestedManyWithoutRequesterInput
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserUncheckedCreateWithoutAuditLogsInput = {
@@ -1857,6 +1917,7 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   swapRequestsFrom?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutRequesterInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
 }
 
 export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -1898,6 +1959,7 @@ export type UserUpdateWithoutAuditLogsInput = {
   swapRequestsFrom?: Prisma.SwapRequestUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -1923,6 +1985,127 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   swapRequestsFrom?: Prisma.SwapRequestUncheckedUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
+}
+
+export type UserCreateWithoutAcknowledgedAlertsInput = {
+  id?: string
+  email: string
+  fullName: string
+  keycloakId?: string | null
+  telegramChatId?: bigint | number | null
+  teamsUserId?: string | null
+  teamsConversationId?: string | null
+  phone?: string | null
+  systemRole?: $Enums.SystemRole
+  timezone?: string
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  teamMembers?: Prisma.TeamMemberCreateNestedManyWithoutUserInput
+  shiftsAsAssignee?: Prisma.ShiftCreateNestedManyWithoutAssigneeInput
+  shiftsAsBackup?: Prisma.ShiftCreateNestedManyWithoutBackupInput
+  shiftConfirmations?: Prisma.ShiftConfirmationCreateNestedManyWithoutUserInput
+  swapRequestsFrom?: Prisma.SwapRequestCreateNestedManyWithoutRequesterInput
+  swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutAcknowledgedAlertsInput = {
+  id?: string
+  email: string
+  fullName: string
+  keycloakId?: string | null
+  telegramChatId?: bigint | number | null
+  teamsUserId?: string | null
+  teamsConversationId?: string | null
+  phone?: string | null
+  systemRole?: $Enums.SystemRole
+  timezone?: string
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  teamMembers?: Prisma.TeamMemberUncheckedCreateNestedManyWithoutUserInput
+  shiftsAsAssignee?: Prisma.ShiftUncheckedCreateNestedManyWithoutAssigneeInput
+  shiftsAsBackup?: Prisma.ShiftUncheckedCreateNestedManyWithoutBackupInput
+  shiftConfirmations?: Prisma.ShiftConfirmationUncheckedCreateNestedManyWithoutUserInput
+  swapRequestsFrom?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutRequesterInput
+  swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutAcknowledgedAlertsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAcknowledgedAlertsInput, Prisma.UserUncheckedCreateWithoutAcknowledgedAlertsInput>
+}
+
+export type UserUpsertWithoutAcknowledgedAlertsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAcknowledgedAlertsInput, Prisma.UserUncheckedUpdateWithoutAcknowledgedAlertsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAcknowledgedAlertsInput, Prisma.UserUncheckedCreateWithoutAcknowledgedAlertsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAcknowledgedAlertsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAcknowledgedAlertsInput, Prisma.UserUncheckedUpdateWithoutAcknowledgedAlertsInput>
+}
+
+export type UserUpdateWithoutAcknowledgedAlertsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  teamMembers?: Prisma.TeamMemberUpdateManyWithoutUserNestedInput
+  shiftsAsAssignee?: Prisma.ShiftUpdateManyWithoutAssigneeNestedInput
+  shiftsAsBackup?: Prisma.ShiftUpdateManyWithoutBackupNestedInput
+  shiftConfirmations?: Prisma.ShiftConfirmationUpdateManyWithoutUserNestedInput
+  swapRequestsFrom?: Prisma.SwapRequestUpdateManyWithoutRequesterNestedInput
+  swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAcknowledgedAlertsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  teamMembers?: Prisma.TeamMemberUncheckedUpdateManyWithoutUserNestedInput
+  shiftsAsAssignee?: Prisma.ShiftUncheckedUpdateManyWithoutAssigneeNestedInput
+  shiftsAsBackup?: Prisma.ShiftUncheckedUpdateManyWithoutBackupNestedInput
+  shiftConfirmations?: Prisma.ShiftConfirmationUncheckedUpdateManyWithoutUserNestedInput
+  swapRequestsFrom?: Prisma.SwapRequestUncheckedUpdateManyWithoutRequesterNestedInput
+  swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -1941,6 +2124,7 @@ export type UserCountOutputType = {
   swapRequestsTarget: number
   auditLogs: number
   notificationRules: number
+  acknowledgedAlerts: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1954,6 +2138,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   swapRequestsTarget?: boolean | UserCountOutputTypeCountSwapRequestsTargetArgs
   auditLogs?: boolean | UserCountOutputTypeCountAuditLogsArgs
   notificationRules?: boolean | UserCountOutputTypeCountNotificationRulesArgs
+  acknowledgedAlerts?: boolean | UserCountOutputTypeCountAcknowledgedAlertsArgs
 }
 
 /**
@@ -2036,6 +2221,13 @@ export type UserCountOutputTypeCountNotificationRulesArgs<ExtArgs extends runtim
   where?: Prisma.UserNotificationRuleWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAcknowledgedAlertsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AlertWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2061,6 +2253,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   swapRequestsTarget?: boolean | Prisma.User$swapRequestsTargetArgs<ExtArgs>
   auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
   notificationRules?: boolean | Prisma.User$notificationRulesArgs<ExtArgs>
+  acknowledgedAlerts?: boolean | Prisma.User$acknowledgedAlertsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -2124,6 +2317,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   swapRequestsTarget?: boolean | Prisma.User$swapRequestsTargetArgs<ExtArgs>
   auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
   notificationRules?: boolean | Prisma.User$notificationRulesArgs<ExtArgs>
+  acknowledgedAlerts?: boolean | Prisma.User$acknowledgedAlertsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -2142,6 +2336,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     swapRequestsTarget: Prisma.$SwapRequestPayload<ExtArgs>[]
     auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
     notificationRules: Prisma.$UserNotificationRulePayload<ExtArgs>[]
+    acknowledgedAlerts: Prisma.$AlertPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2561,6 +2756,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   swapRequestsTarget<T extends Prisma.User$swapRequestsTargetArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$swapRequestsTargetArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SwapRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditLogs<T extends Prisma.User$auditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notificationRules<T extends Prisma.User$notificationRulesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationRulesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserNotificationRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  acknowledgedAlerts<T extends Prisma.User$acknowledgedAlertsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$acknowledgedAlertsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AlertPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3233,6 +3429,30 @@ export type User$notificationRulesArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.UserNotificationRuleScalarFieldEnum | Prisma.UserNotificationRuleScalarFieldEnum[]
+}
+
+/**
+ * User.acknowledgedAlerts
+ */
+export type User$acknowledgedAlertsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Alert
+   */
+  select?: Prisma.AlertSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Alert
+   */
+  omit?: Prisma.AlertOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AlertInclude<ExtArgs> | null
+  where?: Prisma.AlertWhereInput
+  orderBy?: Prisma.AlertOrderByWithRelationInput | Prisma.AlertOrderByWithRelationInput[]
+  cursor?: Prisma.AlertWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AlertScalarFieldEnum | Prisma.AlertScalarFieldEnum[]
 }
 
 /**

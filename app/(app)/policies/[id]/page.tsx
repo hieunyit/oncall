@@ -42,13 +42,17 @@ export default async function PolicyDetailPage({
   const isManager =
     currentUser.systemRole === "ADMIN" || myMembership?.role === "MANAGER";
 
-  const teams = await prisma.team.findMany({
-    select: { id: true, name: true },
-    where:
-      currentUser.systemRole === "ADMIN"
-        ? {}
-        : { id: policy.teamId },
-  });
+  const [teams, escalationPolicies] = await Promise.all([
+    prisma.team.findMany({
+      select: { id: true, name: true },
+      where: currentUser.systemRole === "ADMIN" ? {} : { id: policy.teamId },
+    }),
+    prisma.escalationPolicy.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true, teamId: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
 
   // Recent shifts from this policy
   const recentShifts = await prisma.shift.findMany({
@@ -74,6 +78,7 @@ export default async function PolicyDetailPage({
           <h1 className="text-2xl font-bold text-gray-900">Chỉnh sửa chính sách</h1>
           <PolicyForm
             teams={teams}
+            escalationPolicies={escalationPolicies}
             initialData={{
               id: policy.id,
               name: policy.name,
@@ -85,6 +90,7 @@ export default async function PolicyDetailPage({
               confirmationDueHours: policy.confirmationDueHours,
               reminderLeadHours: policy.reminderLeadHours,
               maxGenerateWeeks: policy.maxGenerateWeeks,
+              escalationPolicyId: policy.escalationPolicyId,
             }}
           />
         </>
