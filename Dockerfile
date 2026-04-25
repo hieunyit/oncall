@@ -7,14 +7,8 @@ FROM base AS deps
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# ── prisma generate ───────────────────────────────────────────────────────────
-FROM deps AS prisma
-COPY prisma ./prisma
-COPY prisma.config.ts ./
-RUN ./node_modules/.bin/prisma generate
-
 # ── builder ───────────────────────────────────────────────────────────────────
-FROM prisma AS builder
+FROM deps AS builder
 COPY . .
 RUN npm run build
 
