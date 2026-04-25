@@ -38,7 +38,7 @@ export type EscalationRuleSumAggregateOutputType = {
 
 export type EscalationRuleMinAggregateOutputType = {
   id: string | null
-  policyId: string | null
+  escalationPolicyId: string | null
   stepOrder: number | null
   target: $Enums.EscalationTarget | null
   delayMinutes: number | null
@@ -49,7 +49,7 @@ export type EscalationRuleMinAggregateOutputType = {
 
 export type EscalationRuleMaxAggregateOutputType = {
   id: string | null
-  policyId: string | null
+  escalationPolicyId: string | null
   stepOrder: number | null
   target: $Enums.EscalationTarget | null
   delayMinutes: number | null
@@ -60,7 +60,7 @@ export type EscalationRuleMaxAggregateOutputType = {
 
 export type EscalationRuleCountAggregateOutputType = {
   id: number
-  policyId: number
+  escalationPolicyId: number
   stepOrder: number
   target: number
   delayMinutes: number
@@ -83,7 +83,7 @@ export type EscalationRuleSumAggregateInputType = {
 
 export type EscalationRuleMinAggregateInputType = {
   id?: true
-  policyId?: true
+  escalationPolicyId?: true
   stepOrder?: true
   target?: true
   delayMinutes?: true
@@ -94,7 +94,7 @@ export type EscalationRuleMinAggregateInputType = {
 
 export type EscalationRuleMaxAggregateInputType = {
   id?: true
-  policyId?: true
+  escalationPolicyId?: true
   stepOrder?: true
   target?: true
   delayMinutes?: true
@@ -105,7 +105,7 @@ export type EscalationRuleMaxAggregateInputType = {
 
 export type EscalationRuleCountAggregateInputType = {
   id?: true
-  policyId?: true
+  escalationPolicyId?: true
   stepOrder?: true
   target?: true
   delayMinutes?: true
@@ -203,7 +203,7 @@ export type EscalationRuleGroupByArgs<ExtArgs extends runtime.Types.Extensions.I
 
 export type EscalationRuleGroupByOutputType = {
   id: string
-  policyId: string
+  escalationPolicyId: string
   stepOrder: number
   target: $Enums.EscalationTarget
   delayMinutes: number
@@ -237,44 +237,47 @@ export type EscalationRuleWhereInput = {
   OR?: Prisma.EscalationRuleWhereInput[]
   NOT?: Prisma.EscalationRuleWhereInput | Prisma.EscalationRuleWhereInput[]
   id?: Prisma.UuidFilter<"EscalationRule"> | string
-  policyId?: Prisma.UuidFilter<"EscalationRule"> | string
+  escalationPolicyId?: Prisma.UuidFilter<"EscalationRule"> | string
   stepOrder?: Prisma.IntFilter<"EscalationRule"> | number
   target?: Prisma.EnumEscalationTargetFilter<"EscalationRule"> | $Enums.EscalationTarget
   delayMinutes?: Prisma.IntFilter<"EscalationRule"> | number
   channelType?: Prisma.EnumChannelTypeFilter<"EscalationRule"> | $Enums.ChannelType
   isActive?: Prisma.BoolFilter<"EscalationRule"> | boolean
   createdAt?: Prisma.DateTimeFilter<"EscalationRule"> | Date | string
+  escalationPolicy?: Prisma.XOR<Prisma.EscalationPolicyScalarRelationFilter, Prisma.EscalationPolicyWhereInput>
 }
 
 export type EscalationRuleOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  policyId?: Prisma.SortOrder
+  escalationPolicyId?: Prisma.SortOrder
   stepOrder?: Prisma.SortOrder
   target?: Prisma.SortOrder
   delayMinutes?: Prisma.SortOrder
   channelType?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  escalationPolicy?: Prisma.EscalationPolicyOrderByWithRelationInput
 }
 
 export type EscalationRuleWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  policyId_stepOrder?: Prisma.EscalationRulePolicyIdStepOrderCompoundUniqueInput
+  escalationPolicyId_stepOrder?: Prisma.EscalationRuleEscalationPolicyIdStepOrderCompoundUniqueInput
   AND?: Prisma.EscalationRuleWhereInput | Prisma.EscalationRuleWhereInput[]
   OR?: Prisma.EscalationRuleWhereInput[]
   NOT?: Prisma.EscalationRuleWhereInput | Prisma.EscalationRuleWhereInput[]
-  policyId?: Prisma.UuidFilter<"EscalationRule"> | string
+  escalationPolicyId?: Prisma.UuidFilter<"EscalationRule"> | string
   stepOrder?: Prisma.IntFilter<"EscalationRule"> | number
   target?: Prisma.EnumEscalationTargetFilter<"EscalationRule"> | $Enums.EscalationTarget
   delayMinutes?: Prisma.IntFilter<"EscalationRule"> | number
   channelType?: Prisma.EnumChannelTypeFilter<"EscalationRule"> | $Enums.ChannelType
   isActive?: Prisma.BoolFilter<"EscalationRule"> | boolean
   createdAt?: Prisma.DateTimeFilter<"EscalationRule"> | Date | string
-}, "id" | "policyId_stepOrder">
+  escalationPolicy?: Prisma.XOR<Prisma.EscalationPolicyScalarRelationFilter, Prisma.EscalationPolicyWhereInput>
+}, "id" | "escalationPolicyId_stepOrder">
 
 export type EscalationRuleOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  policyId?: Prisma.SortOrder
+  escalationPolicyId?: Prisma.SortOrder
   stepOrder?: Prisma.SortOrder
   target?: Prisma.SortOrder
   delayMinutes?: Prisma.SortOrder
@@ -293,7 +296,7 @@ export type EscalationRuleScalarWhereWithAggregatesInput = {
   OR?: Prisma.EscalationRuleScalarWhereWithAggregatesInput[]
   NOT?: Prisma.EscalationRuleScalarWhereWithAggregatesInput | Prisma.EscalationRuleScalarWhereWithAggregatesInput[]
   id?: Prisma.UuidWithAggregatesFilter<"EscalationRule"> | string
-  policyId?: Prisma.UuidWithAggregatesFilter<"EscalationRule"> | string
+  escalationPolicyId?: Prisma.UuidWithAggregatesFilter<"EscalationRule"> | string
   stepOrder?: Prisma.IntWithAggregatesFilter<"EscalationRule"> | number
   target?: Prisma.EnumEscalationTargetWithAggregatesFilter<"EscalationRule"> | $Enums.EscalationTarget
   delayMinutes?: Prisma.IntWithAggregatesFilter<"EscalationRule"> | number
@@ -304,18 +307,18 @@ export type EscalationRuleScalarWhereWithAggregatesInput = {
 
 export type EscalationRuleCreateInput = {
   id?: string
-  policyId: string
   stepOrder: number
   target: $Enums.EscalationTarget
   delayMinutes: number
   channelType: $Enums.ChannelType
   isActive?: boolean
   createdAt?: Date | string
+  escalationPolicy: Prisma.EscalationPolicyCreateNestedOneWithoutRulesInput
 }
 
 export type EscalationRuleUncheckedCreateInput = {
   id?: string
-  policyId: string
+  escalationPolicyId: string
   stepOrder: number
   target: $Enums.EscalationTarget
   delayMinutes: number
@@ -326,18 +329,18 @@ export type EscalationRuleUncheckedCreateInput = {
 
 export type EscalationRuleUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  policyId?: Prisma.StringFieldUpdateOperationsInput | string
   stepOrder?: Prisma.IntFieldUpdateOperationsInput | number
   target?: Prisma.EnumEscalationTargetFieldUpdateOperationsInput | $Enums.EscalationTarget
   delayMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   channelType?: Prisma.EnumChannelTypeFieldUpdateOperationsInput | $Enums.ChannelType
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  escalationPolicy?: Prisma.EscalationPolicyUpdateOneRequiredWithoutRulesNestedInput
 }
 
 export type EscalationRuleUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  policyId?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationPolicyId?: Prisma.StringFieldUpdateOperationsInput | string
   stepOrder?: Prisma.IntFieldUpdateOperationsInput | number
   target?: Prisma.EnumEscalationTargetFieldUpdateOperationsInput | $Enums.EscalationTarget
   delayMinutes?: Prisma.IntFieldUpdateOperationsInput | number
@@ -348,7 +351,7 @@ export type EscalationRuleUncheckedUpdateInput = {
 
 export type EscalationRuleCreateManyInput = {
   id?: string
-  policyId: string
+  escalationPolicyId: string
   stepOrder: number
   target: $Enums.EscalationTarget
   delayMinutes: number
@@ -359,7 +362,6 @@ export type EscalationRuleCreateManyInput = {
 
 export type EscalationRuleUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  policyId?: Prisma.StringFieldUpdateOperationsInput | string
   stepOrder?: Prisma.IntFieldUpdateOperationsInput | number
   target?: Prisma.EnumEscalationTargetFieldUpdateOperationsInput | $Enums.EscalationTarget
   delayMinutes?: Prisma.IntFieldUpdateOperationsInput | number
@@ -370,7 +372,7 @@ export type EscalationRuleUpdateManyMutationInput = {
 
 export type EscalationRuleUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  policyId?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationPolicyId?: Prisma.StringFieldUpdateOperationsInput | string
   stepOrder?: Prisma.IntFieldUpdateOperationsInput | number
   target?: Prisma.EnumEscalationTargetFieldUpdateOperationsInput | $Enums.EscalationTarget
   delayMinutes?: Prisma.IntFieldUpdateOperationsInput | number
@@ -379,14 +381,24 @@ export type EscalationRuleUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type EscalationRulePolicyIdStepOrderCompoundUniqueInput = {
-  policyId: string
+export type EscalationRuleListRelationFilter = {
+  every?: Prisma.EscalationRuleWhereInput
+  some?: Prisma.EscalationRuleWhereInput
+  none?: Prisma.EscalationRuleWhereInput
+}
+
+export type EscalationRuleOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
+export type EscalationRuleEscalationPolicyIdStepOrderCompoundUniqueInput = {
+  escalationPolicyId: string
   stepOrder: number
 }
 
 export type EscalationRuleCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  policyId?: Prisma.SortOrder
+  escalationPolicyId?: Prisma.SortOrder
   stepOrder?: Prisma.SortOrder
   target?: Prisma.SortOrder
   delayMinutes?: Prisma.SortOrder
@@ -402,7 +414,7 @@ export type EscalationRuleAvgOrderByAggregateInput = {
 
 export type EscalationRuleMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  policyId?: Prisma.SortOrder
+  escalationPolicyId?: Prisma.SortOrder
   stepOrder?: Prisma.SortOrder
   target?: Prisma.SortOrder
   delayMinutes?: Prisma.SortOrder
@@ -413,7 +425,7 @@ export type EscalationRuleMaxOrderByAggregateInput = {
 
 export type EscalationRuleMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  policyId?: Prisma.SortOrder
+  escalationPolicyId?: Prisma.SortOrder
   stepOrder?: Prisma.SortOrder
   target?: Prisma.SortOrder
   delayMinutes?: Prisma.SortOrder
@@ -427,48 +439,193 @@ export type EscalationRuleSumOrderByAggregateInput = {
   delayMinutes?: Prisma.SortOrder
 }
 
+export type EscalationRuleCreateNestedManyWithoutEscalationPolicyInput = {
+  create?: Prisma.XOR<Prisma.EscalationRuleCreateWithoutEscalationPolicyInput, Prisma.EscalationRuleUncheckedCreateWithoutEscalationPolicyInput> | Prisma.EscalationRuleCreateWithoutEscalationPolicyInput[] | Prisma.EscalationRuleUncheckedCreateWithoutEscalationPolicyInput[]
+  connectOrCreate?: Prisma.EscalationRuleCreateOrConnectWithoutEscalationPolicyInput | Prisma.EscalationRuleCreateOrConnectWithoutEscalationPolicyInput[]
+  createMany?: Prisma.EscalationRuleCreateManyEscalationPolicyInputEnvelope
+  connect?: Prisma.EscalationRuleWhereUniqueInput | Prisma.EscalationRuleWhereUniqueInput[]
+}
+
+export type EscalationRuleUncheckedCreateNestedManyWithoutEscalationPolicyInput = {
+  create?: Prisma.XOR<Prisma.EscalationRuleCreateWithoutEscalationPolicyInput, Prisma.EscalationRuleUncheckedCreateWithoutEscalationPolicyInput> | Prisma.EscalationRuleCreateWithoutEscalationPolicyInput[] | Prisma.EscalationRuleUncheckedCreateWithoutEscalationPolicyInput[]
+  connectOrCreate?: Prisma.EscalationRuleCreateOrConnectWithoutEscalationPolicyInput | Prisma.EscalationRuleCreateOrConnectWithoutEscalationPolicyInput[]
+  createMany?: Prisma.EscalationRuleCreateManyEscalationPolicyInputEnvelope
+  connect?: Prisma.EscalationRuleWhereUniqueInput | Prisma.EscalationRuleWhereUniqueInput[]
+}
+
+export type EscalationRuleUpdateManyWithoutEscalationPolicyNestedInput = {
+  create?: Prisma.XOR<Prisma.EscalationRuleCreateWithoutEscalationPolicyInput, Prisma.EscalationRuleUncheckedCreateWithoutEscalationPolicyInput> | Prisma.EscalationRuleCreateWithoutEscalationPolicyInput[] | Prisma.EscalationRuleUncheckedCreateWithoutEscalationPolicyInput[]
+  connectOrCreate?: Prisma.EscalationRuleCreateOrConnectWithoutEscalationPolicyInput | Prisma.EscalationRuleCreateOrConnectWithoutEscalationPolicyInput[]
+  upsert?: Prisma.EscalationRuleUpsertWithWhereUniqueWithoutEscalationPolicyInput | Prisma.EscalationRuleUpsertWithWhereUniqueWithoutEscalationPolicyInput[]
+  createMany?: Prisma.EscalationRuleCreateManyEscalationPolicyInputEnvelope
+  set?: Prisma.EscalationRuleWhereUniqueInput | Prisma.EscalationRuleWhereUniqueInput[]
+  disconnect?: Prisma.EscalationRuleWhereUniqueInput | Prisma.EscalationRuleWhereUniqueInput[]
+  delete?: Prisma.EscalationRuleWhereUniqueInput | Prisma.EscalationRuleWhereUniqueInput[]
+  connect?: Prisma.EscalationRuleWhereUniqueInput | Prisma.EscalationRuleWhereUniqueInput[]
+  update?: Prisma.EscalationRuleUpdateWithWhereUniqueWithoutEscalationPolicyInput | Prisma.EscalationRuleUpdateWithWhereUniqueWithoutEscalationPolicyInput[]
+  updateMany?: Prisma.EscalationRuleUpdateManyWithWhereWithoutEscalationPolicyInput | Prisma.EscalationRuleUpdateManyWithWhereWithoutEscalationPolicyInput[]
+  deleteMany?: Prisma.EscalationRuleScalarWhereInput | Prisma.EscalationRuleScalarWhereInput[]
+}
+
+export type EscalationRuleUncheckedUpdateManyWithoutEscalationPolicyNestedInput = {
+  create?: Prisma.XOR<Prisma.EscalationRuleCreateWithoutEscalationPolicyInput, Prisma.EscalationRuleUncheckedCreateWithoutEscalationPolicyInput> | Prisma.EscalationRuleCreateWithoutEscalationPolicyInput[] | Prisma.EscalationRuleUncheckedCreateWithoutEscalationPolicyInput[]
+  connectOrCreate?: Prisma.EscalationRuleCreateOrConnectWithoutEscalationPolicyInput | Prisma.EscalationRuleCreateOrConnectWithoutEscalationPolicyInput[]
+  upsert?: Prisma.EscalationRuleUpsertWithWhereUniqueWithoutEscalationPolicyInput | Prisma.EscalationRuleUpsertWithWhereUniqueWithoutEscalationPolicyInput[]
+  createMany?: Prisma.EscalationRuleCreateManyEscalationPolicyInputEnvelope
+  set?: Prisma.EscalationRuleWhereUniqueInput | Prisma.EscalationRuleWhereUniqueInput[]
+  disconnect?: Prisma.EscalationRuleWhereUniqueInput | Prisma.EscalationRuleWhereUniqueInput[]
+  delete?: Prisma.EscalationRuleWhereUniqueInput | Prisma.EscalationRuleWhereUniqueInput[]
+  connect?: Prisma.EscalationRuleWhereUniqueInput | Prisma.EscalationRuleWhereUniqueInput[]
+  update?: Prisma.EscalationRuleUpdateWithWhereUniqueWithoutEscalationPolicyInput | Prisma.EscalationRuleUpdateWithWhereUniqueWithoutEscalationPolicyInput[]
+  updateMany?: Prisma.EscalationRuleUpdateManyWithWhereWithoutEscalationPolicyInput | Prisma.EscalationRuleUpdateManyWithWhereWithoutEscalationPolicyInput[]
+  deleteMany?: Prisma.EscalationRuleScalarWhereInput | Prisma.EscalationRuleScalarWhereInput[]
+}
+
 export type EnumEscalationTargetFieldUpdateOperationsInput = {
   set?: $Enums.EscalationTarget
+}
+
+export type EscalationRuleCreateWithoutEscalationPolicyInput = {
+  id?: string
+  stepOrder: number
+  target: $Enums.EscalationTarget
+  delayMinutes: number
+  channelType: $Enums.ChannelType
+  isActive?: boolean
+  createdAt?: Date | string
+}
+
+export type EscalationRuleUncheckedCreateWithoutEscalationPolicyInput = {
+  id?: string
+  stepOrder: number
+  target: $Enums.EscalationTarget
+  delayMinutes: number
+  channelType: $Enums.ChannelType
+  isActive?: boolean
+  createdAt?: Date | string
+}
+
+export type EscalationRuleCreateOrConnectWithoutEscalationPolicyInput = {
+  where: Prisma.EscalationRuleWhereUniqueInput
+  create: Prisma.XOR<Prisma.EscalationRuleCreateWithoutEscalationPolicyInput, Prisma.EscalationRuleUncheckedCreateWithoutEscalationPolicyInput>
+}
+
+export type EscalationRuleCreateManyEscalationPolicyInputEnvelope = {
+  data: Prisma.EscalationRuleCreateManyEscalationPolicyInput | Prisma.EscalationRuleCreateManyEscalationPolicyInput[]
+  skipDuplicates?: boolean
+}
+
+export type EscalationRuleUpsertWithWhereUniqueWithoutEscalationPolicyInput = {
+  where: Prisma.EscalationRuleWhereUniqueInput
+  update: Prisma.XOR<Prisma.EscalationRuleUpdateWithoutEscalationPolicyInput, Prisma.EscalationRuleUncheckedUpdateWithoutEscalationPolicyInput>
+  create: Prisma.XOR<Prisma.EscalationRuleCreateWithoutEscalationPolicyInput, Prisma.EscalationRuleUncheckedCreateWithoutEscalationPolicyInput>
+}
+
+export type EscalationRuleUpdateWithWhereUniqueWithoutEscalationPolicyInput = {
+  where: Prisma.EscalationRuleWhereUniqueInput
+  data: Prisma.XOR<Prisma.EscalationRuleUpdateWithoutEscalationPolicyInput, Prisma.EscalationRuleUncheckedUpdateWithoutEscalationPolicyInput>
+}
+
+export type EscalationRuleUpdateManyWithWhereWithoutEscalationPolicyInput = {
+  where: Prisma.EscalationRuleScalarWhereInput
+  data: Prisma.XOR<Prisma.EscalationRuleUpdateManyMutationInput, Prisma.EscalationRuleUncheckedUpdateManyWithoutEscalationPolicyInput>
+}
+
+export type EscalationRuleScalarWhereInput = {
+  AND?: Prisma.EscalationRuleScalarWhereInput | Prisma.EscalationRuleScalarWhereInput[]
+  OR?: Prisma.EscalationRuleScalarWhereInput[]
+  NOT?: Prisma.EscalationRuleScalarWhereInput | Prisma.EscalationRuleScalarWhereInput[]
+  id?: Prisma.UuidFilter<"EscalationRule"> | string
+  escalationPolicyId?: Prisma.UuidFilter<"EscalationRule"> | string
+  stepOrder?: Prisma.IntFilter<"EscalationRule"> | number
+  target?: Prisma.EnumEscalationTargetFilter<"EscalationRule"> | $Enums.EscalationTarget
+  delayMinutes?: Prisma.IntFilter<"EscalationRule"> | number
+  channelType?: Prisma.EnumChannelTypeFilter<"EscalationRule"> | $Enums.ChannelType
+  isActive?: Prisma.BoolFilter<"EscalationRule"> | boolean
+  createdAt?: Prisma.DateTimeFilter<"EscalationRule"> | Date | string
+}
+
+export type EscalationRuleCreateManyEscalationPolicyInput = {
+  id?: string
+  stepOrder: number
+  target: $Enums.EscalationTarget
+  delayMinutes: number
+  channelType: $Enums.ChannelType
+  isActive?: boolean
+  createdAt?: Date | string
+}
+
+export type EscalationRuleUpdateWithoutEscalationPolicyInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  stepOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  target?: Prisma.EnumEscalationTargetFieldUpdateOperationsInput | $Enums.EscalationTarget
+  delayMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  channelType?: Prisma.EnumChannelTypeFieldUpdateOperationsInput | $Enums.ChannelType
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type EscalationRuleUncheckedUpdateWithoutEscalationPolicyInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  stepOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  target?: Prisma.EnumEscalationTargetFieldUpdateOperationsInput | $Enums.EscalationTarget
+  delayMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  channelType?: Prisma.EnumChannelTypeFieldUpdateOperationsInput | $Enums.ChannelType
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type EscalationRuleUncheckedUpdateManyWithoutEscalationPolicyInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  stepOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  target?: Prisma.EnumEscalationTargetFieldUpdateOperationsInput | $Enums.EscalationTarget
+  delayMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  channelType?: Prisma.EnumChannelTypeFieldUpdateOperationsInput | $Enums.ChannelType
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
 
 export type EscalationRuleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  policyId?: boolean
+  escalationPolicyId?: boolean
   stepOrder?: boolean
   target?: boolean
   delayMinutes?: boolean
   channelType?: boolean
   isActive?: boolean
   createdAt?: boolean
+  escalationPolicy?: boolean | Prisma.EscalationPolicyDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["escalationRule"]>
 
 export type EscalationRuleSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  policyId?: boolean
+  escalationPolicyId?: boolean
   stepOrder?: boolean
   target?: boolean
   delayMinutes?: boolean
   channelType?: boolean
   isActive?: boolean
   createdAt?: boolean
+  escalationPolicy?: boolean | Prisma.EscalationPolicyDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["escalationRule"]>
 
 export type EscalationRuleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  policyId?: boolean
+  escalationPolicyId?: boolean
   stepOrder?: boolean
   target?: boolean
   delayMinutes?: boolean
   channelType?: boolean
   isActive?: boolean
   createdAt?: boolean
+  escalationPolicy?: boolean | Prisma.EscalationPolicyDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["escalationRule"]>
 
 export type EscalationRuleSelectScalar = {
   id?: boolean
-  policyId?: boolean
+  escalationPolicyId?: boolean
   stepOrder?: boolean
   target?: boolean
   delayMinutes?: boolean
@@ -477,14 +634,25 @@ export type EscalationRuleSelectScalar = {
   createdAt?: boolean
 }
 
-export type EscalationRuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "policyId" | "stepOrder" | "target" | "delayMinutes" | "channelType" | "isActive" | "createdAt", ExtArgs["result"]["escalationRule"]>
+export type EscalationRuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "escalationPolicyId" | "stepOrder" | "target" | "delayMinutes" | "channelType" | "isActive" | "createdAt", ExtArgs["result"]["escalationRule"]>
+export type EscalationRuleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  escalationPolicy?: boolean | Prisma.EscalationPolicyDefaultArgs<ExtArgs>
+}
+export type EscalationRuleIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  escalationPolicy?: boolean | Prisma.EscalationPolicyDefaultArgs<ExtArgs>
+}
+export type EscalationRuleIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  escalationPolicy?: boolean | Prisma.EscalationPolicyDefaultArgs<ExtArgs>
+}
 
 export type $EscalationRulePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "EscalationRule"
-  objects: {}
+  objects: {
+    escalationPolicy: Prisma.$EscalationPolicyPayload<ExtArgs>
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    policyId: string
+    escalationPolicyId: string
     stepOrder: number
     target: $Enums.EscalationTarget
     delayMinutes: number
@@ -885,6 +1053,7 @@ readonly fields: EscalationRuleFieldRefs;
  */
 export interface Prisma__EscalationRuleClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  escalationPolicy<T extends Prisma.EscalationPolicyDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EscalationPolicyDefaultArgs<ExtArgs>>): Prisma.Prisma__EscalationPolicyClient<runtime.Types.Result.GetResult<Prisma.$EscalationPolicyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -915,7 +1084,7 @@ export interface Prisma__EscalationRuleClient<T, Null = never, ExtArgs extends r
  */
 export interface EscalationRuleFieldRefs {
   readonly id: Prisma.FieldRef<"EscalationRule", 'String'>
-  readonly policyId: Prisma.FieldRef<"EscalationRule", 'String'>
+  readonly escalationPolicyId: Prisma.FieldRef<"EscalationRule", 'String'>
   readonly stepOrder: Prisma.FieldRef<"EscalationRule", 'Int'>
   readonly target: Prisma.FieldRef<"EscalationRule", 'EscalationTarget'>
   readonly delayMinutes: Prisma.FieldRef<"EscalationRule", 'Int'>
@@ -939,6 +1108,10 @@ export type EscalationRuleFindUniqueArgs<ExtArgs extends runtime.Types.Extension
    */
   omit?: Prisma.EscalationRuleOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EscalationRuleInclude<ExtArgs> | null
+  /**
    * Filter, which EscalationRule to fetch.
    */
   where: Prisma.EscalationRuleWhereUniqueInput
@@ -957,6 +1130,10 @@ export type EscalationRuleFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Ex
    */
   omit?: Prisma.EscalationRuleOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EscalationRuleInclude<ExtArgs> | null
+  /**
    * Filter, which EscalationRule to fetch.
    */
   where: Prisma.EscalationRuleWhereUniqueInput
@@ -974,6 +1151,10 @@ export type EscalationRuleFindFirstArgs<ExtArgs extends runtime.Types.Extensions
    * Omit specific fields from the EscalationRule
    */
   omit?: Prisma.EscalationRuleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EscalationRuleInclude<ExtArgs> | null
   /**
    * Filter, which EscalationRule to fetch.
    */
@@ -1023,6 +1204,10 @@ export type EscalationRuleFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Ext
    */
   omit?: Prisma.EscalationRuleOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EscalationRuleInclude<ExtArgs> | null
+  /**
    * Filter, which EscalationRule to fetch.
    */
   where?: Prisma.EscalationRuleWhereInput
@@ -1070,6 +1255,10 @@ export type EscalationRuleFindManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Omit specific fields from the EscalationRule
    */
   omit?: Prisma.EscalationRuleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EscalationRuleInclude<ExtArgs> | null
   /**
    * Filter, which EscalationRules to fetch.
    */
@@ -1119,6 +1308,10 @@ export type EscalationRuleCreateArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   omit?: Prisma.EscalationRuleOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EscalationRuleInclude<ExtArgs> | null
+  /**
    * The data needed to create a EscalationRule.
    */
   data: Prisma.XOR<Prisma.EscalationRuleCreateInput, Prisma.EscalationRuleUncheckedCreateInput>
@@ -1152,6 +1345,10 @@ export type EscalationRuleCreateManyAndReturnArgs<ExtArgs extends runtime.Types.
    */
   data: Prisma.EscalationRuleCreateManyInput | Prisma.EscalationRuleCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EscalationRuleIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1166,6 +1363,10 @@ export type EscalationRuleUpdateArgs<ExtArgs extends runtime.Types.Extensions.In
    * Omit specific fields from the EscalationRule
    */
   omit?: Prisma.EscalationRuleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EscalationRuleInclude<ExtArgs> | null
   /**
    * The data needed to update a EscalationRule.
    */
@@ -1218,6 +1419,10 @@ export type EscalationRuleUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.
    * Limit how many EscalationRules to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EscalationRuleIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1232,6 +1437,10 @@ export type EscalationRuleUpsertArgs<ExtArgs extends runtime.Types.Extensions.In
    * Omit specific fields from the EscalationRule
    */
   omit?: Prisma.EscalationRuleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EscalationRuleInclude<ExtArgs> | null
   /**
    * The filter to search for the EscalationRule to update in case it exists.
    */
@@ -1258,6 +1467,10 @@ export type EscalationRuleDeleteArgs<ExtArgs extends runtime.Types.Extensions.In
    * Omit specific fields from the EscalationRule
    */
   omit?: Prisma.EscalationRuleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EscalationRuleInclude<ExtArgs> | null
   /**
    * Filter which EscalationRule to delete.
    */
@@ -1290,4 +1503,8 @@ export type EscalationRuleDefaultArgs<ExtArgs extends runtime.Types.Extensions.I
    * Omit specific fields from the EscalationRule
    */
   omit?: Prisma.EscalationRuleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EscalationRuleInclude<ExtArgs> | null
 }

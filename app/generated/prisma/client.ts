@@ -112,10 +112,20 @@ export type NotificationMessage = Prisma.NotificationMessageModel
  */
 export type NotificationDelivery = Prisma.NotificationDeliveryModel
 /**
+ * Model EscalationPolicy
+ * 
+ */
+export type EscalationPolicy = Prisma.EscalationPolicyModel
+/**
  * Model EscalationRule
  * 
  */
 export type EscalationRule = Prisma.EscalationRuleModel
+/**
+ * Model UserNotificationRule
+ * 
+ */
+export type UserNotificationRule = Prisma.UserNotificationRuleModel
 /**
  * Model AuditLog
  * 

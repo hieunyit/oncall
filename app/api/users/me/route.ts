@@ -7,10 +7,16 @@ import { ok, badRequest, unauthorized, handleZodError } from "@/lib/api-response
 const schema = z.object({
   fullName: z.string().min(1).max(120).optional(),
   timezone: z.string().max(60).optional(),
-  telegramChatId: z.string().max(40).nullable().optional(),
+  telegramChatId: z.string().max(40).nullable().optional().transform((v) =>
+    v ? BigInt(v) : null
+  ),
   teamsConversationId: z.string().max(200).nullable().optional(),
   phone: z.string().max(30).nullable().optional(),
 });
+
+function serializeUser(u: { telegramChatId?: bigint | null; [k: string]: unknown }) {
+  return { ...u, telegramChatId: u.telegramChatId?.toString() ?? null };
+}
 
 export async function GET() {
   const user = await getSessionUser();
@@ -32,13 +38,14 @@ export async function GET() {
       teamMembers: {
         select: {
           role: true,
-          team: { select: { id: true, name: true, slug: true } },
+          team: { select: { id: true, name: true } },
         },
       },
     },
   });
 
-  return ok(dbUser);
+  if (!dbUser) return unauthorized();
+  return ok(serializeUser(dbUser));
 }
 
 export async function PATCH(req: NextRequest) {
@@ -61,5 +68,5 @@ export async function PATCH(req: NextRequest) {
     },
   });
 
-  return ok(updated);
+  return ok(serializeUser(updated));
 }

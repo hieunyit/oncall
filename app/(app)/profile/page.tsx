@@ -1,7 +1,9 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { NotificationUrgency } from "@/app/generated/prisma/client";
 import { ProfileForm } from "./profile-form";
+import { NotificationRulesForm } from "./notification-rules-form";
 
 export const metadata = { title: "Hồ sơ & Cài đặt" };
 
@@ -24,13 +26,26 @@ export default async function ProfilePage() {
       teamMembers: {
         select: {
           role: true,
-          team: { select: { id: true, name: true, slug: true } },
+          team: { select: { id: true, name: true } },
         },
       },
     },
   });
 
   if (!user) redirect("/login");
+
+  const notificationRules = await prisma.userNotificationRule.findMany({
+    where: { userId: user.id },
+    orderBy: [{ urgency: "asc" }, { stepOrder: "asc" }],
+  });
+
+  const defaultRules = notificationRules.filter((r) => r.urgency === NotificationUrgency.DEFAULT);
+  const importantRules = notificationRules.filter((r) => r.urgency === NotificationUrgency.IMPORTANT);
+
+  const profileUser = {
+    ...user,
+    telegramChatId: user.telegramChatId?.toString() ?? null,
+  };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -59,8 +74,19 @@ export default async function ProfilePage() {
             </div>
           </div>
         </div>
+        <ProfileForm user={profileUser} />
+      </div>
 
-        <ProfileForm user={user} />
+      {/* Notification policy */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100">
+          <h3 className="font-medium text-gray-900">Chính sách thông báo</h3>
+          <p className="text-xs text-gray-400 mt-0.5">
+            Cấu hình kênh và thứ tự nhận thông báo theo mức độ ưu tiên.
+            Cột "trễ" là số phút chờ bước trước trước khi chuyển sang bước này.
+          </p>
+        </div>
+        <NotificationRulesForm defaultRules={defaultRules} importantRules={importantRules} />
       </div>
 
       {/* Teams */}
@@ -78,15 +104,10 @@ export default async function ProfilePage() {
                   <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 font-semibold text-sm shrink-0">
                     {team.name[0]}
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{team.name}</p>
-                    <p className="text-xs text-gray-400">/{team.slug}</p>
-                  </div>
+                  <p className="text-sm font-medium text-gray-900">{team.name}</p>
                 </div>
                 <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                  role === "MANAGER"
-                    ? "bg-indigo-100 text-indigo-700"
-                    : "bg-gray-100 text-gray-600"
+                  role === "MANAGER" ? "bg-indigo-100 text-indigo-700" : "bg-gray-100 text-gray-600"
                 }`}>
                   {role === "MANAGER" ? "Quản lý" : "Thành viên"}
                 </span>

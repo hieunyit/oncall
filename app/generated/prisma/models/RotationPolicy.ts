@@ -45,6 +45,7 @@ export type RotationPolicySumAggregateOutputType = {
 export type RotationPolicyMinAggregateOutputType = {
   id: string | null
   teamId: string | null
+  escalationPolicyId: string | null
   name: string | null
   cadence: $Enums.CadenceKind | null
   cronExpression: string | null
@@ -60,6 +61,7 @@ export type RotationPolicyMinAggregateOutputType = {
 export type RotationPolicyMaxAggregateOutputType = {
   id: string | null
   teamId: string | null
+  escalationPolicyId: string | null
   name: string | null
   cadence: $Enums.CadenceKind | null
   cronExpression: string | null
@@ -75,6 +77,7 @@ export type RotationPolicyMaxAggregateOutputType = {
 export type RotationPolicyCountAggregateOutputType = {
   id: number
   teamId: number
+  escalationPolicyId: number
   name: number
   cadence: number
   cronExpression: number
@@ -109,6 +112,7 @@ export type RotationPolicySumAggregateInputType = {
 export type RotationPolicyMinAggregateInputType = {
   id?: true
   teamId?: true
+  escalationPolicyId?: true
   name?: true
   cadence?: true
   cronExpression?: true
@@ -124,6 +128,7 @@ export type RotationPolicyMinAggregateInputType = {
 export type RotationPolicyMaxAggregateInputType = {
   id?: true
   teamId?: true
+  escalationPolicyId?: true
   name?: true
   cadence?: true
   cronExpression?: true
@@ -139,6 +144,7 @@ export type RotationPolicyMaxAggregateInputType = {
 export type RotationPolicyCountAggregateInputType = {
   id?: true
   teamId?: true
+  escalationPolicyId?: true
   name?: true
   cadence?: true
   cronExpression?: true
@@ -242,6 +248,7 @@ export type RotationPolicyGroupByArgs<ExtArgs extends runtime.Types.Extensions.I
 export type RotationPolicyGroupByOutputType = {
   id: string
   teamId: string
+  escalationPolicyId: string | null
   name: string
   cadence: $Enums.CadenceKind
   cronExpression: string | null
@@ -281,6 +288,7 @@ export type RotationPolicyWhereInput = {
   NOT?: Prisma.RotationPolicyWhereInput | Prisma.RotationPolicyWhereInput[]
   id?: Prisma.UuidFilter<"RotationPolicy"> | string
   teamId?: Prisma.UuidFilter<"RotationPolicy"> | string
+  escalationPolicyId?: Prisma.UuidNullableFilter<"RotationPolicy"> | string | null
   name?: Prisma.StringFilter<"RotationPolicy"> | string
   cadence?: Prisma.EnumCadenceKindFilter<"RotationPolicy"> | $Enums.CadenceKind
   cronExpression?: Prisma.StringNullableFilter<"RotationPolicy"> | string | null
@@ -293,6 +301,7 @@ export type RotationPolicyWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"RotationPolicy"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RotationPolicy"> | Date | string
   team?: Prisma.XOR<Prisma.TeamScalarRelationFilter, Prisma.TeamWhereInput>
+  escalationPolicy?: Prisma.XOR<Prisma.EscalationPolicyNullableScalarRelationFilter, Prisma.EscalationPolicyWhereInput> | null
   scheduleBatches?: Prisma.ScheduleBatchListRelationFilter
   shifts?: Prisma.ShiftListRelationFilter
 }
@@ -300,6 +309,7 @@ export type RotationPolicyWhereInput = {
 export type RotationPolicyOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   teamId?: Prisma.SortOrder
+  escalationPolicyId?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
   cadence?: Prisma.SortOrder
   cronExpression?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -312,6 +322,7 @@ export type RotationPolicyOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   team?: Prisma.TeamOrderByWithRelationInput
+  escalationPolicy?: Prisma.EscalationPolicyOrderByWithRelationInput
   scheduleBatches?: Prisma.ScheduleBatchOrderByRelationAggregateInput
   shifts?: Prisma.ShiftOrderByRelationAggregateInput
 }
@@ -322,6 +333,7 @@ export type RotationPolicyWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.RotationPolicyWhereInput[]
   NOT?: Prisma.RotationPolicyWhereInput | Prisma.RotationPolicyWhereInput[]
   teamId?: Prisma.UuidFilter<"RotationPolicy"> | string
+  escalationPolicyId?: Prisma.UuidNullableFilter<"RotationPolicy"> | string | null
   name?: Prisma.StringFilter<"RotationPolicy"> | string
   cadence?: Prisma.EnumCadenceKindFilter<"RotationPolicy"> | $Enums.CadenceKind
   cronExpression?: Prisma.StringNullableFilter<"RotationPolicy"> | string | null
@@ -334,6 +346,7 @@ export type RotationPolicyWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"RotationPolicy"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RotationPolicy"> | Date | string
   team?: Prisma.XOR<Prisma.TeamScalarRelationFilter, Prisma.TeamWhereInput>
+  escalationPolicy?: Prisma.XOR<Prisma.EscalationPolicyNullableScalarRelationFilter, Prisma.EscalationPolicyWhereInput> | null
   scheduleBatches?: Prisma.ScheduleBatchListRelationFilter
   shifts?: Prisma.ShiftListRelationFilter
 }, "id">
@@ -341,6 +354,7 @@ export type RotationPolicyWhereUniqueInput = Prisma.AtLeast<{
 export type RotationPolicyOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   teamId?: Prisma.SortOrder
+  escalationPolicyId?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
   cadence?: Prisma.SortOrder
   cronExpression?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -365,6 +379,7 @@ export type RotationPolicyScalarWhereWithAggregatesInput = {
   NOT?: Prisma.RotationPolicyScalarWhereWithAggregatesInput | Prisma.RotationPolicyScalarWhereWithAggregatesInput[]
   id?: Prisma.UuidWithAggregatesFilter<"RotationPolicy"> | string
   teamId?: Prisma.UuidWithAggregatesFilter<"RotationPolicy"> | string
+  escalationPolicyId?: Prisma.UuidNullableWithAggregatesFilter<"RotationPolicy"> | string | null
   name?: Prisma.StringWithAggregatesFilter<"RotationPolicy"> | string
   cadence?: Prisma.EnumCadenceKindWithAggregatesFilter<"RotationPolicy"> | $Enums.CadenceKind
   cronExpression?: Prisma.StringNullableWithAggregatesFilter<"RotationPolicy"> | string | null
@@ -392,6 +407,7 @@ export type RotationPolicyCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   team: Prisma.TeamCreateNestedOneWithoutRotationPoliciesInput
+  escalationPolicy?: Prisma.EscalationPolicyCreateNestedOneWithoutRotationPoliciesInput
   scheduleBatches?: Prisma.ScheduleBatchCreateNestedManyWithoutPolicyInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutPolicyInput
 }
@@ -399,6 +415,7 @@ export type RotationPolicyCreateInput = {
 export type RotationPolicyUncheckedCreateInput = {
   id?: string
   teamId: string
+  escalationPolicyId?: string | null
   name: string
   cadence: $Enums.CadenceKind
   cronExpression?: string | null
@@ -428,6 +445,7 @@ export type RotationPolicyUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   team?: Prisma.TeamUpdateOneRequiredWithoutRotationPoliciesNestedInput
+  escalationPolicy?: Prisma.EscalationPolicyUpdateOneWithoutRotationPoliciesNestedInput
   scheduleBatches?: Prisma.ScheduleBatchUpdateManyWithoutPolicyNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutPolicyNestedInput
 }
@@ -435,6 +453,7 @@ export type RotationPolicyUpdateInput = {
 export type RotationPolicyUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   teamId?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationPolicyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   cadence?: Prisma.EnumCadenceKindFieldUpdateOperationsInput | $Enums.CadenceKind
   cronExpression?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -453,6 +472,7 @@ export type RotationPolicyUncheckedUpdateInput = {
 export type RotationPolicyCreateManyInput = {
   id?: string
   teamId: string
+  escalationPolicyId?: string | null
   name: string
   cadence: $Enums.CadenceKind
   cronExpression?: string | null
@@ -484,6 +504,7 @@ export type RotationPolicyUpdateManyMutationInput = {
 export type RotationPolicyUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   teamId?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationPolicyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   cadence?: Prisma.EnumCadenceKindFieldUpdateOperationsInput | $Enums.CadenceKind
   cronExpression?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -518,6 +539,7 @@ export type IntNullableListFilter<$PrismaModel = never> = {
 export type RotationPolicyCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   teamId?: Prisma.SortOrder
+  escalationPolicyId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   cadence?: Prisma.SortOrder
   cronExpression?: Prisma.SortOrder
@@ -542,6 +564,7 @@ export type RotationPolicyAvgOrderByAggregateInput = {
 export type RotationPolicyMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   teamId?: Prisma.SortOrder
+  escalationPolicyId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   cadence?: Prisma.SortOrder
   cronExpression?: Prisma.SortOrder
@@ -557,6 +580,7 @@ export type RotationPolicyMaxOrderByAggregateInput = {
 export type RotationPolicyMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   teamId?: Prisma.SortOrder
+  escalationPolicyId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   cadence?: Prisma.SortOrder
   cronExpression?: Prisma.SortOrder
@@ -665,6 +689,48 @@ export type RotationPolicyUpdateOneRequiredWithoutShiftsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.RotationPolicyUpdateToOneWithWhereWithoutShiftsInput, Prisma.RotationPolicyUpdateWithoutShiftsInput>, Prisma.RotationPolicyUncheckedUpdateWithoutShiftsInput>
 }
 
+export type RotationPolicyCreateNestedManyWithoutEscalationPolicyInput = {
+  create?: Prisma.XOR<Prisma.RotationPolicyCreateWithoutEscalationPolicyInput, Prisma.RotationPolicyUncheckedCreateWithoutEscalationPolicyInput> | Prisma.RotationPolicyCreateWithoutEscalationPolicyInput[] | Prisma.RotationPolicyUncheckedCreateWithoutEscalationPolicyInput[]
+  connectOrCreate?: Prisma.RotationPolicyCreateOrConnectWithoutEscalationPolicyInput | Prisma.RotationPolicyCreateOrConnectWithoutEscalationPolicyInput[]
+  createMany?: Prisma.RotationPolicyCreateManyEscalationPolicyInputEnvelope
+  connect?: Prisma.RotationPolicyWhereUniqueInput | Prisma.RotationPolicyWhereUniqueInput[]
+}
+
+export type RotationPolicyUncheckedCreateNestedManyWithoutEscalationPolicyInput = {
+  create?: Prisma.XOR<Prisma.RotationPolicyCreateWithoutEscalationPolicyInput, Prisma.RotationPolicyUncheckedCreateWithoutEscalationPolicyInput> | Prisma.RotationPolicyCreateWithoutEscalationPolicyInput[] | Prisma.RotationPolicyUncheckedCreateWithoutEscalationPolicyInput[]
+  connectOrCreate?: Prisma.RotationPolicyCreateOrConnectWithoutEscalationPolicyInput | Prisma.RotationPolicyCreateOrConnectWithoutEscalationPolicyInput[]
+  createMany?: Prisma.RotationPolicyCreateManyEscalationPolicyInputEnvelope
+  connect?: Prisma.RotationPolicyWhereUniqueInput | Prisma.RotationPolicyWhereUniqueInput[]
+}
+
+export type RotationPolicyUpdateManyWithoutEscalationPolicyNestedInput = {
+  create?: Prisma.XOR<Prisma.RotationPolicyCreateWithoutEscalationPolicyInput, Prisma.RotationPolicyUncheckedCreateWithoutEscalationPolicyInput> | Prisma.RotationPolicyCreateWithoutEscalationPolicyInput[] | Prisma.RotationPolicyUncheckedCreateWithoutEscalationPolicyInput[]
+  connectOrCreate?: Prisma.RotationPolicyCreateOrConnectWithoutEscalationPolicyInput | Prisma.RotationPolicyCreateOrConnectWithoutEscalationPolicyInput[]
+  upsert?: Prisma.RotationPolicyUpsertWithWhereUniqueWithoutEscalationPolicyInput | Prisma.RotationPolicyUpsertWithWhereUniqueWithoutEscalationPolicyInput[]
+  createMany?: Prisma.RotationPolicyCreateManyEscalationPolicyInputEnvelope
+  set?: Prisma.RotationPolicyWhereUniqueInput | Prisma.RotationPolicyWhereUniqueInput[]
+  disconnect?: Prisma.RotationPolicyWhereUniqueInput | Prisma.RotationPolicyWhereUniqueInput[]
+  delete?: Prisma.RotationPolicyWhereUniqueInput | Prisma.RotationPolicyWhereUniqueInput[]
+  connect?: Prisma.RotationPolicyWhereUniqueInput | Prisma.RotationPolicyWhereUniqueInput[]
+  update?: Prisma.RotationPolicyUpdateWithWhereUniqueWithoutEscalationPolicyInput | Prisma.RotationPolicyUpdateWithWhereUniqueWithoutEscalationPolicyInput[]
+  updateMany?: Prisma.RotationPolicyUpdateManyWithWhereWithoutEscalationPolicyInput | Prisma.RotationPolicyUpdateManyWithWhereWithoutEscalationPolicyInput[]
+  deleteMany?: Prisma.RotationPolicyScalarWhereInput | Prisma.RotationPolicyScalarWhereInput[]
+}
+
+export type RotationPolicyUncheckedUpdateManyWithoutEscalationPolicyNestedInput = {
+  create?: Prisma.XOR<Prisma.RotationPolicyCreateWithoutEscalationPolicyInput, Prisma.RotationPolicyUncheckedCreateWithoutEscalationPolicyInput> | Prisma.RotationPolicyCreateWithoutEscalationPolicyInput[] | Prisma.RotationPolicyUncheckedCreateWithoutEscalationPolicyInput[]
+  connectOrCreate?: Prisma.RotationPolicyCreateOrConnectWithoutEscalationPolicyInput | Prisma.RotationPolicyCreateOrConnectWithoutEscalationPolicyInput[]
+  upsert?: Prisma.RotationPolicyUpsertWithWhereUniqueWithoutEscalationPolicyInput | Prisma.RotationPolicyUpsertWithWhereUniqueWithoutEscalationPolicyInput[]
+  createMany?: Prisma.RotationPolicyCreateManyEscalationPolicyInputEnvelope
+  set?: Prisma.RotationPolicyWhereUniqueInput | Prisma.RotationPolicyWhereUniqueInput[]
+  disconnect?: Prisma.RotationPolicyWhereUniqueInput | Prisma.RotationPolicyWhereUniqueInput[]
+  delete?: Prisma.RotationPolicyWhereUniqueInput | Prisma.RotationPolicyWhereUniqueInput[]
+  connect?: Prisma.RotationPolicyWhereUniqueInput | Prisma.RotationPolicyWhereUniqueInput[]
+  update?: Prisma.RotationPolicyUpdateWithWhereUniqueWithoutEscalationPolicyInput | Prisma.RotationPolicyUpdateWithWhereUniqueWithoutEscalationPolicyInput[]
+  updateMany?: Prisma.RotationPolicyUpdateManyWithWhereWithoutEscalationPolicyInput | Prisma.RotationPolicyUpdateManyWithWhereWithoutEscalationPolicyInput[]
+  deleteMany?: Prisma.RotationPolicyScalarWhereInput | Prisma.RotationPolicyScalarWhereInput[]
+}
+
 export type RotationPolicyCreateWithoutTeamInput = {
   id?: string
   name: string
@@ -678,12 +744,14 @@ export type RotationPolicyCreateWithoutTeamInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  escalationPolicy?: Prisma.EscalationPolicyCreateNestedOneWithoutRotationPoliciesInput
   scheduleBatches?: Prisma.ScheduleBatchCreateNestedManyWithoutPolicyInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyUncheckedCreateWithoutTeamInput = {
   id?: string
+  escalationPolicyId?: string | null
   name: string
   cadence: $Enums.CadenceKind
   cronExpression?: string | null
@@ -731,6 +799,7 @@ export type RotationPolicyScalarWhereInput = {
   NOT?: Prisma.RotationPolicyScalarWhereInput | Prisma.RotationPolicyScalarWhereInput[]
   id?: Prisma.UuidFilter<"RotationPolicy"> | string
   teamId?: Prisma.UuidFilter<"RotationPolicy"> | string
+  escalationPolicyId?: Prisma.UuidNullableFilter<"RotationPolicy"> | string | null
   name?: Prisma.StringFilter<"RotationPolicy"> | string
   cadence?: Prisma.EnumCadenceKindFilter<"RotationPolicy"> | $Enums.CadenceKind
   cronExpression?: Prisma.StringNullableFilter<"RotationPolicy"> | string | null
@@ -758,12 +827,14 @@ export type RotationPolicyCreateWithoutScheduleBatchesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   team: Prisma.TeamCreateNestedOneWithoutRotationPoliciesInput
+  escalationPolicy?: Prisma.EscalationPolicyCreateNestedOneWithoutRotationPoliciesInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyUncheckedCreateWithoutScheduleBatchesInput = {
   id?: string
   teamId: string
+  escalationPolicyId?: string | null
   name: string
   cadence: $Enums.CadenceKind
   cronExpression?: string | null
@@ -808,12 +879,14 @@ export type RotationPolicyUpdateWithoutScheduleBatchesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   team?: Prisma.TeamUpdateOneRequiredWithoutRotationPoliciesNestedInput
+  escalationPolicy?: Prisma.EscalationPolicyUpdateOneWithoutRotationPoliciesNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyUncheckedUpdateWithoutScheduleBatchesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   teamId?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationPolicyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   cadence?: Prisma.EnumCadenceKindFieldUpdateOperationsInput | $Enums.CadenceKind
   cronExpression?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -842,12 +915,14 @@ export type RotationPolicyCreateWithoutShiftsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   team: Prisma.TeamCreateNestedOneWithoutRotationPoliciesInput
+  escalationPolicy?: Prisma.EscalationPolicyCreateNestedOneWithoutRotationPoliciesInput
   scheduleBatches?: Prisma.ScheduleBatchCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyUncheckedCreateWithoutShiftsInput = {
   id?: string
   teamId: string
+  escalationPolicyId?: string | null
   name: string
   cadence: $Enums.CadenceKind
   cronExpression?: string | null
@@ -892,12 +967,14 @@ export type RotationPolicyUpdateWithoutShiftsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   team?: Prisma.TeamUpdateOneRequiredWithoutRotationPoliciesNestedInput
+  escalationPolicy?: Prisma.EscalationPolicyUpdateOneWithoutRotationPoliciesNestedInput
   scheduleBatches?: Prisma.ScheduleBatchUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyUncheckedUpdateWithoutShiftsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   teamId?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationPolicyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   cadence?: Prisma.EnumCadenceKindFieldUpdateOperationsInput | $Enums.CadenceKind
   cronExpression?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -912,8 +989,71 @@ export type RotationPolicyUncheckedUpdateWithoutShiftsInput = {
   scheduleBatches?: Prisma.ScheduleBatchUncheckedUpdateManyWithoutPolicyNestedInput
 }
 
+export type RotationPolicyCreateWithoutEscalationPolicyInput = {
+  id?: string
+  name: string
+  cadence: $Enums.CadenceKind
+  cronExpression?: string | null
+  shiftDurationHours: number
+  handoverOffsetMinutes?: number
+  confirmationDueHours?: number
+  reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
+  maxGenerateWeeks?: number
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  team: Prisma.TeamCreateNestedOneWithoutRotationPoliciesInput
+  scheduleBatches?: Prisma.ScheduleBatchCreateNestedManyWithoutPolicyInput
+  shifts?: Prisma.ShiftCreateNestedManyWithoutPolicyInput
+}
+
+export type RotationPolicyUncheckedCreateWithoutEscalationPolicyInput = {
+  id?: string
+  teamId: string
+  name: string
+  cadence: $Enums.CadenceKind
+  cronExpression?: string | null
+  shiftDurationHours: number
+  handoverOffsetMinutes?: number
+  confirmationDueHours?: number
+  reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
+  maxGenerateWeeks?: number
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  scheduleBatches?: Prisma.ScheduleBatchUncheckedCreateNestedManyWithoutPolicyInput
+  shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutPolicyInput
+}
+
+export type RotationPolicyCreateOrConnectWithoutEscalationPolicyInput = {
+  where: Prisma.RotationPolicyWhereUniqueInput
+  create: Prisma.XOR<Prisma.RotationPolicyCreateWithoutEscalationPolicyInput, Prisma.RotationPolicyUncheckedCreateWithoutEscalationPolicyInput>
+}
+
+export type RotationPolicyCreateManyEscalationPolicyInputEnvelope = {
+  data: Prisma.RotationPolicyCreateManyEscalationPolicyInput | Prisma.RotationPolicyCreateManyEscalationPolicyInput[]
+  skipDuplicates?: boolean
+}
+
+export type RotationPolicyUpsertWithWhereUniqueWithoutEscalationPolicyInput = {
+  where: Prisma.RotationPolicyWhereUniqueInput
+  update: Prisma.XOR<Prisma.RotationPolicyUpdateWithoutEscalationPolicyInput, Prisma.RotationPolicyUncheckedUpdateWithoutEscalationPolicyInput>
+  create: Prisma.XOR<Prisma.RotationPolicyCreateWithoutEscalationPolicyInput, Prisma.RotationPolicyUncheckedCreateWithoutEscalationPolicyInput>
+}
+
+export type RotationPolicyUpdateWithWhereUniqueWithoutEscalationPolicyInput = {
+  where: Prisma.RotationPolicyWhereUniqueInput
+  data: Prisma.XOR<Prisma.RotationPolicyUpdateWithoutEscalationPolicyInput, Prisma.RotationPolicyUncheckedUpdateWithoutEscalationPolicyInput>
+}
+
+export type RotationPolicyUpdateManyWithWhereWithoutEscalationPolicyInput = {
+  where: Prisma.RotationPolicyScalarWhereInput
+  data: Prisma.XOR<Prisma.RotationPolicyUpdateManyMutationInput, Prisma.RotationPolicyUncheckedUpdateManyWithoutEscalationPolicyInput>
+}
+
 export type RotationPolicyCreateManyTeamInput = {
   id?: string
+  escalationPolicyId?: string | null
   name: string
   cadence: $Enums.CadenceKind
   cronExpression?: string | null
@@ -940,12 +1080,14 @@ export type RotationPolicyUpdateWithoutTeamInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  escalationPolicy?: Prisma.EscalationPolicyUpdateOneWithoutRotationPoliciesNestedInput
   scheduleBatches?: Prisma.ScheduleBatchUpdateManyWithoutPolicyNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyUncheckedUpdateWithoutTeamInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationPolicyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   cadence?: Prisma.EnumCadenceKindFieldUpdateOperationsInput | $Enums.CadenceKind
   cronExpression?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -963,6 +1105,75 @@ export type RotationPolicyUncheckedUpdateWithoutTeamInput = {
 
 export type RotationPolicyUncheckedUpdateManyWithoutTeamInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationPolicyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  cadence?: Prisma.EnumCadenceKindFieldUpdateOperationsInput | $Enums.CadenceKind
+  cronExpression?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shiftDurationHours?: Prisma.IntFieldUpdateOperationsInput | number
+  handoverOffsetMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
+  reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
+  maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type RotationPolicyCreateManyEscalationPolicyInput = {
+  id?: string
+  teamId: string
+  name: string
+  cadence: $Enums.CadenceKind
+  cronExpression?: string | null
+  shiftDurationHours: number
+  handoverOffsetMinutes?: number
+  confirmationDueHours?: number
+  reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
+  maxGenerateWeeks?: number
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type RotationPolicyUpdateWithoutEscalationPolicyInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  cadence?: Prisma.EnumCadenceKindFieldUpdateOperationsInput | $Enums.CadenceKind
+  cronExpression?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shiftDurationHours?: Prisma.IntFieldUpdateOperationsInput | number
+  handoverOffsetMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
+  reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
+  maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  team?: Prisma.TeamUpdateOneRequiredWithoutRotationPoliciesNestedInput
+  scheduleBatches?: Prisma.ScheduleBatchUpdateManyWithoutPolicyNestedInput
+  shifts?: Prisma.ShiftUpdateManyWithoutPolicyNestedInput
+}
+
+export type RotationPolicyUncheckedUpdateWithoutEscalationPolicyInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  teamId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  cadence?: Prisma.EnumCadenceKindFieldUpdateOperationsInput | $Enums.CadenceKind
+  cronExpression?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shiftDurationHours?: Prisma.IntFieldUpdateOperationsInput | number
+  handoverOffsetMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
+  reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
+  maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  scheduleBatches?: Prisma.ScheduleBatchUncheckedUpdateManyWithoutPolicyNestedInput
+  shifts?: Prisma.ShiftUncheckedUpdateManyWithoutPolicyNestedInput
+}
+
+export type RotationPolicyUncheckedUpdateManyWithoutEscalationPolicyInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  teamId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   cadence?: Prisma.EnumCadenceKindFieldUpdateOperationsInput | $Enums.CadenceKind
   cronExpression?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1019,6 +1230,7 @@ export type RotationPolicyCountOutputTypeCountShiftsArgs<ExtArgs extends runtime
 export type RotationPolicySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   teamId?: boolean
+  escalationPolicyId?: boolean
   name?: boolean
   cadence?: boolean
   cronExpression?: boolean
@@ -1031,6 +1243,7 @@ export type RotationPolicySelect<ExtArgs extends runtime.Types.Extensions.Intern
   createdAt?: boolean
   updatedAt?: boolean
   team?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
+  escalationPolicy?: boolean | Prisma.RotationPolicy$escalationPolicyArgs<ExtArgs>
   scheduleBatches?: boolean | Prisma.RotationPolicy$scheduleBatchesArgs<ExtArgs>
   shifts?: boolean | Prisma.RotationPolicy$shiftsArgs<ExtArgs>
   _count?: boolean | Prisma.RotationPolicyCountOutputTypeDefaultArgs<ExtArgs>
@@ -1039,6 +1252,7 @@ export type RotationPolicySelect<ExtArgs extends runtime.Types.Extensions.Intern
 export type RotationPolicySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   teamId?: boolean
+  escalationPolicyId?: boolean
   name?: boolean
   cadence?: boolean
   cronExpression?: boolean
@@ -1051,11 +1265,13 @@ export type RotationPolicySelectCreateManyAndReturn<ExtArgs extends runtime.Type
   createdAt?: boolean
   updatedAt?: boolean
   team?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
+  escalationPolicy?: boolean | Prisma.RotationPolicy$escalationPolicyArgs<ExtArgs>
 }, ExtArgs["result"]["rotationPolicy"]>
 
 export type RotationPolicySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   teamId?: boolean
+  escalationPolicyId?: boolean
   name?: boolean
   cadence?: boolean
   cronExpression?: boolean
@@ -1068,11 +1284,13 @@ export type RotationPolicySelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   createdAt?: boolean
   updatedAt?: boolean
   team?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
+  escalationPolicy?: boolean | Prisma.RotationPolicy$escalationPolicyArgs<ExtArgs>
 }, ExtArgs["result"]["rotationPolicy"]>
 
 export type RotationPolicySelectScalar = {
   id?: boolean
   teamId?: boolean
+  escalationPolicyId?: boolean
   name?: boolean
   cadence?: boolean
   cronExpression?: boolean
@@ -1086,30 +1304,35 @@ export type RotationPolicySelectScalar = {
   updatedAt?: boolean
 }
 
-export type RotationPolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "teamId" | "name" | "cadence" | "cronExpression" | "shiftDurationHours" | "handoverOffsetMinutes" | "confirmationDueHours" | "reminderLeadHours" | "maxGenerateWeeks" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["rotationPolicy"]>
+export type RotationPolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "teamId" | "escalationPolicyId" | "name" | "cadence" | "cronExpression" | "shiftDurationHours" | "handoverOffsetMinutes" | "confirmationDueHours" | "reminderLeadHours" | "maxGenerateWeeks" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["rotationPolicy"]>
 export type RotationPolicyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   team?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
+  escalationPolicy?: boolean | Prisma.RotationPolicy$escalationPolicyArgs<ExtArgs>
   scheduleBatches?: boolean | Prisma.RotationPolicy$scheduleBatchesArgs<ExtArgs>
   shifts?: boolean | Prisma.RotationPolicy$shiftsArgs<ExtArgs>
   _count?: boolean | Prisma.RotationPolicyCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type RotationPolicyIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   team?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
+  escalationPolicy?: boolean | Prisma.RotationPolicy$escalationPolicyArgs<ExtArgs>
 }
 export type RotationPolicyIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   team?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
+  escalationPolicy?: boolean | Prisma.RotationPolicy$escalationPolicyArgs<ExtArgs>
 }
 
 export type $RotationPolicyPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "RotationPolicy"
   objects: {
     team: Prisma.$TeamPayload<ExtArgs>
+    escalationPolicy: Prisma.$EscalationPolicyPayload<ExtArgs> | null
     scheduleBatches: Prisma.$ScheduleBatchPayload<ExtArgs>[]
     shifts: Prisma.$ShiftPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     teamId: string
+    escalationPolicyId: string | null
     name: string
     cadence: $Enums.CadenceKind
     cronExpression: string | null
@@ -1516,6 +1739,7 @@ readonly fields: RotationPolicyFieldRefs;
 export interface Prisma__RotationPolicyClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   team<T extends Prisma.TeamDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TeamDefaultArgs<ExtArgs>>): Prisma.Prisma__TeamClient<runtime.Types.Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  escalationPolicy<T extends Prisma.RotationPolicy$escalationPolicyArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RotationPolicy$escalationPolicyArgs<ExtArgs>>): Prisma.Prisma__EscalationPolicyClient<runtime.Types.Result.GetResult<Prisma.$EscalationPolicyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   scheduleBatches<T extends Prisma.RotationPolicy$scheduleBatchesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RotationPolicy$scheduleBatchesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ScheduleBatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   shifts<T extends Prisma.RotationPolicy$shiftsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RotationPolicy$shiftsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -1549,6 +1773,7 @@ export interface Prisma__RotationPolicyClient<T, Null = never, ExtArgs extends r
 export interface RotationPolicyFieldRefs {
   readonly id: Prisma.FieldRef<"RotationPolicy", 'String'>
   readonly teamId: Prisma.FieldRef<"RotationPolicy", 'String'>
+  readonly escalationPolicyId: Prisma.FieldRef<"RotationPolicy", 'String'>
   readonly name: Prisma.FieldRef<"RotationPolicy", 'String'>
   readonly cadence: Prisma.FieldRef<"RotationPolicy", 'CadenceKind'>
   readonly cronExpression: Prisma.FieldRef<"RotationPolicy", 'String'>
@@ -1958,6 +2183,25 @@ export type RotationPolicyDeleteManyArgs<ExtArgs extends runtime.Types.Extension
    * Limit how many RotationPolicies to delete.
    */
   limit?: number
+}
+
+/**
+ * RotationPolicy.escalationPolicy
+ */
+export type RotationPolicy$escalationPolicyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EscalationPolicy
+   */
+  select?: Prisma.EscalationPolicySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EscalationPolicy
+   */
+  omit?: Prisma.EscalationPolicyOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EscalationPolicyInclude<ExtArgs> | null
+  where?: Prisma.EscalationPolicyWhereInput
 }
 
 /**

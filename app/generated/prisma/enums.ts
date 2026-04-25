@@ -115,3 +115,11 @@ export const BatchStatus = {
 } as const
 
 export type BatchStatus = (typeof BatchStatus)[keyof typeof BatchStatus]
+
+
+export const NotificationUrgency = {
+  DEFAULT: 'DEFAULT',
+  IMPORTANT: 'IMPORTANT'
+} as const
+
+export type NotificationUrgency = (typeof NotificationUrgency)[keyof typeof NotificationUrgency]

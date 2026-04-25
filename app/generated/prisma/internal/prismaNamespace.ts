@@ -398,7 +398,9 @@ export const ModelName = {
   TeamNotificationChannel: 'TeamNotificationChannel',
   NotificationMessage: 'NotificationMessage',
   NotificationDelivery: 'NotificationDelivery',
+  EscalationPolicy: 'EscalationPolicy',
   EscalationRule: 'EscalationRule',
+  UserNotificationRule: 'UserNotificationRule',
   AuditLog: 'AuditLog'
 } as const
 
@@ -415,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "user" | "team" | "teamMember" | "rotationPolicy" | "scheduleBatch" | "shift" | "shiftConfirmation" | "swapRequest" | "teamNotificationChannel" | "notificationMessage" | "notificationDelivery" | "escalationRule" | "auditLog"
+    modelProps: "account" | "session" | "verificationToken" | "user" | "team" | "teamMember" | "rotationPolicy" | "scheduleBatch" | "shift" | "shiftConfirmation" | "swapRequest" | "teamNotificationChannel" | "notificationMessage" | "notificationDelivery" | "escalationPolicy" | "escalationRule" | "userNotificationRule" | "auditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1455,6 +1457,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    EscalationPolicy: {
+      payload: Prisma.$EscalationPolicyPayload<ExtArgs>
+      fields: Prisma.EscalationPolicyFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EscalationPolicyFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscalationPolicyPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EscalationPolicyFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscalationPolicyPayload>
+        }
+        findFirst: {
+          args: Prisma.EscalationPolicyFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscalationPolicyPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EscalationPolicyFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscalationPolicyPayload>
+        }
+        findMany: {
+          args: Prisma.EscalationPolicyFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscalationPolicyPayload>[]
+        }
+        create: {
+          args: Prisma.EscalationPolicyCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscalationPolicyPayload>
+        }
+        createMany: {
+          args: Prisma.EscalationPolicyCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EscalationPolicyCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscalationPolicyPayload>[]
+        }
+        delete: {
+          args: Prisma.EscalationPolicyDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscalationPolicyPayload>
+        }
+        update: {
+          args: Prisma.EscalationPolicyUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscalationPolicyPayload>
+        }
+        deleteMany: {
+          args: Prisma.EscalationPolicyDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EscalationPolicyUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EscalationPolicyUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscalationPolicyPayload>[]
+        }
+        upsert: {
+          args: Prisma.EscalationPolicyUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscalationPolicyPayload>
+        }
+        aggregate: {
+          args: Prisma.EscalationPolicyAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEscalationPolicy>
+        }
+        groupBy: {
+          args: Prisma.EscalationPolicyGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EscalationPolicyGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EscalationPolicyCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EscalationPolicyCountAggregateOutputType> | number
+        }
+      }
+    }
     EscalationRule: {
       payload: Prisma.$EscalationRulePayload<ExtArgs>
       fields: Prisma.EscalationRuleFieldRefs
@@ -1526,6 +1602,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.EscalationRuleCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.EscalationRuleCountAggregateOutputType> | number
+        }
+      }
+    }
+    UserNotificationRule: {
+      payload: Prisma.$UserNotificationRulePayload<ExtArgs>
+      fields: Prisma.UserNotificationRuleFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.UserNotificationRuleFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotificationRulePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.UserNotificationRuleFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotificationRulePayload>
+        }
+        findFirst: {
+          args: Prisma.UserNotificationRuleFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotificationRulePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.UserNotificationRuleFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotificationRulePayload>
+        }
+        findMany: {
+          args: Prisma.UserNotificationRuleFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotificationRulePayload>[]
+        }
+        create: {
+          args: Prisma.UserNotificationRuleCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotificationRulePayload>
+        }
+        createMany: {
+          args: Prisma.UserNotificationRuleCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.UserNotificationRuleCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotificationRulePayload>[]
+        }
+        delete: {
+          args: Prisma.UserNotificationRuleDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotificationRulePayload>
+        }
+        update: {
+          args: Prisma.UserNotificationRuleUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotificationRulePayload>
+        }
+        deleteMany: {
+          args: Prisma.UserNotificationRuleDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.UserNotificationRuleUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.UserNotificationRuleUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotificationRulePayload>[]
+        }
+        upsert: {
+          args: Prisma.UserNotificationRuleUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotificationRulePayload>
+        }
+        aggregate: {
+          args: Prisma.UserNotificationRuleAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUserNotificationRule>
+        }
+        groupBy: {
+          args: Prisma.UserNotificationRuleGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserNotificationRuleGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.UserNotificationRuleCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserNotificationRuleCountAggregateOutputType> | number
         }
       }
     }
@@ -1687,6 +1837,7 @@ export const UserScalarFieldEnum = {
   telegramChatId: 'telegramChatId',
   teamsUserId: 'teamsUserId',
   teamsConversationId: 'teamsConversationId',
+  phone: 'phone',
   systemRole: 'systemRole',
   timezone: 'timezone',
   isActive: 'isActive',
@@ -1724,6 +1875,7 @@ export type TeamMemberScalarFieldEnum = (typeof TeamMemberScalarFieldEnum)[keyof
 export const RotationPolicyScalarFieldEnum = {
   id: 'id',
   teamId: 'teamId',
+  escalationPolicyId: 'escalationPolicyId',
   name: 'name',
   cadence: 'cadence',
   cronExpression: 'cronExpression',
@@ -1760,6 +1912,7 @@ export const ShiftScalarFieldEnum = {
   batchId: 'batchId',
   assigneeId: 'assigneeId',
   backupId: 'backupId',
+  overrideForShiftId: 'overrideForShiftId',
   startsAt: 'startsAt',
   endsAt: 'endsAt',
   status: 'status',
@@ -1853,9 +2006,22 @@ export const NotificationDeliveryScalarFieldEnum = {
 export type NotificationDeliveryScalarFieldEnum = (typeof NotificationDeliveryScalarFieldEnum)[keyof typeof NotificationDeliveryScalarFieldEnum]
 
 
+export const EscalationPolicyScalarFieldEnum = {
+  id: 'id',
+  teamId: 'teamId',
+  name: 'name',
+  description: 'description',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EscalationPolicyScalarFieldEnum = (typeof EscalationPolicyScalarFieldEnum)[keyof typeof EscalationPolicyScalarFieldEnum]
+
+
 export const EscalationRuleScalarFieldEnum = {
   id: 'id',
-  policyId: 'policyId',
+  escalationPolicyId: 'escalationPolicyId',
   stepOrder: 'stepOrder',
   target: 'target',
   delayMinutes: 'delayMinutes',
@@ -1865,6 +2031,20 @@ export const EscalationRuleScalarFieldEnum = {
 } as const
 
 export type EscalationRuleScalarFieldEnum = (typeof EscalationRuleScalarFieldEnum)[keyof typeof EscalationRuleScalarFieldEnum]
+
+
+export const UserNotificationRuleScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  urgency: 'urgency',
+  stepOrder: 'stepOrder',
+  channelType: 'channelType',
+  delayMinutes: 'delayMinutes',
+  isActive: 'isActive',
+  createdAt: 'createdAt'
+} as const
+
+export type UserNotificationRuleScalarFieldEnum = (typeof UserNotificationRuleScalarFieldEnum)[keyof typeof UserNotificationRuleScalarFieldEnum]
 
 
 export const AuditLogScalarFieldEnum = {
@@ -2169,6 +2349,20 @@ export type ListEnumEscalationTargetFieldRefInput<$PrismaModel> = FieldRefInputT
 
 
 /**
+ * Reference to a field of type 'NotificationUrgency'
+ */
+export type EnumNotificationUrgencyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NotificationUrgency'>
+    
+
+
+/**
+ * Reference to a field of type 'NotificationUrgency[]'
+ */
+export type ListEnumNotificationUrgencyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NotificationUrgency[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -2305,7 +2499,9 @@ export type GlobalOmitConfig = {
   teamNotificationChannel?: Prisma.TeamNotificationChannelOmit
   notificationMessage?: Prisma.NotificationMessageOmit
   notificationDelivery?: Prisma.NotificationDeliveryOmit
+  escalationPolicy?: Prisma.EscalationPolicyOmit
   escalationRule?: Prisma.EscalationRuleOmit
+  userNotificationRule?: Prisma.UserNotificationRuleOmit
   auditLog?: Prisma.AuditLogOmit
 }
 

@@ -65,7 +65,9 @@ export const ModelName = {
   TeamNotificationChannel: 'TeamNotificationChannel',
   NotificationMessage: 'NotificationMessage',
   NotificationDelivery: 'NotificationDelivery',
+  EscalationPolicy: 'EscalationPolicy',
   EscalationRule: 'EscalationRule',
+  UserNotificationRule: 'UserNotificationRule',
   AuditLog: 'AuditLog'
 } as const
 
@@ -130,6 +132,7 @@ export const UserScalarFieldEnum = {
   telegramChatId: 'telegramChatId',
   teamsUserId: 'teamsUserId',
   teamsConversationId: 'teamsConversationId',
+  phone: 'phone',
   systemRole: 'systemRole',
   timezone: 'timezone',
   isActive: 'isActive',
@@ -167,6 +170,7 @@ export type TeamMemberScalarFieldEnum = (typeof TeamMemberScalarFieldEnum)[keyof
 export const RotationPolicyScalarFieldEnum = {
   id: 'id',
   teamId: 'teamId',
+  escalationPolicyId: 'escalationPolicyId',
   name: 'name',
   cadence: 'cadence',
   cronExpression: 'cronExpression',
@@ -203,6 +207,7 @@ export const ShiftScalarFieldEnum = {
   batchId: 'batchId',
   assigneeId: 'assigneeId',
   backupId: 'backupId',
+  overrideForShiftId: 'overrideForShiftId',
   startsAt: 'startsAt',
   endsAt: 'endsAt',
   status: 'status',
@@ -296,9 +301,22 @@ export const NotificationDeliveryScalarFieldEnum = {
 export type NotificationDeliveryScalarFieldEnum = (typeof NotificationDeliveryScalarFieldEnum)[keyof typeof NotificationDeliveryScalarFieldEnum]
 
 
+export const EscalationPolicyScalarFieldEnum = {
+  id: 'id',
+  teamId: 'teamId',
+  name: 'name',
+  description: 'description',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EscalationPolicyScalarFieldEnum = (typeof EscalationPolicyScalarFieldEnum)[keyof typeof EscalationPolicyScalarFieldEnum]
+
+
 export const EscalationRuleScalarFieldEnum = {
   id: 'id',
-  policyId: 'policyId',
+  escalationPolicyId: 'escalationPolicyId',
   stepOrder: 'stepOrder',
   target: 'target',
   delayMinutes: 'delayMinutes',
@@ -308,6 +326,20 @@ export const EscalationRuleScalarFieldEnum = {
 } as const
 
 export type EscalationRuleScalarFieldEnum = (typeof EscalationRuleScalarFieldEnum)[keyof typeof EscalationRuleScalarFieldEnum]
+
+
+export const UserNotificationRuleScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  urgency: 'urgency',
+  stepOrder: 'stepOrder',
+  channelType: 'channelType',
+  delayMinutes: 'delayMinutes',
+  isActive: 'isActive',
+  createdAt: 'createdAt'
+} as const
+
+export type UserNotificationRuleScalarFieldEnum = (typeof UserNotificationRuleScalarFieldEnum)[keyof typeof UserNotificationRuleScalarFieldEnum]
 
 
 export const AuditLogScalarFieldEnum = {

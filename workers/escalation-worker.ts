@@ -28,7 +28,7 @@ export function startEscalationWorker() {
       if (!confirmation || confirmation.status !== ConfirmationStatus.PENDING) return;
 
       const escalationRules = await prisma.escalationRule.findMany({
-        where: { policyId, stepOrder: { gte: step }, isActive: true },
+        where: { escalationPolicyId: policyId, stepOrder: { gte: step }, isActive: true },
         orderBy: { stepOrder: "asc" },
         take: 1,
       });

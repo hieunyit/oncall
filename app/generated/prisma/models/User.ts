@@ -42,6 +42,7 @@ export type UserMinAggregateOutputType = {
   telegramChatId: bigint | null
   teamsUserId: string | null
   teamsConversationId: string | null
+  phone: string | null
   systemRole: $Enums.SystemRole | null
   timezone: string | null
   isActive: boolean | null
@@ -57,6 +58,7 @@ export type UserMaxAggregateOutputType = {
   telegramChatId: bigint | null
   teamsUserId: string | null
   teamsConversationId: string | null
+  phone: string | null
   systemRole: $Enums.SystemRole | null
   timezone: string | null
   isActive: boolean | null
@@ -72,6 +74,7 @@ export type UserCountAggregateOutputType = {
   telegramChatId: number
   teamsUserId: number
   teamsConversationId: number
+  phone: number
   systemRole: number
   timezone: number
   isActive: number
@@ -97,6 +100,7 @@ export type UserMinAggregateInputType = {
   telegramChatId?: true
   teamsUserId?: true
   teamsConversationId?: true
+  phone?: true
   systemRole?: true
   timezone?: true
   isActive?: true
@@ -112,6 +116,7 @@ export type UserMaxAggregateInputType = {
   telegramChatId?: true
   teamsUserId?: true
   teamsConversationId?: true
+  phone?: true
   systemRole?: true
   timezone?: true
   isActive?: true
@@ -127,6 +132,7 @@ export type UserCountAggregateInputType = {
   telegramChatId?: true
   teamsUserId?: true
   teamsConversationId?: true
+  phone?: true
   systemRole?: true
   timezone?: true
   isActive?: true
@@ -229,6 +235,7 @@ export type UserGroupByOutputType = {
   telegramChatId: bigint | null
   teamsUserId: string | null
   teamsConversationId: string | null
+  phone: string | null
   systemRole: $Enums.SystemRole
   timezone: string
   isActive: boolean
@@ -267,6 +274,7 @@ export type UserWhereInput = {
   telegramChatId?: Prisma.BigIntNullableFilter<"User"> | bigint | number | null
   teamsUserId?: Prisma.StringNullableFilter<"User"> | string | null
   teamsConversationId?: Prisma.StringNullableFilter<"User"> | string | null
+  phone?: Prisma.StringNullableFilter<"User"> | string | null
   systemRole?: Prisma.EnumSystemRoleFilter<"User"> | $Enums.SystemRole
   timezone?: Prisma.StringFilter<"User"> | string
   isActive?: Prisma.BoolFilter<"User"> | boolean
@@ -281,6 +289,7 @@ export type UserWhereInput = {
   swapRequestsFrom?: Prisma.SwapRequestListRelationFilter
   swapRequestsTarget?: Prisma.SwapRequestListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
+  notificationRules?: Prisma.UserNotificationRuleListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -291,6 +300,7 @@ export type UserOrderByWithRelationInput = {
   telegramChatId?: Prisma.SortOrderInput | Prisma.SortOrder
   teamsUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   teamsConversationId?: Prisma.SortOrderInput | Prisma.SortOrder
+  phone?: Prisma.SortOrderInput | Prisma.SortOrder
   systemRole?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
@@ -305,6 +315,7 @@ export type UserOrderByWithRelationInput = {
   swapRequestsFrom?: Prisma.SwapRequestOrderByRelationAggregateInput
   swapRequestsTarget?: Prisma.SwapRequestOrderByRelationAggregateInput
   auditLogs?: Prisma.AuditLogOrderByRelationAggregateInput
+  notificationRules?: Prisma.UserNotificationRuleOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -318,6 +329,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   telegramChatId?: Prisma.BigIntNullableFilter<"User"> | bigint | number | null
   teamsUserId?: Prisma.StringNullableFilter<"User"> | string | null
   teamsConversationId?: Prisma.StringNullableFilter<"User"> | string | null
+  phone?: Prisma.StringNullableFilter<"User"> | string | null
   systemRole?: Prisma.EnumSystemRoleFilter<"User"> | $Enums.SystemRole
   timezone?: Prisma.StringFilter<"User"> | string
   isActive?: Prisma.BoolFilter<"User"> | boolean
@@ -332,6 +344,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   swapRequestsFrom?: Prisma.SwapRequestListRelationFilter
   swapRequestsTarget?: Prisma.SwapRequestListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
+  notificationRules?: Prisma.UserNotificationRuleListRelationFilter
 }, "id" | "email" | "keycloakId">
 
 export type UserOrderByWithAggregationInput = {
@@ -342,6 +355,7 @@ export type UserOrderByWithAggregationInput = {
   telegramChatId?: Prisma.SortOrderInput | Prisma.SortOrder
   teamsUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   teamsConversationId?: Prisma.SortOrderInput | Prisma.SortOrder
+  phone?: Prisma.SortOrderInput | Prisma.SortOrder
   systemRole?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
@@ -365,6 +379,7 @@ export type UserScalarWhereWithAggregatesInput = {
   telegramChatId?: Prisma.BigIntNullableWithAggregatesFilter<"User"> | bigint | number | null
   teamsUserId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   teamsConversationId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  phone?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   systemRole?: Prisma.EnumSystemRoleWithAggregatesFilter<"User"> | $Enums.SystemRole
   timezone?: Prisma.StringWithAggregatesFilter<"User"> | string
   isActive?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
@@ -380,6 +395,7 @@ export type UserCreateInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -394,6 +410,7 @@ export type UserCreateInput = {
   swapRequestsFrom?: Prisma.SwapRequestCreateNestedManyWithoutRequesterInput
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -404,6 +421,7 @@ export type UserUncheckedCreateInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -418,6 +436,7 @@ export type UserUncheckedCreateInput = {
   swapRequestsFrom?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutRequesterInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -428,6 +447,7 @@ export type UserUpdateInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -442,6 +462,7 @@ export type UserUpdateInput = {
   swapRequestsFrom?: Prisma.SwapRequestUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -452,6 +473,7 @@ export type UserUncheckedUpdateInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -466,6 +488,7 @@ export type UserUncheckedUpdateInput = {
   swapRequestsFrom?: Prisma.SwapRequestUncheckedUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -476,6 +499,7 @@ export type UserCreateManyInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -491,6 +515,7 @@ export type UserUpdateManyMutationInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -506,6 +531,7 @@ export type UserUncheckedUpdateManyInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -526,6 +552,7 @@ export type UserCountOrderByAggregateInput = {
   telegramChatId?: Prisma.SortOrder
   teamsUserId?: Prisma.SortOrder
   teamsConversationId?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
   systemRole?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
@@ -545,6 +572,7 @@ export type UserMaxOrderByAggregateInput = {
   telegramChatId?: Prisma.SortOrder
   teamsUserId?: Prisma.SortOrder
   teamsConversationId?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
   systemRole?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
@@ -560,6 +588,7 @@ export type UserMinOrderByAggregateInput = {
   telegramChatId?: Prisma.SortOrder
   teamsUserId?: Prisma.SortOrder
   teamsConversationId?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
   systemRole?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
@@ -706,6 +735,20 @@ export type UserUpdateOneRequiredWithoutSwapRequestsTargetNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSwapRequestsTargetInput, Prisma.UserUpdateWithoutSwapRequestsTargetInput>, Prisma.UserUncheckedUpdateWithoutSwapRequestsTargetInput>
 }
 
+export type UserCreateNestedOneWithoutNotificationRulesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationRulesInput, Prisma.UserUncheckedCreateWithoutNotificationRulesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationRulesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutNotificationRulesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationRulesInput, Prisma.UserUncheckedCreateWithoutNotificationRulesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationRulesInput
+  upsert?: Prisma.UserUpsertWithoutNotificationRulesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutNotificationRulesInput, Prisma.UserUpdateWithoutNotificationRulesInput>, Prisma.UserUncheckedUpdateWithoutNotificationRulesInput>
+}
+
 export type UserCreateNestedOneWithoutAuditLogsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutAuditLogsInput, Prisma.UserUncheckedCreateWithoutAuditLogsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutAuditLogsInput
@@ -730,6 +773,7 @@ export type UserCreateWithoutAccountsInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -743,6 +787,7 @@ export type UserCreateWithoutAccountsInput = {
   swapRequestsFrom?: Prisma.SwapRequestCreateNestedManyWithoutRequesterInput
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -753,6 +798,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -766,6 +812,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   swapRequestsFrom?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutRequesterInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -792,6 +839,7 @@ export type UserUpdateWithoutAccountsInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -805,6 +853,7 @@ export type UserUpdateWithoutAccountsInput = {
   swapRequestsFrom?: Prisma.SwapRequestUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -815,6 +864,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -828,6 +878,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   swapRequestsFrom?: Prisma.SwapRequestUncheckedUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -838,6 +889,7 @@ export type UserCreateWithoutSessionsInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -851,6 +903,7 @@ export type UserCreateWithoutSessionsInput = {
   swapRequestsFrom?: Prisma.SwapRequestCreateNestedManyWithoutRequesterInput
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -861,6 +914,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -874,6 +928,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   swapRequestsFrom?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutRequesterInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -900,6 +955,7 @@ export type UserUpdateWithoutSessionsInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -913,6 +969,7 @@ export type UserUpdateWithoutSessionsInput = {
   swapRequestsFrom?: Prisma.SwapRequestUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -923,6 +980,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -936,6 +994,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   swapRequestsFrom?: Prisma.SwapRequestUncheckedUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTeamMembersInput = {
@@ -946,6 +1005,7 @@ export type UserCreateWithoutTeamMembersInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -959,6 +1019,7 @@ export type UserCreateWithoutTeamMembersInput = {
   swapRequestsFrom?: Prisma.SwapRequestCreateNestedManyWithoutRequesterInput
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTeamMembersInput = {
@@ -969,6 +1030,7 @@ export type UserUncheckedCreateWithoutTeamMembersInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -982,6 +1044,7 @@ export type UserUncheckedCreateWithoutTeamMembersInput = {
   swapRequestsFrom?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutRequesterInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTeamMembersInput = {
@@ -1008,6 +1071,7 @@ export type UserUpdateWithoutTeamMembersInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1021,6 +1085,7 @@ export type UserUpdateWithoutTeamMembersInput = {
   swapRequestsFrom?: Prisma.SwapRequestUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTeamMembersInput = {
@@ -1031,6 +1096,7 @@ export type UserUncheckedUpdateWithoutTeamMembersInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1044,6 +1110,7 @@ export type UserUncheckedUpdateWithoutTeamMembersInput = {
   swapRequestsFrom?: Prisma.SwapRequestUncheckedUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutShiftsAsAssigneeInput = {
@@ -1054,6 +1121,7 @@ export type UserCreateWithoutShiftsAsAssigneeInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -1067,6 +1135,7 @@ export type UserCreateWithoutShiftsAsAssigneeInput = {
   swapRequestsFrom?: Prisma.SwapRequestCreateNestedManyWithoutRequesterInput
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutShiftsAsAssigneeInput = {
@@ -1077,6 +1146,7 @@ export type UserUncheckedCreateWithoutShiftsAsAssigneeInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -1090,6 +1160,7 @@ export type UserUncheckedCreateWithoutShiftsAsAssigneeInput = {
   swapRequestsFrom?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutRequesterInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutShiftsAsAssigneeInput = {
@@ -1105,6 +1176,7 @@ export type UserCreateWithoutShiftsAsBackupInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -1118,6 +1190,7 @@ export type UserCreateWithoutShiftsAsBackupInput = {
   swapRequestsFrom?: Prisma.SwapRequestCreateNestedManyWithoutRequesterInput
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutShiftsAsBackupInput = {
@@ -1128,6 +1201,7 @@ export type UserUncheckedCreateWithoutShiftsAsBackupInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -1141,6 +1215,7 @@ export type UserUncheckedCreateWithoutShiftsAsBackupInput = {
   swapRequestsFrom?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutRequesterInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutShiftsAsBackupInput = {
@@ -1167,6 +1242,7 @@ export type UserUpdateWithoutShiftsAsAssigneeInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1180,6 +1256,7 @@ export type UserUpdateWithoutShiftsAsAssigneeInput = {
   swapRequestsFrom?: Prisma.SwapRequestUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutShiftsAsAssigneeInput = {
@@ -1190,6 +1267,7 @@ export type UserUncheckedUpdateWithoutShiftsAsAssigneeInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1203,6 +1281,7 @@ export type UserUncheckedUpdateWithoutShiftsAsAssigneeInput = {
   swapRequestsFrom?: Prisma.SwapRequestUncheckedUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutShiftsAsBackupInput = {
@@ -1224,6 +1303,7 @@ export type UserUpdateWithoutShiftsAsBackupInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1237,6 +1317,7 @@ export type UserUpdateWithoutShiftsAsBackupInput = {
   swapRequestsFrom?: Prisma.SwapRequestUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutShiftsAsBackupInput = {
@@ -1247,6 +1328,7 @@ export type UserUncheckedUpdateWithoutShiftsAsBackupInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1260,6 +1342,7 @@ export type UserUncheckedUpdateWithoutShiftsAsBackupInput = {
   swapRequestsFrom?: Prisma.SwapRequestUncheckedUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutShiftConfirmationsInput = {
@@ -1270,6 +1353,7 @@ export type UserCreateWithoutShiftConfirmationsInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -1283,6 +1367,7 @@ export type UserCreateWithoutShiftConfirmationsInput = {
   swapRequestsFrom?: Prisma.SwapRequestCreateNestedManyWithoutRequesterInput
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutShiftConfirmationsInput = {
@@ -1293,6 +1378,7 @@ export type UserUncheckedCreateWithoutShiftConfirmationsInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -1306,6 +1392,7 @@ export type UserUncheckedCreateWithoutShiftConfirmationsInput = {
   swapRequestsFrom?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutRequesterInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutShiftConfirmationsInput = {
@@ -1332,6 +1419,7 @@ export type UserUpdateWithoutShiftConfirmationsInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1345,6 +1433,7 @@ export type UserUpdateWithoutShiftConfirmationsInput = {
   swapRequestsFrom?: Prisma.SwapRequestUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutShiftConfirmationsInput = {
@@ -1355,6 +1444,7 @@ export type UserUncheckedUpdateWithoutShiftConfirmationsInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1368,6 +1458,7 @@ export type UserUncheckedUpdateWithoutShiftConfirmationsInput = {
   swapRequestsFrom?: Prisma.SwapRequestUncheckedUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSwapRequestsFromInput = {
@@ -1378,6 +1469,7 @@ export type UserCreateWithoutSwapRequestsFromInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -1391,6 +1483,7 @@ export type UserCreateWithoutSwapRequestsFromInput = {
   shiftConfirmations?: Prisma.ShiftConfirmationCreateNestedManyWithoutUserInput
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSwapRequestsFromInput = {
@@ -1401,6 +1494,7 @@ export type UserUncheckedCreateWithoutSwapRequestsFromInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -1414,6 +1508,7 @@ export type UserUncheckedCreateWithoutSwapRequestsFromInput = {
   shiftConfirmations?: Prisma.ShiftConfirmationUncheckedCreateNestedManyWithoutUserInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSwapRequestsFromInput = {
@@ -1429,6 +1524,7 @@ export type UserCreateWithoutSwapRequestsTargetInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -1442,6 +1538,7 @@ export type UserCreateWithoutSwapRequestsTargetInput = {
   shiftConfirmations?: Prisma.ShiftConfirmationCreateNestedManyWithoutUserInput
   swapRequestsFrom?: Prisma.SwapRequestCreateNestedManyWithoutRequesterInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSwapRequestsTargetInput = {
@@ -1452,6 +1549,7 @@ export type UserUncheckedCreateWithoutSwapRequestsTargetInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -1465,6 +1563,7 @@ export type UserUncheckedCreateWithoutSwapRequestsTargetInput = {
   shiftConfirmations?: Prisma.ShiftConfirmationUncheckedCreateNestedManyWithoutUserInput
   swapRequestsFrom?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutRequesterInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSwapRequestsTargetInput = {
@@ -1491,6 +1590,7 @@ export type UserUpdateWithoutSwapRequestsFromInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1504,6 +1604,7 @@ export type UserUpdateWithoutSwapRequestsFromInput = {
   shiftConfirmations?: Prisma.ShiftConfirmationUpdateManyWithoutUserNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSwapRequestsFromInput = {
@@ -1514,6 +1615,7 @@ export type UserUncheckedUpdateWithoutSwapRequestsFromInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1527,6 +1629,7 @@ export type UserUncheckedUpdateWithoutSwapRequestsFromInput = {
   shiftConfirmations?: Prisma.ShiftConfirmationUncheckedUpdateManyWithoutUserNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutSwapRequestsTargetInput = {
@@ -1548,6 +1651,7 @@ export type UserUpdateWithoutSwapRequestsTargetInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1561,6 +1665,7 @@ export type UserUpdateWithoutSwapRequestsTargetInput = {
   shiftConfirmations?: Prisma.ShiftConfirmationUpdateManyWithoutUserNestedInput
   swapRequestsFrom?: Prisma.SwapRequestUpdateManyWithoutRequesterNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSwapRequestsTargetInput = {
@@ -1571,6 +1676,7 @@ export type UserUncheckedUpdateWithoutSwapRequestsTargetInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1584,9 +1690,10 @@ export type UserUncheckedUpdateWithoutSwapRequestsTargetInput = {
   shiftConfirmations?: Prisma.ShiftConfirmationUncheckedUpdateManyWithoutUserNestedInput
   swapRequestsFrom?: Prisma.SwapRequestUncheckedUpdateManyWithoutRequesterNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
 }
 
-export type UserCreateWithoutAuditLogsInput = {
+export type UserCreateWithoutNotificationRulesInput = {
   id?: string
   email: string
   fullName: string
@@ -1594,6 +1701,7 @@ export type UserCreateWithoutAuditLogsInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -1607,9 +1715,10 @@ export type UserCreateWithoutAuditLogsInput = {
   shiftConfirmations?: Prisma.ShiftConfirmationCreateNestedManyWithoutUserInput
   swapRequestsFrom?: Prisma.SwapRequestCreateNestedManyWithoutRequesterInput
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
 }
 
-export type UserUncheckedCreateWithoutAuditLogsInput = {
+export type UserUncheckedCreateWithoutNotificationRulesInput = {
   id?: string
   email: string
   fullName: string
@@ -1617,6 +1726,7 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   telegramChatId?: bigint | number | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
   isActive?: boolean
@@ -1630,6 +1740,123 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   shiftConfirmations?: Prisma.ShiftConfirmationUncheckedCreateNestedManyWithoutUserInput
   swapRequestsFrom?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutRequesterInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+}
+
+export type UserCreateOrConnectWithoutNotificationRulesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutNotificationRulesInput, Prisma.UserUncheckedCreateWithoutNotificationRulesInput>
+}
+
+export type UserUpsertWithoutNotificationRulesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutNotificationRulesInput, Prisma.UserUncheckedUpdateWithoutNotificationRulesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutNotificationRulesInput, Prisma.UserUncheckedCreateWithoutNotificationRulesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutNotificationRulesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutNotificationRulesInput, Prisma.UserUncheckedUpdateWithoutNotificationRulesInput>
+}
+
+export type UserUpdateWithoutNotificationRulesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  teamMembers?: Prisma.TeamMemberUpdateManyWithoutUserNestedInput
+  shiftsAsAssignee?: Prisma.ShiftUpdateManyWithoutAssigneeNestedInput
+  shiftsAsBackup?: Prisma.ShiftUpdateManyWithoutBackupNestedInput
+  shiftConfirmations?: Prisma.ShiftConfirmationUpdateManyWithoutUserNestedInput
+  swapRequestsFrom?: Prisma.SwapRequestUpdateManyWithoutRequesterNestedInput
+  swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+}
+
+export type UserUncheckedUpdateWithoutNotificationRulesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  teamMembers?: Prisma.TeamMemberUncheckedUpdateManyWithoutUserNestedInput
+  shiftsAsAssignee?: Prisma.ShiftUncheckedUpdateManyWithoutAssigneeNestedInput
+  shiftsAsBackup?: Prisma.ShiftUncheckedUpdateManyWithoutBackupNestedInput
+  shiftConfirmations?: Prisma.ShiftConfirmationUncheckedUpdateManyWithoutUserNestedInput
+  swapRequestsFrom?: Prisma.SwapRequestUncheckedUpdateManyWithoutRequesterNestedInput
+  swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+}
+
+export type UserCreateWithoutAuditLogsInput = {
+  id?: string
+  email: string
+  fullName: string
+  keycloakId?: string | null
+  telegramChatId?: bigint | number | null
+  teamsUserId?: string | null
+  teamsConversationId?: string | null
+  phone?: string | null
+  systemRole?: $Enums.SystemRole
+  timezone?: string
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  teamMembers?: Prisma.TeamMemberCreateNestedManyWithoutUserInput
+  shiftsAsAssignee?: Prisma.ShiftCreateNestedManyWithoutAssigneeInput
+  shiftsAsBackup?: Prisma.ShiftCreateNestedManyWithoutBackupInput
+  shiftConfirmations?: Prisma.ShiftConfirmationCreateNestedManyWithoutUserInput
+  swapRequestsFrom?: Prisma.SwapRequestCreateNestedManyWithoutRequesterInput
+  swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
+  notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutAuditLogsInput = {
+  id?: string
+  email: string
+  fullName: string
+  keycloakId?: string | null
+  telegramChatId?: bigint | number | null
+  teamsUserId?: string | null
+  teamsConversationId?: string | null
+  phone?: string | null
+  systemRole?: $Enums.SystemRole
+  timezone?: string
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  teamMembers?: Prisma.TeamMemberUncheckedCreateNestedManyWithoutUserInput
+  shiftsAsAssignee?: Prisma.ShiftUncheckedCreateNestedManyWithoutAssigneeInput
+  shiftsAsBackup?: Prisma.ShiftUncheckedCreateNestedManyWithoutBackupInput
+  shiftConfirmations?: Prisma.ShiftConfirmationUncheckedCreateNestedManyWithoutUserInput
+  swapRequestsFrom?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutRequesterInput
+  swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -1656,6 +1883,7 @@ export type UserUpdateWithoutAuditLogsInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1669,6 +1897,7 @@ export type UserUpdateWithoutAuditLogsInput = {
   shiftConfirmations?: Prisma.ShiftConfirmationUpdateManyWithoutUserNestedInput
   swapRequestsFrom?: Prisma.SwapRequestUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -1679,6 +1908,7 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1692,6 +1922,7 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   shiftConfirmations?: Prisma.ShiftConfirmationUncheckedUpdateManyWithoutUserNestedInput
   swapRequestsFrom?: Prisma.SwapRequestUncheckedUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -1709,6 +1940,7 @@ export type UserCountOutputType = {
   swapRequestsFrom: number
   swapRequestsTarget: number
   auditLogs: number
+  notificationRules: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1721,6 +1953,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   swapRequestsFrom?: boolean | UserCountOutputTypeCountSwapRequestsFromArgs
   swapRequestsTarget?: boolean | UserCountOutputTypeCountSwapRequestsTargetArgs
   auditLogs?: boolean | UserCountOutputTypeCountAuditLogsArgs
+  notificationRules?: boolean | UserCountOutputTypeCountNotificationRulesArgs
 }
 
 /**
@@ -1796,6 +2029,13 @@ export type UserCountOutputTypeCountAuditLogsArgs<ExtArgs extends runtime.Types.
   where?: Prisma.AuditLogWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountNotificationRulesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UserNotificationRuleWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1805,6 +2045,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   telegramChatId?: boolean
   teamsUserId?: boolean
   teamsConversationId?: boolean
+  phone?: boolean
   systemRole?: boolean
   timezone?: boolean
   isActive?: boolean
@@ -1819,6 +2060,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   swapRequestsFrom?: boolean | Prisma.User$swapRequestsFromArgs<ExtArgs>
   swapRequestsTarget?: boolean | Prisma.User$swapRequestsTargetArgs<ExtArgs>
   auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
+  notificationRules?: boolean | Prisma.User$notificationRulesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1830,6 +2072,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   telegramChatId?: boolean
   teamsUserId?: boolean
   teamsConversationId?: boolean
+  phone?: boolean
   systemRole?: boolean
   timezone?: boolean
   isActive?: boolean
@@ -1845,6 +2088,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   telegramChatId?: boolean
   teamsUserId?: boolean
   teamsConversationId?: boolean
+  phone?: boolean
   systemRole?: boolean
   timezone?: boolean
   isActive?: boolean
@@ -1860,6 +2104,7 @@ export type UserSelectScalar = {
   telegramChatId?: boolean
   teamsUserId?: boolean
   teamsConversationId?: boolean
+  phone?: boolean
   systemRole?: boolean
   timezone?: boolean
   isActive?: boolean
@@ -1867,7 +2112,7 @@ export type UserSelectScalar = {
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "fullName" | "keycloakId" | "telegramChatId" | "teamsUserId" | "teamsConversationId" | "systemRole" | "timezone" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "fullName" | "keycloakId" | "telegramChatId" | "teamsUserId" | "teamsConversationId" | "phone" | "systemRole" | "timezone" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
@@ -1878,6 +2123,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   swapRequestsFrom?: boolean | Prisma.User$swapRequestsFromArgs<ExtArgs>
   swapRequestsTarget?: boolean | Prisma.User$swapRequestsTargetArgs<ExtArgs>
   auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
+  notificationRules?: boolean | Prisma.User$notificationRulesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1895,6 +2141,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     swapRequestsFrom: Prisma.$SwapRequestPayload<ExtArgs>[]
     swapRequestsTarget: Prisma.$SwapRequestPayload<ExtArgs>[]
     auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
+    notificationRules: Prisma.$UserNotificationRulePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1904,6 +2151,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     telegramChatId: bigint | null
     teamsUserId: string | null
     teamsConversationId: string | null
+    phone: string | null
     systemRole: $Enums.SystemRole
     timezone: string
     isActive: boolean
@@ -2312,6 +2560,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   swapRequestsFrom<T extends Prisma.User$swapRequestsFromArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$swapRequestsFromArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SwapRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   swapRequestsTarget<T extends Prisma.User$swapRequestsTargetArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$swapRequestsTargetArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SwapRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditLogs<T extends Prisma.User$auditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  notificationRules<T extends Prisma.User$notificationRulesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationRulesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserNotificationRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2348,6 +2597,7 @@ export interface UserFieldRefs {
   readonly telegramChatId: Prisma.FieldRef<"User", 'BigInt'>
   readonly teamsUserId: Prisma.FieldRef<"User", 'String'>
   readonly teamsConversationId: Prisma.FieldRef<"User", 'String'>
+  readonly phone: Prisma.FieldRef<"User", 'String'>
   readonly systemRole: Prisma.FieldRef<"User", 'SystemRole'>
   readonly timezone: Prisma.FieldRef<"User", 'String'>
   readonly isActive: Prisma.FieldRef<"User", 'Boolean'>
@@ -2959,6 +3209,30 @@ export type User$auditLogsArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.AuditLogScalarFieldEnum | Prisma.AuditLogScalarFieldEnum[]
+}
+
+/**
+ * User.notificationRules
+ */
+export type User$notificationRulesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserNotificationRule
+   */
+  select?: Prisma.UserNotificationRuleSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserNotificationRule
+   */
+  omit?: Prisma.UserNotificationRuleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserNotificationRuleInclude<ExtArgs> | null
+  where?: Prisma.UserNotificationRuleWhereInput
+  orderBy?: Prisma.UserNotificationRuleOrderByWithRelationInput | Prisma.UserNotificationRuleOrderByWithRelationInput[]
+  cursor?: Prisma.UserNotificationRuleWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.UserNotificationRuleScalarFieldEnum | Prisma.UserNotificationRuleScalarFieldEnum[]
 }
 
 /**

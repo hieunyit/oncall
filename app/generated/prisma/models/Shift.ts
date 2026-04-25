@@ -40,6 +40,7 @@ export type ShiftMinAggregateOutputType = {
   batchId: string | null
   assigneeId: string | null
   backupId: string | null
+  overrideForShiftId: string | null
   startsAt: Date | null
   endsAt: Date | null
   status: $Enums.ShiftStatus | null
@@ -56,6 +57,7 @@ export type ShiftMaxAggregateOutputType = {
   batchId: string | null
   assigneeId: string | null
   backupId: string | null
+  overrideForShiftId: string | null
   startsAt: Date | null
   endsAt: Date | null
   status: $Enums.ShiftStatus | null
@@ -72,6 +74,7 @@ export type ShiftCountAggregateOutputType = {
   batchId: number
   assigneeId: number
   backupId: number
+  overrideForShiftId: number
   startsAt: number
   endsAt: number
   status: number
@@ -98,6 +101,7 @@ export type ShiftMinAggregateInputType = {
   batchId?: true
   assigneeId?: true
   backupId?: true
+  overrideForShiftId?: true
   startsAt?: true
   endsAt?: true
   status?: true
@@ -114,6 +118,7 @@ export type ShiftMaxAggregateInputType = {
   batchId?: true
   assigneeId?: true
   backupId?: true
+  overrideForShiftId?: true
   startsAt?: true
   endsAt?: true
   status?: true
@@ -130,6 +135,7 @@ export type ShiftCountAggregateInputType = {
   batchId?: true
   assigneeId?: true
   backupId?: true
+  overrideForShiftId?: true
   startsAt?: true
   endsAt?: true
   status?: true
@@ -233,6 +239,7 @@ export type ShiftGroupByOutputType = {
   batchId: string | null
   assigneeId: string
   backupId: string | null
+  overrideForShiftId: string | null
   startsAt: Date
   endsAt: Date
   status: $Enums.ShiftStatus
@@ -272,6 +279,7 @@ export type ShiftWhereInput = {
   batchId?: Prisma.UuidNullableFilter<"Shift"> | string | null
   assigneeId?: Prisma.UuidFilter<"Shift"> | string
   backupId?: Prisma.UuidNullableFilter<"Shift"> | string | null
+  overrideForShiftId?: Prisma.UuidNullableFilter<"Shift"> | string | null
   startsAt?: Prisma.DateTimeFilter<"Shift"> | Date | string
   endsAt?: Prisma.DateTimeFilter<"Shift"> | Date | string
   status?: Prisma.EnumShiftStatusFilter<"Shift"> | $Enums.ShiftStatus
@@ -284,6 +292,8 @@ export type ShiftWhereInput = {
   batch?: Prisma.XOR<Prisma.ScheduleBatchNullableScalarRelationFilter, Prisma.ScheduleBatchWhereInput> | null
   assignee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   backup?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  overrideForShift?: Prisma.XOR<Prisma.ShiftNullableScalarRelationFilter, Prisma.ShiftWhereInput> | null
+  overrides?: Prisma.ShiftListRelationFilter
   confirmation?: Prisma.XOR<Prisma.ShiftConfirmationNullableScalarRelationFilter, Prisma.ShiftConfirmationWhereInput> | null
   swapRequestsAsOriginal?: Prisma.SwapRequestListRelationFilter
   swapRequestsAsTarget?: Prisma.SwapRequestListRelationFilter
@@ -295,6 +305,7 @@ export type ShiftOrderByWithRelationInput = {
   batchId?: Prisma.SortOrderInput | Prisma.SortOrder
   assigneeId?: Prisma.SortOrder
   backupId?: Prisma.SortOrderInput | Prisma.SortOrder
+  overrideForShiftId?: Prisma.SortOrderInput | Prisma.SortOrder
   startsAt?: Prisma.SortOrder
   endsAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -307,6 +318,8 @@ export type ShiftOrderByWithRelationInput = {
   batch?: Prisma.ScheduleBatchOrderByWithRelationInput
   assignee?: Prisma.UserOrderByWithRelationInput
   backup?: Prisma.UserOrderByWithRelationInput
+  overrideForShift?: Prisma.ShiftOrderByWithRelationInput
+  overrides?: Prisma.ShiftOrderByRelationAggregateInput
   confirmation?: Prisma.ShiftConfirmationOrderByWithRelationInput
   swapRequestsAsOriginal?: Prisma.SwapRequestOrderByRelationAggregateInput
   swapRequestsAsTarget?: Prisma.SwapRequestOrderByRelationAggregateInput
@@ -321,6 +334,7 @@ export type ShiftWhereUniqueInput = Prisma.AtLeast<{
   batchId?: Prisma.UuidNullableFilter<"Shift"> | string | null
   assigneeId?: Prisma.UuidFilter<"Shift"> | string
   backupId?: Prisma.UuidNullableFilter<"Shift"> | string | null
+  overrideForShiftId?: Prisma.UuidNullableFilter<"Shift"> | string | null
   startsAt?: Prisma.DateTimeFilter<"Shift"> | Date | string
   endsAt?: Prisma.DateTimeFilter<"Shift"> | Date | string
   status?: Prisma.EnumShiftStatusFilter<"Shift"> | $Enums.ShiftStatus
@@ -333,6 +347,8 @@ export type ShiftWhereUniqueInput = Prisma.AtLeast<{
   batch?: Prisma.XOR<Prisma.ScheduleBatchNullableScalarRelationFilter, Prisma.ScheduleBatchWhereInput> | null
   assignee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   backup?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  overrideForShift?: Prisma.XOR<Prisma.ShiftNullableScalarRelationFilter, Prisma.ShiftWhereInput> | null
+  overrides?: Prisma.ShiftListRelationFilter
   confirmation?: Prisma.XOR<Prisma.ShiftConfirmationNullableScalarRelationFilter, Prisma.ShiftConfirmationWhereInput> | null
   swapRequestsAsOriginal?: Prisma.SwapRequestListRelationFilter
   swapRequestsAsTarget?: Prisma.SwapRequestListRelationFilter
@@ -344,6 +360,7 @@ export type ShiftOrderByWithAggregationInput = {
   batchId?: Prisma.SortOrderInput | Prisma.SortOrder
   assigneeId?: Prisma.SortOrder
   backupId?: Prisma.SortOrderInput | Prisma.SortOrder
+  overrideForShiftId?: Prisma.SortOrderInput | Prisma.SortOrder
   startsAt?: Prisma.SortOrder
   endsAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -368,6 +385,7 @@ export type ShiftScalarWhereWithAggregatesInput = {
   batchId?: Prisma.UuidNullableWithAggregatesFilter<"Shift"> | string | null
   assigneeId?: Prisma.UuidWithAggregatesFilter<"Shift"> | string
   backupId?: Prisma.UuidNullableWithAggregatesFilter<"Shift"> | string | null
+  overrideForShiftId?: Prisma.UuidNullableWithAggregatesFilter<"Shift"> | string | null
   startsAt?: Prisma.DateTimeWithAggregatesFilter<"Shift"> | Date | string
   endsAt?: Prisma.DateTimeWithAggregatesFilter<"Shift"> | Date | string
   status?: Prisma.EnumShiftStatusWithAggregatesFilter<"Shift"> | $Enums.ShiftStatus
@@ -392,6 +410,8 @@ export type ShiftCreateInput = {
   batch?: Prisma.ScheduleBatchCreateNestedOneWithoutShiftsInput
   assignee: Prisma.UserCreateNestedOneWithoutShiftsAsAssigneeInput
   backup?: Prisma.UserCreateNestedOneWithoutShiftsAsBackupInput
+  overrideForShift?: Prisma.ShiftCreateNestedOneWithoutOverridesInput
+  overrides?: Prisma.ShiftCreateNestedManyWithoutOverrideForShiftInput
   confirmation?: Prisma.ShiftConfirmationCreateNestedOneWithoutShiftInput
   swapRequestsAsOriginal?: Prisma.SwapRequestCreateNestedManyWithoutOriginalShiftInput
   swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
@@ -403,6 +423,7 @@ export type ShiftUncheckedCreateInput = {
   batchId?: string | null
   assigneeId: string
   backupId?: string | null
+  overrideForShiftId?: string | null
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ShiftStatus
@@ -411,6 +432,7 @@ export type ShiftUncheckedCreateInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  overrides?: Prisma.ShiftUncheckedCreateNestedManyWithoutOverrideForShiftInput
   confirmation?: Prisma.ShiftConfirmationUncheckedCreateNestedOneWithoutShiftInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutOriginalShiftInput
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
@@ -430,6 +452,8 @@ export type ShiftUpdateInput = {
   batch?: Prisma.ScheduleBatchUpdateOneWithoutShiftsNestedInput
   assignee?: Prisma.UserUpdateOneRequiredWithoutShiftsAsAssigneeNestedInput
   backup?: Prisma.UserUpdateOneWithoutShiftsAsBackupNestedInput
+  overrideForShift?: Prisma.ShiftUpdateOneWithoutOverridesNestedInput
+  overrides?: Prisma.ShiftUpdateManyWithoutOverrideForShiftNestedInput
   confirmation?: Prisma.ShiftConfirmationUpdateOneWithoutShiftNestedInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUpdateManyWithoutOriginalShiftNestedInput
   swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
@@ -441,6 +465,7 @@ export type ShiftUncheckedUpdateInput = {
   batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeId?: Prisma.StringFieldUpdateOperationsInput | string
   backupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  overrideForShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
@@ -449,6 +474,7 @@ export type ShiftUncheckedUpdateInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  overrides?: Prisma.ShiftUncheckedUpdateManyWithoutOverrideForShiftNestedInput
   confirmation?: Prisma.ShiftConfirmationUncheckedUpdateOneWithoutShiftNestedInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedUpdateManyWithoutOriginalShiftNestedInput
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
@@ -460,6 +486,7 @@ export type ShiftCreateManyInput = {
   batchId?: string | null
   assigneeId: string
   backupId?: string | null
+  overrideForShiftId?: string | null
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ShiftStatus
@@ -488,6 +515,7 @@ export type ShiftUncheckedUpdateManyInput = {
   batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeId?: Prisma.StringFieldUpdateOperationsInput | string
   backupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  overrideForShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
@@ -508,12 +536,18 @@ export type ShiftOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type ShiftNullableScalarRelationFilter = {
+  is?: Prisma.ShiftWhereInput | null
+  isNot?: Prisma.ShiftWhereInput | null
+}
+
 export type ShiftCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   policyId?: Prisma.SortOrder
   batchId?: Prisma.SortOrder
   assigneeId?: Prisma.SortOrder
   backupId?: Prisma.SortOrder
+  overrideForShiftId?: Prisma.SortOrder
   startsAt?: Prisma.SortOrder
   endsAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -534,6 +568,7 @@ export type ShiftMaxOrderByAggregateInput = {
   batchId?: Prisma.SortOrder
   assigneeId?: Prisma.SortOrder
   backupId?: Prisma.SortOrder
+  overrideForShiftId?: Prisma.SortOrder
   startsAt?: Prisma.SortOrder
   endsAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -550,6 +585,7 @@ export type ShiftMinOrderByAggregateInput = {
   batchId?: Prisma.SortOrder
   assigneeId?: Prisma.SortOrder
   backupId?: Prisma.SortOrder
+  overrideForShiftId?: Prisma.SortOrder
   startsAt?: Prisma.SortOrder
   endsAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -567,11 +603,6 @@ export type ShiftSumOrderByAggregateInput = {
 export type ShiftScalarRelationFilter = {
   is?: Prisma.ShiftWhereInput
   isNot?: Prisma.ShiftWhereInput
-}
-
-export type ShiftNullableScalarRelationFilter = {
-  is?: Prisma.ShiftWhereInput | null
-  isNot?: Prisma.ShiftWhereInput | null
 }
 
 export type ShiftCreateNestedManyWithoutAssigneeInput = {
@@ -742,12 +773,70 @@ export type ShiftUncheckedUpdateManyWithoutBatchNestedInput = {
   deleteMany?: Prisma.ShiftScalarWhereInput | Prisma.ShiftScalarWhereInput[]
 }
 
+export type ShiftCreateNestedOneWithoutOverridesInput = {
+  create?: Prisma.XOR<Prisma.ShiftCreateWithoutOverridesInput, Prisma.ShiftUncheckedCreateWithoutOverridesInput>
+  connectOrCreate?: Prisma.ShiftCreateOrConnectWithoutOverridesInput
+  connect?: Prisma.ShiftWhereUniqueInput
+}
+
+export type ShiftCreateNestedManyWithoutOverrideForShiftInput = {
+  create?: Prisma.XOR<Prisma.ShiftCreateWithoutOverrideForShiftInput, Prisma.ShiftUncheckedCreateWithoutOverrideForShiftInput> | Prisma.ShiftCreateWithoutOverrideForShiftInput[] | Prisma.ShiftUncheckedCreateWithoutOverrideForShiftInput[]
+  connectOrCreate?: Prisma.ShiftCreateOrConnectWithoutOverrideForShiftInput | Prisma.ShiftCreateOrConnectWithoutOverrideForShiftInput[]
+  createMany?: Prisma.ShiftCreateManyOverrideForShiftInputEnvelope
+  connect?: Prisma.ShiftWhereUniqueInput | Prisma.ShiftWhereUniqueInput[]
+}
+
+export type ShiftUncheckedCreateNestedManyWithoutOverrideForShiftInput = {
+  create?: Prisma.XOR<Prisma.ShiftCreateWithoutOverrideForShiftInput, Prisma.ShiftUncheckedCreateWithoutOverrideForShiftInput> | Prisma.ShiftCreateWithoutOverrideForShiftInput[] | Prisma.ShiftUncheckedCreateWithoutOverrideForShiftInput[]
+  connectOrCreate?: Prisma.ShiftCreateOrConnectWithoutOverrideForShiftInput | Prisma.ShiftCreateOrConnectWithoutOverrideForShiftInput[]
+  createMany?: Prisma.ShiftCreateManyOverrideForShiftInputEnvelope
+  connect?: Prisma.ShiftWhereUniqueInput | Prisma.ShiftWhereUniqueInput[]
+}
+
 export type EnumShiftStatusFieldUpdateOperationsInput = {
   set?: $Enums.ShiftStatus
 }
 
 export type EnumShiftSourceFieldUpdateOperationsInput = {
   set?: $Enums.ShiftSource
+}
+
+export type ShiftUpdateOneWithoutOverridesNestedInput = {
+  create?: Prisma.XOR<Prisma.ShiftCreateWithoutOverridesInput, Prisma.ShiftUncheckedCreateWithoutOverridesInput>
+  connectOrCreate?: Prisma.ShiftCreateOrConnectWithoutOverridesInput
+  upsert?: Prisma.ShiftUpsertWithoutOverridesInput
+  disconnect?: Prisma.ShiftWhereInput | boolean
+  delete?: Prisma.ShiftWhereInput | boolean
+  connect?: Prisma.ShiftWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ShiftUpdateToOneWithWhereWithoutOverridesInput, Prisma.ShiftUpdateWithoutOverridesInput>, Prisma.ShiftUncheckedUpdateWithoutOverridesInput>
+}
+
+export type ShiftUpdateManyWithoutOverrideForShiftNestedInput = {
+  create?: Prisma.XOR<Prisma.ShiftCreateWithoutOverrideForShiftInput, Prisma.ShiftUncheckedCreateWithoutOverrideForShiftInput> | Prisma.ShiftCreateWithoutOverrideForShiftInput[] | Prisma.ShiftUncheckedCreateWithoutOverrideForShiftInput[]
+  connectOrCreate?: Prisma.ShiftCreateOrConnectWithoutOverrideForShiftInput | Prisma.ShiftCreateOrConnectWithoutOverrideForShiftInput[]
+  upsert?: Prisma.ShiftUpsertWithWhereUniqueWithoutOverrideForShiftInput | Prisma.ShiftUpsertWithWhereUniqueWithoutOverrideForShiftInput[]
+  createMany?: Prisma.ShiftCreateManyOverrideForShiftInputEnvelope
+  set?: Prisma.ShiftWhereUniqueInput | Prisma.ShiftWhereUniqueInput[]
+  disconnect?: Prisma.ShiftWhereUniqueInput | Prisma.ShiftWhereUniqueInput[]
+  delete?: Prisma.ShiftWhereUniqueInput | Prisma.ShiftWhereUniqueInput[]
+  connect?: Prisma.ShiftWhereUniqueInput | Prisma.ShiftWhereUniqueInput[]
+  update?: Prisma.ShiftUpdateWithWhereUniqueWithoutOverrideForShiftInput | Prisma.ShiftUpdateWithWhereUniqueWithoutOverrideForShiftInput[]
+  updateMany?: Prisma.ShiftUpdateManyWithWhereWithoutOverrideForShiftInput | Prisma.ShiftUpdateManyWithWhereWithoutOverrideForShiftInput[]
+  deleteMany?: Prisma.ShiftScalarWhereInput | Prisma.ShiftScalarWhereInput[]
+}
+
+export type ShiftUncheckedUpdateManyWithoutOverrideForShiftNestedInput = {
+  create?: Prisma.XOR<Prisma.ShiftCreateWithoutOverrideForShiftInput, Prisma.ShiftUncheckedCreateWithoutOverrideForShiftInput> | Prisma.ShiftCreateWithoutOverrideForShiftInput[] | Prisma.ShiftUncheckedCreateWithoutOverrideForShiftInput[]
+  connectOrCreate?: Prisma.ShiftCreateOrConnectWithoutOverrideForShiftInput | Prisma.ShiftCreateOrConnectWithoutOverrideForShiftInput[]
+  upsert?: Prisma.ShiftUpsertWithWhereUniqueWithoutOverrideForShiftInput | Prisma.ShiftUpsertWithWhereUniqueWithoutOverrideForShiftInput[]
+  createMany?: Prisma.ShiftCreateManyOverrideForShiftInputEnvelope
+  set?: Prisma.ShiftWhereUniqueInput | Prisma.ShiftWhereUniqueInput[]
+  disconnect?: Prisma.ShiftWhereUniqueInput | Prisma.ShiftWhereUniqueInput[]
+  delete?: Prisma.ShiftWhereUniqueInput | Prisma.ShiftWhereUniqueInput[]
+  connect?: Prisma.ShiftWhereUniqueInput | Prisma.ShiftWhereUniqueInput[]
+  update?: Prisma.ShiftUpdateWithWhereUniqueWithoutOverrideForShiftInput | Prisma.ShiftUpdateWithWhereUniqueWithoutOverrideForShiftInput[]
+  updateMany?: Prisma.ShiftUpdateManyWithWhereWithoutOverrideForShiftInput | Prisma.ShiftUpdateManyWithWhereWithoutOverrideForShiftInput[]
+  deleteMany?: Prisma.ShiftScalarWhereInput | Prisma.ShiftScalarWhereInput[]
 }
 
 export type ShiftCreateNestedOneWithoutConfirmationInput = {
@@ -807,6 +896,8 @@ export type ShiftCreateWithoutAssigneeInput = {
   policy: Prisma.RotationPolicyCreateNestedOneWithoutShiftsInput
   batch?: Prisma.ScheduleBatchCreateNestedOneWithoutShiftsInput
   backup?: Prisma.UserCreateNestedOneWithoutShiftsAsBackupInput
+  overrideForShift?: Prisma.ShiftCreateNestedOneWithoutOverridesInput
+  overrides?: Prisma.ShiftCreateNestedManyWithoutOverrideForShiftInput
   confirmation?: Prisma.ShiftConfirmationCreateNestedOneWithoutShiftInput
   swapRequestsAsOriginal?: Prisma.SwapRequestCreateNestedManyWithoutOriginalShiftInput
   swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
@@ -817,6 +908,7 @@ export type ShiftUncheckedCreateWithoutAssigneeInput = {
   policyId: string
   batchId?: string | null
   backupId?: string | null
+  overrideForShiftId?: string | null
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ShiftStatus
@@ -825,6 +917,7 @@ export type ShiftUncheckedCreateWithoutAssigneeInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  overrides?: Prisma.ShiftUncheckedCreateNestedManyWithoutOverrideForShiftInput
   confirmation?: Prisma.ShiftConfirmationUncheckedCreateNestedOneWithoutShiftInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutOriginalShiftInput
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
@@ -853,6 +946,8 @@ export type ShiftCreateWithoutBackupInput = {
   policy: Prisma.RotationPolicyCreateNestedOneWithoutShiftsInput
   batch?: Prisma.ScheduleBatchCreateNestedOneWithoutShiftsInput
   assignee: Prisma.UserCreateNestedOneWithoutShiftsAsAssigneeInput
+  overrideForShift?: Prisma.ShiftCreateNestedOneWithoutOverridesInput
+  overrides?: Prisma.ShiftCreateNestedManyWithoutOverrideForShiftInput
   confirmation?: Prisma.ShiftConfirmationCreateNestedOneWithoutShiftInput
   swapRequestsAsOriginal?: Prisma.SwapRequestCreateNestedManyWithoutOriginalShiftInput
   swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
@@ -863,6 +958,7 @@ export type ShiftUncheckedCreateWithoutBackupInput = {
   policyId: string
   batchId?: string | null
   assigneeId: string
+  overrideForShiftId?: string | null
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ShiftStatus
@@ -871,6 +967,7 @@ export type ShiftUncheckedCreateWithoutBackupInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  overrides?: Prisma.ShiftUncheckedCreateNestedManyWithoutOverrideForShiftInput
   confirmation?: Prisma.ShiftConfirmationUncheckedCreateNestedOneWithoutShiftInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutOriginalShiftInput
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
@@ -911,6 +1008,7 @@ export type ShiftScalarWhereInput = {
   batchId?: Prisma.UuidNullableFilter<"Shift"> | string | null
   assigneeId?: Prisma.UuidFilter<"Shift"> | string
   backupId?: Prisma.UuidNullableFilter<"Shift"> | string | null
+  overrideForShiftId?: Prisma.UuidNullableFilter<"Shift"> | string | null
   startsAt?: Prisma.DateTimeFilter<"Shift"> | Date | string
   endsAt?: Prisma.DateTimeFilter<"Shift"> | Date | string
   status?: Prisma.EnumShiftStatusFilter<"Shift"> | $Enums.ShiftStatus
@@ -950,6 +1048,8 @@ export type ShiftCreateWithoutPolicyInput = {
   batch?: Prisma.ScheduleBatchCreateNestedOneWithoutShiftsInput
   assignee: Prisma.UserCreateNestedOneWithoutShiftsAsAssigneeInput
   backup?: Prisma.UserCreateNestedOneWithoutShiftsAsBackupInput
+  overrideForShift?: Prisma.ShiftCreateNestedOneWithoutOverridesInput
+  overrides?: Prisma.ShiftCreateNestedManyWithoutOverrideForShiftInput
   confirmation?: Prisma.ShiftConfirmationCreateNestedOneWithoutShiftInput
   swapRequestsAsOriginal?: Prisma.SwapRequestCreateNestedManyWithoutOriginalShiftInput
   swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
@@ -960,6 +1060,7 @@ export type ShiftUncheckedCreateWithoutPolicyInput = {
   batchId?: string | null
   assigneeId: string
   backupId?: string | null
+  overrideForShiftId?: string | null
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ShiftStatus
@@ -968,6 +1069,7 @@ export type ShiftUncheckedCreateWithoutPolicyInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  overrides?: Prisma.ShiftUncheckedCreateNestedManyWithoutOverrideForShiftInput
   confirmation?: Prisma.ShiftConfirmationUncheckedCreateNestedOneWithoutShiftInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutOriginalShiftInput
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
@@ -1012,6 +1114,8 @@ export type ShiftCreateWithoutBatchInput = {
   policy: Prisma.RotationPolicyCreateNestedOneWithoutShiftsInput
   assignee: Prisma.UserCreateNestedOneWithoutShiftsAsAssigneeInput
   backup?: Prisma.UserCreateNestedOneWithoutShiftsAsBackupInput
+  overrideForShift?: Prisma.ShiftCreateNestedOneWithoutOverridesInput
+  overrides?: Prisma.ShiftCreateNestedManyWithoutOverrideForShiftInput
   confirmation?: Prisma.ShiftConfirmationCreateNestedOneWithoutShiftInput
   swapRequestsAsOriginal?: Prisma.SwapRequestCreateNestedManyWithoutOriginalShiftInput
   swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
@@ -1022,6 +1126,7 @@ export type ShiftUncheckedCreateWithoutBatchInput = {
   policyId: string
   assigneeId: string
   backupId?: string | null
+  overrideForShiftId?: string | null
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ShiftStatus
@@ -1030,6 +1135,7 @@ export type ShiftUncheckedCreateWithoutBatchInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  overrides?: Prisma.ShiftUncheckedCreateNestedManyWithoutOverrideForShiftInput
   confirmation?: Prisma.ShiftConfirmationUncheckedCreateNestedOneWithoutShiftInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutOriginalShiftInput
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
@@ -1061,6 +1167,168 @@ export type ShiftUpdateManyWithWhereWithoutBatchInput = {
   data: Prisma.XOR<Prisma.ShiftUpdateManyMutationInput, Prisma.ShiftUncheckedUpdateManyWithoutBatchInput>
 }
 
+export type ShiftCreateWithoutOverridesInput = {
+  id?: string
+  startsAt: Date | string
+  endsAt: Date | string
+  status?: $Enums.ShiftStatus
+  source?: $Enums.ShiftSource
+  version?: number
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  policy: Prisma.RotationPolicyCreateNestedOneWithoutShiftsInput
+  batch?: Prisma.ScheduleBatchCreateNestedOneWithoutShiftsInput
+  assignee: Prisma.UserCreateNestedOneWithoutShiftsAsAssigneeInput
+  backup?: Prisma.UserCreateNestedOneWithoutShiftsAsBackupInput
+  overrideForShift?: Prisma.ShiftCreateNestedOneWithoutOverridesInput
+  confirmation?: Prisma.ShiftConfirmationCreateNestedOneWithoutShiftInput
+  swapRequestsAsOriginal?: Prisma.SwapRequestCreateNestedManyWithoutOriginalShiftInput
+  swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
+}
+
+export type ShiftUncheckedCreateWithoutOverridesInput = {
+  id?: string
+  policyId: string
+  batchId?: string | null
+  assigneeId: string
+  backupId?: string | null
+  overrideForShiftId?: string | null
+  startsAt: Date | string
+  endsAt: Date | string
+  status?: $Enums.ShiftStatus
+  source?: $Enums.ShiftSource
+  version?: number
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  confirmation?: Prisma.ShiftConfirmationUncheckedCreateNestedOneWithoutShiftInput
+  swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutOriginalShiftInput
+  swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
+}
+
+export type ShiftCreateOrConnectWithoutOverridesInput = {
+  where: Prisma.ShiftWhereUniqueInput
+  create: Prisma.XOR<Prisma.ShiftCreateWithoutOverridesInput, Prisma.ShiftUncheckedCreateWithoutOverridesInput>
+}
+
+export type ShiftCreateWithoutOverrideForShiftInput = {
+  id?: string
+  startsAt: Date | string
+  endsAt: Date | string
+  status?: $Enums.ShiftStatus
+  source?: $Enums.ShiftSource
+  version?: number
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  policy: Prisma.RotationPolicyCreateNestedOneWithoutShiftsInput
+  batch?: Prisma.ScheduleBatchCreateNestedOneWithoutShiftsInput
+  assignee: Prisma.UserCreateNestedOneWithoutShiftsAsAssigneeInput
+  backup?: Prisma.UserCreateNestedOneWithoutShiftsAsBackupInput
+  overrides?: Prisma.ShiftCreateNestedManyWithoutOverrideForShiftInput
+  confirmation?: Prisma.ShiftConfirmationCreateNestedOneWithoutShiftInput
+  swapRequestsAsOriginal?: Prisma.SwapRequestCreateNestedManyWithoutOriginalShiftInput
+  swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
+}
+
+export type ShiftUncheckedCreateWithoutOverrideForShiftInput = {
+  id?: string
+  policyId: string
+  batchId?: string | null
+  assigneeId: string
+  backupId?: string | null
+  startsAt: Date | string
+  endsAt: Date | string
+  status?: $Enums.ShiftStatus
+  source?: $Enums.ShiftSource
+  version?: number
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  overrides?: Prisma.ShiftUncheckedCreateNestedManyWithoutOverrideForShiftInput
+  confirmation?: Prisma.ShiftConfirmationUncheckedCreateNestedOneWithoutShiftInput
+  swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutOriginalShiftInput
+  swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
+}
+
+export type ShiftCreateOrConnectWithoutOverrideForShiftInput = {
+  where: Prisma.ShiftWhereUniqueInput
+  create: Prisma.XOR<Prisma.ShiftCreateWithoutOverrideForShiftInput, Prisma.ShiftUncheckedCreateWithoutOverrideForShiftInput>
+}
+
+export type ShiftCreateManyOverrideForShiftInputEnvelope = {
+  data: Prisma.ShiftCreateManyOverrideForShiftInput | Prisma.ShiftCreateManyOverrideForShiftInput[]
+  skipDuplicates?: boolean
+}
+
+export type ShiftUpsertWithoutOverridesInput = {
+  update: Prisma.XOR<Prisma.ShiftUpdateWithoutOverridesInput, Prisma.ShiftUncheckedUpdateWithoutOverridesInput>
+  create: Prisma.XOR<Prisma.ShiftCreateWithoutOverridesInput, Prisma.ShiftUncheckedCreateWithoutOverridesInput>
+  where?: Prisma.ShiftWhereInput
+}
+
+export type ShiftUpdateToOneWithWhereWithoutOverridesInput = {
+  where?: Prisma.ShiftWhereInput
+  data: Prisma.XOR<Prisma.ShiftUpdateWithoutOverridesInput, Prisma.ShiftUncheckedUpdateWithoutOverridesInput>
+}
+
+export type ShiftUpdateWithoutOverridesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+  source?: Prisma.EnumShiftSourceFieldUpdateOperationsInput | $Enums.ShiftSource
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  policy?: Prisma.RotationPolicyUpdateOneRequiredWithoutShiftsNestedInput
+  batch?: Prisma.ScheduleBatchUpdateOneWithoutShiftsNestedInput
+  assignee?: Prisma.UserUpdateOneRequiredWithoutShiftsAsAssigneeNestedInput
+  backup?: Prisma.UserUpdateOneWithoutShiftsAsBackupNestedInput
+  overrideForShift?: Prisma.ShiftUpdateOneWithoutOverridesNestedInput
+  confirmation?: Prisma.ShiftConfirmationUpdateOneWithoutShiftNestedInput
+  swapRequestsAsOriginal?: Prisma.SwapRequestUpdateManyWithoutOriginalShiftNestedInput
+  swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
+}
+
+export type ShiftUncheckedUpdateWithoutOverridesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  policyId?: Prisma.StringFieldUpdateOperationsInput | string
+  batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assigneeId?: Prisma.StringFieldUpdateOperationsInput | string
+  backupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  overrideForShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+  source?: Prisma.EnumShiftSourceFieldUpdateOperationsInput | $Enums.ShiftSource
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  confirmation?: Prisma.ShiftConfirmationUncheckedUpdateOneWithoutShiftNestedInput
+  swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedUpdateManyWithoutOriginalShiftNestedInput
+  swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
+}
+
+export type ShiftUpsertWithWhereUniqueWithoutOverrideForShiftInput = {
+  where: Prisma.ShiftWhereUniqueInput
+  update: Prisma.XOR<Prisma.ShiftUpdateWithoutOverrideForShiftInput, Prisma.ShiftUncheckedUpdateWithoutOverrideForShiftInput>
+  create: Prisma.XOR<Prisma.ShiftCreateWithoutOverrideForShiftInput, Prisma.ShiftUncheckedCreateWithoutOverrideForShiftInput>
+}
+
+export type ShiftUpdateWithWhereUniqueWithoutOverrideForShiftInput = {
+  where: Prisma.ShiftWhereUniqueInput
+  data: Prisma.XOR<Prisma.ShiftUpdateWithoutOverrideForShiftInput, Prisma.ShiftUncheckedUpdateWithoutOverrideForShiftInput>
+}
+
+export type ShiftUpdateManyWithWhereWithoutOverrideForShiftInput = {
+  where: Prisma.ShiftScalarWhereInput
+  data: Prisma.XOR<Prisma.ShiftUpdateManyMutationInput, Prisma.ShiftUncheckedUpdateManyWithoutOverrideForShiftInput>
+}
+
 export type ShiftCreateWithoutConfirmationInput = {
   id?: string
   startsAt: Date | string
@@ -1075,6 +1343,8 @@ export type ShiftCreateWithoutConfirmationInput = {
   batch?: Prisma.ScheduleBatchCreateNestedOneWithoutShiftsInput
   assignee: Prisma.UserCreateNestedOneWithoutShiftsAsAssigneeInput
   backup?: Prisma.UserCreateNestedOneWithoutShiftsAsBackupInput
+  overrideForShift?: Prisma.ShiftCreateNestedOneWithoutOverridesInput
+  overrides?: Prisma.ShiftCreateNestedManyWithoutOverrideForShiftInput
   swapRequestsAsOriginal?: Prisma.SwapRequestCreateNestedManyWithoutOriginalShiftInput
   swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
 }
@@ -1085,6 +1355,7 @@ export type ShiftUncheckedCreateWithoutConfirmationInput = {
   batchId?: string | null
   assigneeId: string
   backupId?: string | null
+  overrideForShiftId?: string | null
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ShiftStatus
@@ -1093,6 +1364,7 @@ export type ShiftUncheckedCreateWithoutConfirmationInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  overrides?: Prisma.ShiftUncheckedCreateNestedManyWithoutOverrideForShiftInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutOriginalShiftInput
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
 }
@@ -1127,6 +1399,8 @@ export type ShiftUpdateWithoutConfirmationInput = {
   batch?: Prisma.ScheduleBatchUpdateOneWithoutShiftsNestedInput
   assignee?: Prisma.UserUpdateOneRequiredWithoutShiftsAsAssigneeNestedInput
   backup?: Prisma.UserUpdateOneWithoutShiftsAsBackupNestedInput
+  overrideForShift?: Prisma.ShiftUpdateOneWithoutOverridesNestedInput
+  overrides?: Prisma.ShiftUpdateManyWithoutOverrideForShiftNestedInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUpdateManyWithoutOriginalShiftNestedInput
   swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
 }
@@ -1137,6 +1411,7 @@ export type ShiftUncheckedUpdateWithoutConfirmationInput = {
   batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeId?: Prisma.StringFieldUpdateOperationsInput | string
   backupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  overrideForShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
@@ -1145,6 +1420,7 @@ export type ShiftUncheckedUpdateWithoutConfirmationInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  overrides?: Prisma.ShiftUncheckedUpdateManyWithoutOverrideForShiftNestedInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedUpdateManyWithoutOriginalShiftNestedInput
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
 }
@@ -1163,6 +1439,8 @@ export type ShiftCreateWithoutSwapRequestsAsOriginalInput = {
   batch?: Prisma.ScheduleBatchCreateNestedOneWithoutShiftsInput
   assignee: Prisma.UserCreateNestedOneWithoutShiftsAsAssigneeInput
   backup?: Prisma.UserCreateNestedOneWithoutShiftsAsBackupInput
+  overrideForShift?: Prisma.ShiftCreateNestedOneWithoutOverridesInput
+  overrides?: Prisma.ShiftCreateNestedManyWithoutOverrideForShiftInput
   confirmation?: Prisma.ShiftConfirmationCreateNestedOneWithoutShiftInput
   swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
 }
@@ -1173,6 +1451,7 @@ export type ShiftUncheckedCreateWithoutSwapRequestsAsOriginalInput = {
   batchId?: string | null
   assigneeId: string
   backupId?: string | null
+  overrideForShiftId?: string | null
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ShiftStatus
@@ -1181,6 +1460,7 @@ export type ShiftUncheckedCreateWithoutSwapRequestsAsOriginalInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  overrides?: Prisma.ShiftUncheckedCreateNestedManyWithoutOverrideForShiftInput
   confirmation?: Prisma.ShiftConfirmationUncheckedCreateNestedOneWithoutShiftInput
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
 }
@@ -1204,6 +1484,8 @@ export type ShiftCreateWithoutSwapRequestsAsTargetInput = {
   batch?: Prisma.ScheduleBatchCreateNestedOneWithoutShiftsInput
   assignee: Prisma.UserCreateNestedOneWithoutShiftsAsAssigneeInput
   backup?: Prisma.UserCreateNestedOneWithoutShiftsAsBackupInput
+  overrideForShift?: Prisma.ShiftCreateNestedOneWithoutOverridesInput
+  overrides?: Prisma.ShiftCreateNestedManyWithoutOverrideForShiftInput
   confirmation?: Prisma.ShiftConfirmationCreateNestedOneWithoutShiftInput
   swapRequestsAsOriginal?: Prisma.SwapRequestCreateNestedManyWithoutOriginalShiftInput
 }
@@ -1214,6 +1496,7 @@ export type ShiftUncheckedCreateWithoutSwapRequestsAsTargetInput = {
   batchId?: string | null
   assigneeId: string
   backupId?: string | null
+  overrideForShiftId?: string | null
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ShiftStatus
@@ -1222,6 +1505,7 @@ export type ShiftUncheckedCreateWithoutSwapRequestsAsTargetInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  overrides?: Prisma.ShiftUncheckedCreateNestedManyWithoutOverrideForShiftInput
   confirmation?: Prisma.ShiftConfirmationUncheckedCreateNestedOneWithoutShiftInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutOriginalShiftInput
 }
@@ -1256,6 +1540,8 @@ export type ShiftUpdateWithoutSwapRequestsAsOriginalInput = {
   batch?: Prisma.ScheduleBatchUpdateOneWithoutShiftsNestedInput
   assignee?: Prisma.UserUpdateOneRequiredWithoutShiftsAsAssigneeNestedInput
   backup?: Prisma.UserUpdateOneWithoutShiftsAsBackupNestedInput
+  overrideForShift?: Prisma.ShiftUpdateOneWithoutOverridesNestedInput
+  overrides?: Prisma.ShiftUpdateManyWithoutOverrideForShiftNestedInput
   confirmation?: Prisma.ShiftConfirmationUpdateOneWithoutShiftNestedInput
   swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
 }
@@ -1266,6 +1552,7 @@ export type ShiftUncheckedUpdateWithoutSwapRequestsAsOriginalInput = {
   batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeId?: Prisma.StringFieldUpdateOperationsInput | string
   backupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  overrideForShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
@@ -1274,6 +1561,7 @@ export type ShiftUncheckedUpdateWithoutSwapRequestsAsOriginalInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  overrides?: Prisma.ShiftUncheckedUpdateManyWithoutOverrideForShiftNestedInput
   confirmation?: Prisma.ShiftConfirmationUncheckedUpdateOneWithoutShiftNestedInput
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
 }
@@ -1303,6 +1591,8 @@ export type ShiftUpdateWithoutSwapRequestsAsTargetInput = {
   batch?: Prisma.ScheduleBatchUpdateOneWithoutShiftsNestedInput
   assignee?: Prisma.UserUpdateOneRequiredWithoutShiftsAsAssigneeNestedInput
   backup?: Prisma.UserUpdateOneWithoutShiftsAsBackupNestedInput
+  overrideForShift?: Prisma.ShiftUpdateOneWithoutOverridesNestedInput
+  overrides?: Prisma.ShiftUpdateManyWithoutOverrideForShiftNestedInput
   confirmation?: Prisma.ShiftConfirmationUpdateOneWithoutShiftNestedInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUpdateManyWithoutOriginalShiftNestedInput
 }
@@ -1313,6 +1603,7 @@ export type ShiftUncheckedUpdateWithoutSwapRequestsAsTargetInput = {
   batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeId?: Prisma.StringFieldUpdateOperationsInput | string
   backupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  overrideForShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
@@ -1321,6 +1612,7 @@ export type ShiftUncheckedUpdateWithoutSwapRequestsAsTargetInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  overrides?: Prisma.ShiftUncheckedUpdateManyWithoutOverrideForShiftNestedInput
   confirmation?: Prisma.ShiftConfirmationUncheckedUpdateOneWithoutShiftNestedInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedUpdateManyWithoutOriginalShiftNestedInput
 }
@@ -1330,6 +1622,7 @@ export type ShiftCreateManyAssigneeInput = {
   policyId: string
   batchId?: string | null
   backupId?: string | null
+  overrideForShiftId?: string | null
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ShiftStatus
@@ -1345,6 +1638,7 @@ export type ShiftCreateManyBackupInput = {
   policyId: string
   batchId?: string | null
   assigneeId: string
+  overrideForShiftId?: string | null
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ShiftStatus
@@ -1368,6 +1662,8 @@ export type ShiftUpdateWithoutAssigneeInput = {
   policy?: Prisma.RotationPolicyUpdateOneRequiredWithoutShiftsNestedInput
   batch?: Prisma.ScheduleBatchUpdateOneWithoutShiftsNestedInput
   backup?: Prisma.UserUpdateOneWithoutShiftsAsBackupNestedInput
+  overrideForShift?: Prisma.ShiftUpdateOneWithoutOverridesNestedInput
+  overrides?: Prisma.ShiftUpdateManyWithoutOverrideForShiftNestedInput
   confirmation?: Prisma.ShiftConfirmationUpdateOneWithoutShiftNestedInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUpdateManyWithoutOriginalShiftNestedInput
   swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
@@ -1378,6 +1674,7 @@ export type ShiftUncheckedUpdateWithoutAssigneeInput = {
   policyId?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   backupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  overrideForShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
@@ -1386,6 +1683,7 @@ export type ShiftUncheckedUpdateWithoutAssigneeInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  overrides?: Prisma.ShiftUncheckedUpdateManyWithoutOverrideForShiftNestedInput
   confirmation?: Prisma.ShiftConfirmationUncheckedUpdateOneWithoutShiftNestedInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedUpdateManyWithoutOriginalShiftNestedInput
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
@@ -1396,6 +1694,7 @@ export type ShiftUncheckedUpdateManyWithoutAssigneeInput = {
   policyId?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   backupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  overrideForShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
@@ -1419,6 +1718,8 @@ export type ShiftUpdateWithoutBackupInput = {
   policy?: Prisma.RotationPolicyUpdateOneRequiredWithoutShiftsNestedInput
   batch?: Prisma.ScheduleBatchUpdateOneWithoutShiftsNestedInput
   assignee?: Prisma.UserUpdateOneRequiredWithoutShiftsAsAssigneeNestedInput
+  overrideForShift?: Prisma.ShiftUpdateOneWithoutOverridesNestedInput
+  overrides?: Prisma.ShiftUpdateManyWithoutOverrideForShiftNestedInput
   confirmation?: Prisma.ShiftConfirmationUpdateOneWithoutShiftNestedInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUpdateManyWithoutOriginalShiftNestedInput
   swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
@@ -1429,6 +1730,7 @@ export type ShiftUncheckedUpdateWithoutBackupInput = {
   policyId?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeId?: Prisma.StringFieldUpdateOperationsInput | string
+  overrideForShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
@@ -1437,6 +1739,7 @@ export type ShiftUncheckedUpdateWithoutBackupInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  overrides?: Prisma.ShiftUncheckedUpdateManyWithoutOverrideForShiftNestedInput
   confirmation?: Prisma.ShiftConfirmationUncheckedUpdateOneWithoutShiftNestedInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedUpdateManyWithoutOriginalShiftNestedInput
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
@@ -1447,6 +1750,7 @@ export type ShiftUncheckedUpdateManyWithoutBackupInput = {
   policyId?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeId?: Prisma.StringFieldUpdateOperationsInput | string
+  overrideForShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
@@ -1462,6 +1766,7 @@ export type ShiftCreateManyPolicyInput = {
   batchId?: string | null
   assigneeId: string
   backupId?: string | null
+  overrideForShiftId?: string | null
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ShiftStatus
@@ -1485,6 +1790,8 @@ export type ShiftUpdateWithoutPolicyInput = {
   batch?: Prisma.ScheduleBatchUpdateOneWithoutShiftsNestedInput
   assignee?: Prisma.UserUpdateOneRequiredWithoutShiftsAsAssigneeNestedInput
   backup?: Prisma.UserUpdateOneWithoutShiftsAsBackupNestedInput
+  overrideForShift?: Prisma.ShiftUpdateOneWithoutOverridesNestedInput
+  overrides?: Prisma.ShiftUpdateManyWithoutOverrideForShiftNestedInput
   confirmation?: Prisma.ShiftConfirmationUpdateOneWithoutShiftNestedInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUpdateManyWithoutOriginalShiftNestedInput
   swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
@@ -1495,6 +1802,7 @@ export type ShiftUncheckedUpdateWithoutPolicyInput = {
   batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeId?: Prisma.StringFieldUpdateOperationsInput | string
   backupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  overrideForShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
@@ -1503,6 +1811,7 @@ export type ShiftUncheckedUpdateWithoutPolicyInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  overrides?: Prisma.ShiftUncheckedUpdateManyWithoutOverrideForShiftNestedInput
   confirmation?: Prisma.ShiftConfirmationUncheckedUpdateOneWithoutShiftNestedInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedUpdateManyWithoutOriginalShiftNestedInput
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
@@ -1513,6 +1822,7 @@ export type ShiftUncheckedUpdateManyWithoutPolicyInput = {
   batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeId?: Prisma.StringFieldUpdateOperationsInput | string
   backupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  overrideForShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
@@ -1528,6 +1838,7 @@ export type ShiftCreateManyBatchInput = {
   policyId: string
   assigneeId: string
   backupId?: string | null
+  overrideForShiftId?: string | null
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ShiftStatus
@@ -1551,6 +1862,8 @@ export type ShiftUpdateWithoutBatchInput = {
   policy?: Prisma.RotationPolicyUpdateOneRequiredWithoutShiftsNestedInput
   assignee?: Prisma.UserUpdateOneRequiredWithoutShiftsAsAssigneeNestedInput
   backup?: Prisma.UserUpdateOneWithoutShiftsAsBackupNestedInput
+  overrideForShift?: Prisma.ShiftUpdateOneWithoutOverridesNestedInput
+  overrides?: Prisma.ShiftUpdateManyWithoutOverrideForShiftNestedInput
   confirmation?: Prisma.ShiftConfirmationUpdateOneWithoutShiftNestedInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUpdateManyWithoutOriginalShiftNestedInput
   swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
@@ -1561,6 +1874,7 @@ export type ShiftUncheckedUpdateWithoutBatchInput = {
   policyId?: Prisma.StringFieldUpdateOperationsInput | string
   assigneeId?: Prisma.StringFieldUpdateOperationsInput | string
   backupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  overrideForShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
@@ -1569,6 +1883,7 @@ export type ShiftUncheckedUpdateWithoutBatchInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  overrides?: Prisma.ShiftUncheckedUpdateManyWithoutOverrideForShiftNestedInput
   confirmation?: Prisma.ShiftConfirmationUncheckedUpdateOneWithoutShiftNestedInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedUpdateManyWithoutOriginalShiftNestedInput
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
@@ -1577,6 +1892,79 @@ export type ShiftUncheckedUpdateWithoutBatchInput = {
 export type ShiftUncheckedUpdateManyWithoutBatchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   policyId?: Prisma.StringFieldUpdateOperationsInput | string
+  assigneeId?: Prisma.StringFieldUpdateOperationsInput | string
+  backupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  overrideForShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+  source?: Prisma.EnumShiftSourceFieldUpdateOperationsInput | $Enums.ShiftSource
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ShiftCreateManyOverrideForShiftInput = {
+  id?: string
+  policyId: string
+  batchId?: string | null
+  assigneeId: string
+  backupId?: string | null
+  startsAt: Date | string
+  endsAt: Date | string
+  status?: $Enums.ShiftStatus
+  source?: $Enums.ShiftSource
+  version?: number
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ShiftUpdateWithoutOverrideForShiftInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+  source?: Prisma.EnumShiftSourceFieldUpdateOperationsInput | $Enums.ShiftSource
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  policy?: Prisma.RotationPolicyUpdateOneRequiredWithoutShiftsNestedInput
+  batch?: Prisma.ScheduleBatchUpdateOneWithoutShiftsNestedInput
+  assignee?: Prisma.UserUpdateOneRequiredWithoutShiftsAsAssigneeNestedInput
+  backup?: Prisma.UserUpdateOneWithoutShiftsAsBackupNestedInput
+  overrides?: Prisma.ShiftUpdateManyWithoutOverrideForShiftNestedInput
+  confirmation?: Prisma.ShiftConfirmationUpdateOneWithoutShiftNestedInput
+  swapRequestsAsOriginal?: Prisma.SwapRequestUpdateManyWithoutOriginalShiftNestedInput
+  swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
+}
+
+export type ShiftUncheckedUpdateWithoutOverrideForShiftInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  policyId?: Prisma.StringFieldUpdateOperationsInput | string
+  batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assigneeId?: Prisma.StringFieldUpdateOperationsInput | string
+  backupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+  source?: Prisma.EnumShiftSourceFieldUpdateOperationsInput | $Enums.ShiftSource
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  overrides?: Prisma.ShiftUncheckedUpdateManyWithoutOverrideForShiftNestedInput
+  confirmation?: Prisma.ShiftConfirmationUncheckedUpdateOneWithoutShiftNestedInput
+  swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedUpdateManyWithoutOriginalShiftNestedInput
+  swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
+}
+
+export type ShiftUncheckedUpdateManyWithoutOverrideForShiftInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  policyId?: Prisma.StringFieldUpdateOperationsInput | string
+  batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assigneeId?: Prisma.StringFieldUpdateOperationsInput | string
   backupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1595,11 +1983,13 @@ export type ShiftUncheckedUpdateManyWithoutBatchInput = {
  */
 
 export type ShiftCountOutputType = {
+  overrides: number
   swapRequestsAsOriginal: number
   swapRequestsAsTarget: number
 }
 
 export type ShiftCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  overrides?: boolean | ShiftCountOutputTypeCountOverridesArgs
   swapRequestsAsOriginal?: boolean | ShiftCountOutputTypeCountSwapRequestsAsOriginalArgs
   swapRequestsAsTarget?: boolean | ShiftCountOutputTypeCountSwapRequestsAsTargetArgs
 }
@@ -1612,6 +2002,13 @@ export type ShiftCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extens
    * Select specific fields to fetch from the ShiftCountOutputType
    */
   select?: Prisma.ShiftCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ShiftCountOutputType without action
+ */
+export type ShiftCountOutputTypeCountOverridesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ShiftWhereInput
 }
 
 /**
@@ -1635,6 +2032,7 @@ export type ShiftSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   batchId?: boolean
   assigneeId?: boolean
   backupId?: boolean
+  overrideForShiftId?: boolean
   startsAt?: boolean
   endsAt?: boolean
   status?: boolean
@@ -1647,6 +2045,8 @@ export type ShiftSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   batch?: boolean | Prisma.Shift$batchArgs<ExtArgs>
   assignee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   backup?: boolean | Prisma.Shift$backupArgs<ExtArgs>
+  overrideForShift?: boolean | Prisma.Shift$overrideForShiftArgs<ExtArgs>
+  overrides?: boolean | Prisma.Shift$overridesArgs<ExtArgs>
   confirmation?: boolean | Prisma.Shift$confirmationArgs<ExtArgs>
   swapRequestsAsOriginal?: boolean | Prisma.Shift$swapRequestsAsOriginalArgs<ExtArgs>
   swapRequestsAsTarget?: boolean | Prisma.Shift$swapRequestsAsTargetArgs<ExtArgs>
@@ -1659,6 +2059,7 @@ export type ShiftSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   batchId?: boolean
   assigneeId?: boolean
   backupId?: boolean
+  overrideForShiftId?: boolean
   startsAt?: boolean
   endsAt?: boolean
   status?: boolean
@@ -1671,6 +2072,7 @@ export type ShiftSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   batch?: boolean | Prisma.Shift$batchArgs<ExtArgs>
   assignee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   backup?: boolean | Prisma.Shift$backupArgs<ExtArgs>
+  overrideForShift?: boolean | Prisma.Shift$overrideForShiftArgs<ExtArgs>
 }, ExtArgs["result"]["shift"]>
 
 export type ShiftSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1679,6 +2081,7 @@ export type ShiftSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   batchId?: boolean
   assigneeId?: boolean
   backupId?: boolean
+  overrideForShiftId?: boolean
   startsAt?: boolean
   endsAt?: boolean
   status?: boolean
@@ -1691,6 +2094,7 @@ export type ShiftSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   batch?: boolean | Prisma.Shift$batchArgs<ExtArgs>
   assignee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   backup?: boolean | Prisma.Shift$backupArgs<ExtArgs>
+  overrideForShift?: boolean | Prisma.Shift$overrideForShiftArgs<ExtArgs>
 }, ExtArgs["result"]["shift"]>
 
 export type ShiftSelectScalar = {
@@ -1699,6 +2103,7 @@ export type ShiftSelectScalar = {
   batchId?: boolean
   assigneeId?: boolean
   backupId?: boolean
+  overrideForShiftId?: boolean
   startsAt?: boolean
   endsAt?: boolean
   status?: boolean
@@ -1709,12 +2114,14 @@ export type ShiftSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ShiftOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "policyId" | "batchId" | "assigneeId" | "backupId" | "startsAt" | "endsAt" | "status" | "source" | "version" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["shift"]>
+export type ShiftOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "policyId" | "batchId" | "assigneeId" | "backupId" | "overrideForShiftId" | "startsAt" | "endsAt" | "status" | "source" | "version" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["shift"]>
 export type ShiftInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   policy?: boolean | Prisma.RotationPolicyDefaultArgs<ExtArgs>
   batch?: boolean | Prisma.Shift$batchArgs<ExtArgs>
   assignee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   backup?: boolean | Prisma.Shift$backupArgs<ExtArgs>
+  overrideForShift?: boolean | Prisma.Shift$overrideForShiftArgs<ExtArgs>
+  overrides?: boolean | Prisma.Shift$overridesArgs<ExtArgs>
   confirmation?: boolean | Prisma.Shift$confirmationArgs<ExtArgs>
   swapRequestsAsOriginal?: boolean | Prisma.Shift$swapRequestsAsOriginalArgs<ExtArgs>
   swapRequestsAsTarget?: boolean | Prisma.Shift$swapRequestsAsTargetArgs<ExtArgs>
@@ -1725,12 +2132,14 @@ export type ShiftIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   batch?: boolean | Prisma.Shift$batchArgs<ExtArgs>
   assignee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   backup?: boolean | Prisma.Shift$backupArgs<ExtArgs>
+  overrideForShift?: boolean | Prisma.Shift$overrideForShiftArgs<ExtArgs>
 }
 export type ShiftIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   policy?: boolean | Prisma.RotationPolicyDefaultArgs<ExtArgs>
   batch?: boolean | Prisma.Shift$batchArgs<ExtArgs>
   assignee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   backup?: boolean | Prisma.Shift$backupArgs<ExtArgs>
+  overrideForShift?: boolean | Prisma.Shift$overrideForShiftArgs<ExtArgs>
 }
 
 export type $ShiftPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1740,6 +2149,8 @@ export type $ShiftPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     batch: Prisma.$ScheduleBatchPayload<ExtArgs> | null
     assignee: Prisma.$UserPayload<ExtArgs>
     backup: Prisma.$UserPayload<ExtArgs> | null
+    overrideForShift: Prisma.$ShiftPayload<ExtArgs> | null
+    overrides: Prisma.$ShiftPayload<ExtArgs>[]
     confirmation: Prisma.$ShiftConfirmationPayload<ExtArgs> | null
     swapRequestsAsOriginal: Prisma.$SwapRequestPayload<ExtArgs>[]
     swapRequestsAsTarget: Prisma.$SwapRequestPayload<ExtArgs>[]
@@ -1750,6 +2161,7 @@ export type $ShiftPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     batchId: string | null
     assigneeId: string
     backupId: string | null
+    overrideForShiftId: string | null
     startsAt: Date
     endsAt: Date
     status: $Enums.ShiftStatus
@@ -2156,6 +2568,8 @@ export interface Prisma__ShiftClient<T, Null = never, ExtArgs extends runtime.Ty
   batch<T extends Prisma.Shift$batchArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Shift$batchArgs<ExtArgs>>): Prisma.Prisma__ScheduleBatchClient<runtime.Types.Result.GetResult<Prisma.$ScheduleBatchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   assignee<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   backup<T extends Prisma.Shift$backupArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Shift$backupArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  overrideForShift<T extends Prisma.Shift$overrideForShiftArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Shift$overrideForShiftArgs<ExtArgs>>): Prisma.Prisma__ShiftClient<runtime.Types.Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  overrides<T extends Prisma.Shift$overridesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Shift$overridesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   confirmation<T extends Prisma.Shift$confirmationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Shift$confirmationArgs<ExtArgs>>): Prisma.Prisma__ShiftConfirmationClient<runtime.Types.Result.GetResult<Prisma.$ShiftConfirmationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   swapRequestsAsOriginal<T extends Prisma.Shift$swapRequestsAsOriginalArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Shift$swapRequestsAsOriginalArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SwapRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   swapRequestsAsTarget<T extends Prisma.Shift$swapRequestsAsTargetArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Shift$swapRequestsAsTargetArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SwapRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2193,6 +2607,7 @@ export interface ShiftFieldRefs {
   readonly batchId: Prisma.FieldRef<"Shift", 'String'>
   readonly assigneeId: Prisma.FieldRef<"Shift", 'String'>
   readonly backupId: Prisma.FieldRef<"Shift", 'String'>
+  readonly overrideForShiftId: Prisma.FieldRef<"Shift", 'String'>
   readonly startsAt: Prisma.FieldRef<"Shift", 'DateTime'>
   readonly endsAt: Prisma.FieldRef<"Shift", 'DateTime'>
   readonly status: Prisma.FieldRef<"Shift", 'ShiftStatus'>
@@ -2637,6 +3052,49 @@ export type Shift$backupArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    */
   include?: Prisma.UserInclude<ExtArgs> | null
   where?: Prisma.UserWhereInput
+}
+
+/**
+ * Shift.overrideForShift
+ */
+export type Shift$overrideForShiftArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Shift
+   */
+  select?: Prisma.ShiftSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Shift
+   */
+  omit?: Prisma.ShiftOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ShiftInclude<ExtArgs> | null
+  where?: Prisma.ShiftWhereInput
+}
+
+/**
+ * Shift.overrides
+ */
+export type Shift$overridesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Shift
+   */
+  select?: Prisma.ShiftSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Shift
+   */
+  omit?: Prisma.ShiftOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ShiftInclude<ExtArgs> | null
+  where?: Prisma.ShiftWhereInput
+  orderBy?: Prisma.ShiftOrderByWithRelationInput | Prisma.ShiftOrderByWithRelationInput[]
+  cursor?: Prisma.ShiftWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ShiftScalarFieldEnum | Prisma.ShiftScalarFieldEnum[]
 }
 
 /**
