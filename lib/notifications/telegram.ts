@@ -26,6 +26,9 @@ export async function sendTelegramMessage(
 export function renderTelegramMessage(templateId: string, vars: Record<string, string>): string {
   const confirmUrl = `${vars.appUrl}/confirm/${vars.confirmationToken}`;
 
+  const fmtVN = (iso: string) =>
+    new Date(iso).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
+
   switch (templateId) {
     case "shift-reminder":
       return [
@@ -34,10 +37,20 @@ export function renderTelegramMessage(templateId: string, vars: Record<string, s
         `Xin chào ${vars.recipientName},`,
         ``,
         `Bạn có ca trực <b>${vars.policyName}</b>:`,
-        `• Bắt đầu: ${new Date(vars.shiftStart).toLocaleString("vi-VN")}`,
-        `• Kết thúc: ${new Date(vars.shiftEnd).toLocaleString("vi-VN")}`,
+        `• Bắt đầu: ${fmtVN(vars.shiftStart)}`,
+        `• Kết thúc: ${fmtVN(vars.shiftEnd)}`,
         ``,
         `<a href="${confirmUrl}">✅ Xác nhận ca trực</a>`,
+      ].join("\n");
+    case "alert-firing":
+      return [
+        `🔴 <b>ALERT: ${vars.alertTitle}</b>`,
+        ``,
+        ...(vars.alertMessage ? [`${vars.alertMessage}`, ``] : []),
+        ...(vars.alertSeverity ? [`Mức độ: <b>${vars.alertSeverity.toUpperCase()}</b>`, ``] : []),
+        `Nhóm: ${vars.teamName} · ${vars.integrationName}`,
+        ``,
+        `<a href="${vars.appUrl}/alerts">Xem chi tiết</a>`,
       ].join("\n");
     default:
       return vars.body ?? "Thông báo từ On-Call Manager";

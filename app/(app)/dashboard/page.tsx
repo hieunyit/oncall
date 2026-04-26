@@ -2,6 +2,9 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { startOfDay, endOfDay, format, formatDistanceToNow } from "date-fns";
+import { TZDate } from "@date-fns/tz";
+const VN_TZ = "Asia/Ho_Chi_Minh";
+const vn = (d: Date) => new TZDate(d, VN_TZ);
 import { vi } from "date-fns/locale";
 import { ShiftStatus, ConfirmationStatus, SwapStatus, DeliveryStatus, AlertStatus } from "@/app/generated/prisma/client";
 import Link from "next/link";
@@ -239,7 +242,7 @@ export default async function DashboardPage() {
           </span>
           <h2 className="font-semibold text-gray-900">Ai đang trực?</h2>
           <span className="text-xs text-gray-400 ml-1">
-            {format(today, "HH:mm dd/MM/yyyy", { locale: vi })}
+            {format(vn(today), "HH:mm dd/MM/yyyy", { locale: vi })}
           </span>
         </div>
         {activeOnCallShifts.length === 0 ? (
@@ -279,7 +282,7 @@ export default async function DashboardPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-gray-500">
-                      đến {format(shift.endsAt, "HH:mm dd/MM", { locale: vi })}
+                      đến {format(vn(shift.endsAt), "HH:mm dd/MM", { locale: vi })}
                     </p>
                     {shift.backup && (
                       <p className="text-xs text-gray-400 mt-0.5">
@@ -324,9 +327,9 @@ export default async function DashboardPage() {
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-900 text-sm">{shift.policy?.name ?? "—"}</p>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    {format(shift.startsAt, "EEEE dd/MM, HH:mm", { locale: vi })}
+                    {format(vn(shift.startsAt), "EEEE dd/MM, HH:mm", { locale: vi })}
                     {" → "}
-                    {format(shift.endsAt, "HH:mm dd/MM", { locale: vi })}
+                    {format(vn(shift.endsAt), "HH:mm dd/MM", { locale: vi })}
                   </p>
                   <p className="text-xs text-gray-400 mt-0.5">
                     {formatDistanceToNow(shift.startsAt, { addSuffix: true, locale: vi })}

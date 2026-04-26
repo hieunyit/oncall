@@ -131,6 +131,35 @@ export async function POST(
           variables: vars,
         });
       }
+
+      // Notify team Telegram channels
+      const tgChannels = await prisma.teamNotificationChannel.findMany({
+        where: { teamId: integration.teamId, type: ChannelType.TELEGRAM },
+      });
+      for (const channel of tgChannels) {
+        const cfg = channel.configJson as Record<string, string>;
+        const chatId = cfg.chatId;
+        if (!chatId) continue;
+        const tgMsg = await prisma.notificationMessage.create({
+          data: {
+            recipientId: oncallUser.id,
+            channelType: ChannelType.TELEGRAM,
+            eventType: "ALERT_FIRING",
+            templateId: "alert-firing",
+            payloadJson: { alertId: alert.id, channelId: channel.id, ...vars },
+          },
+        });
+        const tgDelivery = await prisma.notificationDelivery.create({
+          data: { messageId: tgMsg.id, channelType: ChannelType.TELEGRAM, status: DeliveryStatus.QUEUED },
+        });
+        await telegramQueue.add("alert-firing-channel", {
+          deliveryId: tgDelivery.id,
+          messageId: tgMsg.id,
+          chatId,
+          templateId: "alert-firing",
+          variables: vars,
+        });
+      }
     }
 
     return ok({ id: alert.id, status: "FIRING" });

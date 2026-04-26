@@ -89,6 +89,26 @@ export function startReminderWorker() {
         });
       }
 
+      // Telegram — send to all configured Telegram channels of this policy's team
+      const telegramChannels = await prisma.teamNotificationChannel.findMany({
+        where: { teamId: shift.policy.teamId, type: ChannelType.TELEGRAM },
+      });
+      for (const channel of telegramChannels) {
+        const cfg = channel.configJson as Record<string, string>;
+        const chatId = cfg.chatId;
+        if (!chatId) continue;
+        const delivery = await prisma.notificationDelivery.create({
+          data: { messageId: message.id, channelType: ChannelType.TELEGRAM, status: DeliveryStatus.QUEUED },
+        });
+        await telegramQueue.add("send-reminder-telegram-channel", {
+          deliveryId: delivery.id,
+          messageId: message.id,
+          chatId,
+          templateId: "shift-reminder",
+          variables,
+        });
+      }
+
       // Teams — send to all configured Teams channels of this policy's team
       const teamsChannels = await prisma.teamNotificationChannel.findMany({
         where: { teamId: shift.policy.teamId, type: ChannelType.TEAMS },
