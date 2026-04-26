@@ -215,7 +215,7 @@ export default async function DashboardPage() {
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-red-900 truncate">{alert.title}</p>
                   <p className="text-xs text-red-600 mt-0.5">
-                    {alert.integration.team.name} · {alert.integration.name} ·{" "}
+                    {alert.integration.team?.name ?? "—"} · {alert.integration.name} ·{" "}
                     {formatDistanceToNow(alert.triggeredAt, { addSuffix: true, locale: vi })}
                   </p>
                 </div>
@@ -322,7 +322,7 @@ export default async function DashboardPage() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 text-sm">{shift.policy.name}</p>
+                  <p className="font-medium text-gray-900 text-sm">{shift.policy?.name ?? "—"}</p>
                   <p className="text-xs text-gray-500 mt-0.5">
                     {format(shift.startsAt, "EEEE dd/MM, HH:mm", { locale: vi })}
                     {" → "}
