@@ -15,7 +15,7 @@ import { SwapStatus } from "@/app/generated/prisma/client";
 import { writeAuditLog } from "@/lib/audit";
 
 const RespondSchema = z.object({
-  action: z.enum(["accept", "decline"]),
+  action: z.enum(["accept", "decline", "cancel"]),
   note: z.string().max(500).optional(),
 });
 
@@ -31,7 +31,27 @@ export async function POST(
     const swap = await prisma.swapRequest.findUnique({ where: { id } });
     if (!swap) return notFound("Swap request not found");
 
-    // Open swaps (targetUserId = null) must be taken via /take, not /respond
+    const body = await req.json();
+    const { action, note } = RespondSchema.parse(body);
+
+    // cancel: only the requester can cancel their own pending request
+    if (action === "cancel") {
+      if (swap.requesterId !== actor.id) return forbidden("Only the requester can cancel their swap request");
+      if (swap.status !== SwapStatus.REQUESTED) {
+        return conflict(`Cannot cancel a swap in state ${swap.status}`, "INVALID_STATE");
+      }
+      const updated = await prisma.swapRequest.update({
+        where: { id },
+        data: { status: SwapStatus.CANCELLED, version: { increment: 1 } },
+      });
+      await writeAuditLog({
+        actorId: actor.id, entityType: "SwapRequest", entityId: id,
+        action: "CANCEL", oldValue: { status: swap.status }, newValue: { status: SwapStatus.CANCELLED },
+      });
+      return ok(updated);
+    }
+
+    // accept / decline: only the targeted user can respond
     if (swap.targetUserId === null) return badRequest("Use /take for open swap requests");
     if (swap.targetUserId !== actor.id) return forbidden();
 
@@ -40,35 +60,21 @@ export async function POST(
     }
 
     if (new Date() > swap.expiresAt) {
-      await prisma.swapRequest.update({
-        where: { id },
-        data: { status: SwapStatus.EXPIRED },
-      });
+      await prisma.swapRequest.update({ where: { id }, data: { status: SwapStatus.EXPIRED } });
       return conflict("Swap request has expired", "EXPIRED");
     }
 
-    const body = await req.json();
-    const { action, note } = RespondSchema.parse(body);
-
-    const newStatus =
-      action === "accept" ? SwapStatus.ACCEPTED_BY_TARGET : SwapStatus.REJECTED;
+    const newStatus = action === "accept" ? SwapStatus.ACCEPTED_BY_TARGET : SwapStatus.REJECTED;
 
     const updated = await prisma.swapRequest.update({
       where: { id },
-      data: {
-        status: newStatus,
-        targetNote: note,
-        version: { increment: 1 },
-      },
+      data: { status: newStatus, targetNote: note, version: { increment: 1 } },
     });
 
     await writeAuditLog({
-      actorId: actor.id,
-      entityType: "SwapRequest",
-      entityId: id,
+      actorId: actor.id, entityType: "SwapRequest", entityId: id,
       action: action.toUpperCase(),
-      oldValue: { status: swap.status },
-      newValue: { status: newStatus },
+      oldValue: { status: swap.status }, newValue: { status: newStatus },
     });
 
     return ok(updated);

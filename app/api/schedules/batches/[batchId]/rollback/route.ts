@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser, requireTeamRole, isNextResponse } from "@/lib/rbac";
 import { ok, unauthorized, notFound, conflict, handleError } from "@/lib/api-response";
-import { BatchStatus, ShiftStatus, TeamRole } from "@/app/generated/prisma/client";
+import { BatchStatus, ShiftStatus, SwapStatus, TeamRole } from "@/app/generated/prisma/client";
 import { writeAuditLog } from "@/lib/audit";
 
 export async function POST(
@@ -44,6 +44,28 @@ export async function POST(
     }
 
     await prisma.$transaction(async (tx) => {
+      // Fetch shift IDs before cancelling so we can cancel related swap requests
+      const shiftIds = (
+        await tx.shift.findMany({
+          where: { batchId, status: { in: [ShiftStatus.PUBLISHED, ShiftStatus.DRAFT] } },
+          select: { id: true },
+        })
+      ).map((s) => s.id);
+
+      // Cancel any open or accepted swap requests that reference these shifts
+      if (shiftIds.length > 0) {
+        await tx.swapRequest.updateMany({
+          where: {
+            status: { in: [SwapStatus.REQUESTED, SwapStatus.ACCEPTED_BY_TARGET] },
+            OR: [
+              { originalShiftId: { in: shiftIds } },
+              { targetShiftId: { in: shiftIds } },
+            ],
+          },
+          data: { status: SwapStatus.CANCELLED, version: { increment: 1 } },
+        });
+      }
+
       await tx.shift.updateMany({
         where: { batchId, status: { in: [ShiftStatus.PUBLISHED, ShiftStatus.DRAFT] } },
         data: { status: ShiftStatus.CANCELLED },

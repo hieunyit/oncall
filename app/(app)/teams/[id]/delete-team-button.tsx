@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 interface CascadeInfo {
   memberCount: number;
   policyCount: number;
-  shiftCount: number;
 }
 
 export function DeleteTeamButton({ teamId, teamName }: { teamId: string; teamName: string }) {
@@ -26,7 +25,6 @@ export function DeleteTeamButton({ teamId, teamName }: { teamId: string; teamNam
         setInfo({
           memberCount: team.members?.length ?? 0,
           policyCount: team.rotationPolicies?.length ?? 0,
-          shiftCount: team._count?.members ?? 0,
         });
       }
     } catch {}
@@ -73,8 +71,8 @@ export function DeleteTeamButton({ teamId, teamName }: { teamId: string; teamNam
       {info && (
         <ul className="text-xs text-red-700 space-y-0.5 pl-3">
           {info.memberCount > 0 && <li>• {info.memberCount} thành viên</li>}
-          {info.policyCount > 0 && <li>• {info.policyCount} chính sách xoay vòng và tất cả ca trực</li>}
-          <li>• Tất cả lô lịch, xác nhận, thông báo liên quan</li>
+          {info.policyCount > 0 && <li>• {info.policyCount} chính sách xoay vòng và toàn bộ ca trực</li>}
+          <li>• Tất cả yêu cầu đổi ca, xác nhận, thông báo liên quan</li>
         </ul>
       )}
       {error && <p className="text-xs text-red-600 font-medium">{error}</p>}

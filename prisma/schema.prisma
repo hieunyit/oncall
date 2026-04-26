@@ -174,6 +174,7 @@ model User {
   auditLogs              AuditLog[]
   notificationRules      UserNotificationRule[]
   acknowledgedAlerts     Alert[]              @relation("AlertAcknowledger")
+  createdRunbooks        Runbook[]            @relation("RunbookAuthor")
 
   @@map("users")
 }
@@ -191,6 +192,7 @@ model Team {
   notificationChannels TeamNotificationChannel[]
   escalationPolicies   EscalationPolicy[]
   alertIntegrations    AlertIntegration[]
+  runbooks             Runbook[]
 
   @@map("teams")
 }
@@ -248,7 +250,7 @@ model ScheduleBatch {
   idempotencyKey String      @unique @map("idempotency_key")
   createdAt      DateTime    @default(now()) @map("created_at")
 
-  policy RotationPolicy @relation(fields: [policyId], references: [id])
+  policy RotationPolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
   shifts Shift[]
 
   @@map("schedule_batches")
@@ -270,7 +272,7 @@ model Shift {
   createdAt           DateTime    @default(now()) @map("created_at")
   updatedAt           DateTime    @updatedAt @map("updated_at")
 
-  policy           RotationPolicy     @relation(fields: [policyId], references: [id])
+  policy           RotationPolicy     @relation(fields: [policyId], references: [id], onDelete: Cascade)
   batch            ScheduleBatch?     @relation(fields: [batchId], references: [id])
   assignee         User               @relation("ShiftAssignee", fields: [assigneeId], references: [id])
   backup           User?              @relation("ShiftBackup", fields: [backupId], references: [id])
@@ -322,8 +324,8 @@ model SwapRequest {
 
   requester     User   @relation("SwapRequester", fields: [requesterId], references: [id])
   targetUser    User?  @relation("SwapTarget", fields: [targetUserId], references: [id])
-  originalShift Shift  @relation("SwapOriginalShift", fields: [originalShiftId], references: [id])
-  targetShift   Shift? @relation("SwapTargetShift", fields: [targetShiftId], references: [id])
+  originalShift Shift  @relation("SwapOriginalShift", fields: [originalShiftId], references: [id], onDelete: Cascade)
+  targetShift   Shift? @relation("SwapTargetShift", fields: [targetShiftId], references: [id], onDelete: Cascade)
 
   @@index([requesterId, status])
   @@index([targetUserId, status])
@@ -504,4 +506,22 @@ model ShiftTask {
 
   @@index([shiftId])
   @@map("shift_tasks")
+}
+
+model Runbook {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  teamId      String   @map("team_id") @db.Uuid
+  title       String
+  content     String   @db.Text @default("")
+  keywords    String[] @default([])
+  isActive    Boolean  @default(true) @map("is_active")
+  createdById String   @map("created_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  team      Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdBy User @relation("RunbookAuthor", fields: [createdById], references: [id])
+
+  @@index([teamId])
+  @@map("runbooks")
 }

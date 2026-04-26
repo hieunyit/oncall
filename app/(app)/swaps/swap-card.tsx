@@ -180,6 +180,19 @@ export function SwapCard({
         </div>
       )}
 
+      {/* Requester: cancel their own pending request */}
+      {isRequester && swap.status === "REQUESTED" && !canTake && (
+        <div className="pt-1 border-t border-gray-100">
+          <button
+            onClick={() => handle("cancel", () => callApi(`/api/swaps/${swap.id}/respond`, { action: "cancel" }))}
+            disabled={!!loading}
+            className="text-xs text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+          >
+            {loading === "cancel" ? "Đang hủy..." : "Hủy yêu cầu này"}
+          </button>
+        </div>
+      )}
+
       {/* Manager: approve/reject */}
       {canApprove && swap.status === "ACCEPTED_BY_TARGET" && (
         <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
