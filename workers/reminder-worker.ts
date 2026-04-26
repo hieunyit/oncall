@@ -17,7 +17,7 @@ export function startReminderWorker() {
         include: {
           shift: {
             include: {
-              policy: { select: { name: true } },
+              policy: { select: { name: true, teamId: true } },
             },
           },
           user: {
@@ -26,7 +26,6 @@ export function startReminderWorker() {
               email: true,
               fullName: true,
               telegramChatId: true,
-              teamsConversationId: true,
             },
           },
         },
@@ -37,7 +36,6 @@ export function startReminderWorker() {
 
       const { user, shift } = confirmation;
 
-      // Create notification message (opaque IDs only in payload — no PII)
       const message = await prisma.notificationMessage.create({
         data: {
           shiftId,
@@ -62,14 +60,10 @@ export function startReminderWorker() {
         appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "",
       };
 
-      // Queue email delivery
+      // Email
       if (user.email) {
         const delivery = await prisma.notificationDelivery.create({
-          data: {
-            messageId: message.id,
-            channelType: ChannelType.EMAIL,
-            status: DeliveryStatus.QUEUED,
-          },
+          data: { messageId: message.id, channelType: ChannelType.EMAIL, status: DeliveryStatus.QUEUED },
         });
         await emailQueue.add("send-reminder-email", {
           deliveryId: delivery.id,
@@ -81,14 +75,10 @@ export function startReminderWorker() {
         });
       }
 
-      // Queue Telegram delivery if user has chat ID
+      // Telegram (per-user chat ID)
       if (user.telegramChatId) {
         const delivery = await prisma.notificationDelivery.create({
-          data: {
-            messageId: message.id,
-            channelType: ChannelType.TELEGRAM,
-            status: DeliveryStatus.QUEUED,
-          },
+          data: { messageId: message.id, channelType: ChannelType.TELEGRAM, status: DeliveryStatus.QUEUED },
         });
         await telegramQueue.add("send-reminder-telegram", {
           deliveryId: delivery.id,
@@ -99,9 +89,26 @@ export function startReminderWorker() {
         });
       }
 
-      // Queue Teams delivery if user has conversation ID
-      if (user.teamsConversationId) {
-        // Teams webhook URL would come from team channel config
+      // Teams — send to all configured Teams channels of this policy's team
+      const teamsChannels = await prisma.teamNotificationChannel.findMany({
+        where: { teamId: shift.policy.teamId, type: ChannelType.TEAMS },
+      });
+
+      for (const channel of teamsChannels) {
+        const cfg = channel.configJson as Record<string, string>;
+        const webhookUrl = cfg.webhookUrl;
+        if (!webhookUrl) continue;
+
+        const delivery = await prisma.notificationDelivery.create({
+          data: { messageId: message.id, channelType: ChannelType.TEAMS, status: DeliveryStatus.QUEUED },
+        });
+        await teamsQueue.add("send-reminder-teams", {
+          deliveryId: delivery.id,
+          messageId: message.id,
+          webhookUrl,
+          templateId: "shift-reminder",
+          variables,
+        });
       }
     },
     { connection: createRedisConnection(), concurrency: 10 }

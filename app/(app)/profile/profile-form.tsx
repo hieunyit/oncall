@@ -8,7 +8,6 @@ interface UserProfile {
   fullName: string;
   timezone: string | null;
   telegramChatId: string | null;
-  teamsConversationId: string | null;
   phone: string | null;
 }
 
@@ -20,10 +19,13 @@ export function ProfileForm({ user }: { user: UserProfile }) {
   const [form, setForm] = useState({
     fullName: user.fullName ?? "",
     timezone: user.timezone ?? "Asia/Ho_Chi_Minh",
-    telegramChatId: user.telegramChatId ?? "",
-    teamsConversationId: user.teamsConversationId ?? "",
     phone: user.phone ?? "",
   });
+
+  const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
+  const telegramDeepLink = botUsername
+    ? `https://t.me/${botUsername}?start=${user.id}`
+    : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,18 +33,14 @@ export function ProfileForm({ user }: { user: UserProfile }) {
     setError("");
     setSaved(false);
 
-    const body: Record<string, string | null> = {
-      fullName: form.fullName,
-      timezone: form.timezone || null,
-      telegramChatId: form.telegramChatId || null,
-      teamsConversationId: form.teamsConversationId || null,
-      phone: form.phone || null,
-    };
-
     const res = await fetch("/api/users/me", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        fullName: form.fullName,
+        timezone: form.timezone || null,
+        phone: form.phone || null,
+      }),
     });
 
     setSaving(false);
@@ -95,7 +93,7 @@ export function ProfileForm({ user }: { user: UserProfile }) {
 
       {/* Notification channels */}
       <div className="pt-2 border-t border-gray-100">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Kênh thông báo</p>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Kênh thông báo cá nhân</p>
 
         <div className="space-y-3">
           {/* Telegram */}
@@ -106,18 +104,41 @@ export function ProfileForm({ user }: { user: UserProfile }) {
               </svg>
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-800">Telegram</p>
-              <p className="text-xs text-gray-500 mb-2">Chat ID từ bot @oncall_notify_bot (gõ /start để lấy)</p>
-              <input
-                className="input w-full bg-white"
-                placeholder="Ví dụ: 123456789"
-                value={form.telegramChatId}
-                onChange={e => setForm(f => ({ ...f, telegramChatId: e.target.value }))}
-              />
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-gray-800">Telegram</p>
+                {user.telegramChatId ? (
+                  <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                    Đã kết nối (ID: {user.telegramChatId})
+                  </span>
+                ) : (
+                  <span className="text-xs text-gray-400">Chưa kết nối</span>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-1 mb-2">
+                Nhấn nút bên dưới để mở bot Telegram và liên kết tài khoản tự động.
+              </p>
+              {telegramDeepLink ? (
+                <a
+                  href={telegramDeepLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2CA5E0] text-white text-xs font-medium rounded-lg hover:bg-[#239fd6] transition-colors"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/>
+                  </svg>
+                  {user.telegramChatId ? "Kết nối lại Telegram" : "Kết nối Telegram"}
+                </a>
+              ) : (
+                <p className="text-xs text-amber-600 bg-amber-50 px-2.5 py-1.5 rounded">
+                  Cần cấu hình <code className="font-mono">NEXT_PUBLIC_TELEGRAM_BOT_USERNAME</code> trong .env
+                </p>
+              )}
             </div>
           </div>
 
-          {/* MS Teams */}
+          {/* Teams note */}
           <div className="flex items-start gap-3 p-3.5 rounded-lg bg-purple-50 border border-purple-100">
             <div className="w-8 h-8 rounded-lg bg-[#6264A7] flex items-center justify-center shrink-0 mt-0.5">
               <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
@@ -126,13 +147,9 @@ export function ProfileForm({ user }: { user: UserProfile }) {
             </div>
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-800">Microsoft Teams</p>
-              <p className="text-xs text-gray-500 mb-2">Conversation ID từ Teams (liên hệ admin để lấy)</p>
-              <input
-                className="input w-full bg-white"
-                placeholder="19:xxxx@thread.v2"
-                value={form.teamsConversationId}
-                onChange={e => setForm(f => ({ ...f, teamsConversationId: e.target.value }))}
-              />
+              <p className="text-xs text-gray-500 mt-1">
+                Thông báo Teams được gửi đến kênh nhóm (Incoming Webhook), cấu hình bởi quản lý nhóm trong trang <strong>Nhóm trực → Kênh thông báo</strong>.
+              </p>
             </div>
           </div>
         </div>

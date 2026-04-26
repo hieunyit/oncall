@@ -29,6 +29,8 @@ export function NotificationChannels({
   const [configValues, setConfigValues] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [testingId, setTestingId] = useState<string | null>(null);
+  const [testResult, setTestResult] = useState<{ id: string; ok: boolean; msg: string } | null>(null);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,6 +57,24 @@ export function NotificationChannels({
       const d = await res.json().catch(() => ({}));
       setError(d.error ?? "Không thể thêm kênh.");
     }
+  };
+
+  const handleTest = async (channelId: string) => {
+    setTestingId(channelId);
+    setTestResult(null);
+    const res = await fetch(`/api/teams/${teamId}/notification-channels/test`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ channelId }),
+    });
+    const d = await res.json().catch(() => ({}));
+    setTestResult({
+      id: channelId,
+      ok: res.ok,
+      msg: res.ok ? (d.data?.message ?? "Thành công") : (d.error ?? "Lỗi không xác định"),
+    });
+    setTestingId(null);
+    setTimeout(() => setTestResult(null), 5000);
   };
 
   const handleDelete = async (channelId: string) => {
@@ -92,12 +112,28 @@ export function NotificationChannels({
               </div>
             </div>
             {isManager && (
-              <button
-                onClick={() => handleDelete(ch.id)}
-                className="text-xs text-red-400 hover:text-red-600 transition-colors"
-              >
-                Xóa
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                {(ch.type === "TEAMS" || ch.type === "TELEGRAM") && (
+                  <button
+                    onClick={() => handleTest(ch.id)}
+                    disabled={testingId === ch.id}
+                    className="text-xs px-2 py-1 text-indigo-600 border border-indigo-200 rounded hover:bg-indigo-50 disabled:opacity-50"
+                  >
+                    {testingId === ch.id ? "Đang gửi..." : "Test"}
+                  </button>
+                )}
+                <button
+                  onClick={() => handleDelete(ch.id)}
+                  className="text-xs text-red-400 hover:text-red-600 transition-colors"
+                >
+                  Xóa
+                </button>
+              </div>
+            )}
+            {testResult?.id === ch.id && (
+              <div className={`mt-1.5 text-xs px-2 py-1 rounded w-full ${testResult.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+                {testResult.ok ? "✓" : "✗"} {testResult.msg}
+              </div>
             )}
           </div>
         );

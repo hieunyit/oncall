@@ -40,12 +40,9 @@ export async function POST(req: NextRequest) {
     const linkToken = parts[1]; // /start <token>
 
     if (linkToken) {
-      // User is linking via deep link token stored in user profile
+      // Deep link token is the user's UUID id — hard to guess, no extra DB column needed
       const user = await prisma.user.findFirst({
-        where: {
-          // In production, store a pending link token; here we use keycloakId as token for simplicity
-          keycloakId: linkToken,
-        },
+        where: { id: linkToken },
       });
 
       if (user) {

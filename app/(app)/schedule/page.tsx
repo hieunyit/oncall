@@ -62,10 +62,9 @@ export default async function SchedulePage({ searchParams }: PageProps) {
     },
     include: {
       assignee: { select: { id: true, fullName: true } },
-      policy: { select: { name: true, teamId: true, checklistRequired: true } as any },
+      policy: { select: { name: true, teamId: true } },
       confirmation: { select: { status: true, token: true } },
       overrideForShift: { select: { id: true } },
-      _count: { select: { tasks: true } },
     },
     orderBy: { startsAt: "asc" },
   });
@@ -90,33 +89,44 @@ export default async function SchedulePage({ searchParams }: PageProps) {
     fullName: m.user.fullName,
   }));
 
-  // Count completed tasks per shift
-  const shiftIds = shifts.map((s) => s.id);
-  const doneCounts = await prisma.shiftTask.groupBy({
-    by: ["shiftId"],
-    where: { shiftId: { in: shiftIds }, isCompleted: true },
-    _count: { id: true },
-  });
-  const doneMap = Object.fromEntries(doneCounts.map((r) => [r.shiftId, r._count.id]));
+  // Count tasks per shift — only when shift_tasks table exists (after migration)
+  let totalMap: Record<string, number> = {};
+  let doneMap: Record<string, number> = {};
+  try {
+    const shiftIds = shifts.map((s) => s.id);
+    const [totalCounts, doneCounts] = await Promise.all([
+      prisma.shiftTask.groupBy({
+        by: ["shiftId"],
+        where: { shiftId: { in: shiftIds } },
+        _count: { id: true },
+      }),
+      prisma.shiftTask.groupBy({
+        by: ["shiftId"],
+        where: { shiftId: { in: shiftIds }, isCompleted: true },
+        _count: { id: true },
+      }),
+    ]);
+    totalMap = Object.fromEntries(totalCounts.map((r) => [r.shiftId, r._count.id]));
+    doneMap = Object.fromEntries(doneCounts.map((r) => [r.shiftId, r._count.id]));
+  } catch {
+    // shift_tasks table not yet created — checklist counts will be 0
+  }
 
-  const shiftBlocks = shifts.map((s) => {
-    const shift = s as any;
-    return {
-      id: s.id,
-      assigneeName: shift.assignee.fullName as string,
-      assigneeId: shift.assignee.id as string,
-      policyName: shift.policy.name as string,
-      startsAt: s.startsAt,
-      endsAt: s.endsAt,
-      confirmationStatus: shift.confirmation?.status ?? null,
-      confirmationToken: shift.confirmation?.token ?? null,
-      isMe: shift.assignee.id === currentUser.id,
-      isOverride: s.overrideForShiftId !== null,
-      checklistRequired: shift.policy.checklistRequired as boolean,
-      checklistTotal: shift._count.tasks as number,
-      checklistDone: doneMap[s.id] ?? 0,
-    };
-  });
+  const shiftBlocks = shifts.map((s) => ({
+    id: s.id,
+    assigneeName: s.assignee.fullName,
+    assigneeId: s.assignee.id,
+    policyName: s.policy.name,
+    startsAt: s.startsAt,
+    endsAt: s.endsAt,
+    confirmationStatus: s.confirmation?.status ?? null,
+    confirmationToken: s.confirmation?.token ?? null,
+    isMe: s.assignee.id === currentUser.id,
+    isOverride: s.overrideForShiftId !== null,
+    checklistRequired: false, // populated after migration + prisma generate
+    checklistTotal: totalMap[s.id] ?? 0,
+    checklistDone: doneMap[s.id] ?? 0,
+  }));
 
   return (
     <div className="space-y-5">

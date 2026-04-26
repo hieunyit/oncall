@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 type NavItem = { href: string; label: string; icon: React.ReactNode };
 
@@ -25,8 +26,39 @@ const NAV_SECTIONS = [
   { label: "Quản lý", items: ["/swaps", "/reports", "/notifications", "/users"] },
 ];
 
+function Badge({ count }: { count: number }) {
+  if (count === 0) return null;
+  return (
+    <span className="ml-auto shrink-0 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
+
 export function AppSidebar() {
   const pathname = usePathname();
+  const [counts, setCounts] = useState({ pendingSwaps: 0, firingAlerts: 0 });
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchCounts() {
+      try {
+        const res = await fetch("/api/me/counts");
+        if (res.ok && !cancelled) {
+          const data = await res.json();
+          setCounts(data);
+        }
+      } catch {}
+    }
+    fetchCounts();
+    const interval = setInterval(fetchCounts, 30_000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, []);
+
+  const badgeMap: Record<string, number> = {
+    "/swaps": counts.pendingSwaps,
+    "/alerts": counts.firingAlerts,
+  };
 
   const isActive = (href: string) =>
     pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
@@ -62,6 +94,7 @@ export function AppSidebar() {
               <div className="space-y-0.5">
                 {sectionItems.map((item) => {
                   const active = isActive(item.href);
+                  const badge = badgeMap[item.href] ?? 0;
                   return (
                     <Link
                       key={item.href}
@@ -75,10 +108,12 @@ export function AppSidebar() {
                       <span className={`shrink-0 transition-colors ${active ? "text-indigo-200" : "text-slate-500 group-hover:text-slate-300"}`}>
                         {item.icon}
                       </span>
-                      <span className="truncate">{item.label}</span>
-                      {active && (
+                      <span className="truncate flex-1">{item.label}</span>
+                      {badge > 0 ? (
+                        <Badge count={badge} />
+                      ) : active ? (
                         <span className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-300 shrink-0" />
-                      )}
+                      ) : null}
                     </Link>
                   );
                 })}
