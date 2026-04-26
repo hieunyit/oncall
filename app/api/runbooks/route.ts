@@ -30,7 +30,8 @@ export async function GET(req: NextRequest) {
 
     const isAdmin = actor.systemRole === "ADMIN";
 
-    const runbooks = await prisma.runbook.findMany({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const runbooks = await (prisma as any).runbook.findMany({
       where: {
         isActive: true,
         ...(teamId ? { teamId } : isAdmin ? {} : { teamId: { in: myTeamIds } }),
@@ -67,7 +68,8 @@ export async function POST(req: NextRequest) {
     const result = await requireTeamRole(data.teamId, TeamRole.MANAGER);
     if (isNextResponse(result)) return result;
 
-    const runbook = await prisma.runbook.create({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const runbook = await (prisma as any).runbook.create({
       data: {
         teamId: data.teamId,
         title: data.title,

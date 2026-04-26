@@ -21,7 +21,8 @@ export async function GET(
     if (!actor) return unauthorized();
 
     const { id } = await params;
-    const runbook = await prisma.runbook.findUnique({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const runbook = await (prisma as any).runbook.findUnique({
       where: { id },
       include: {
         team: { select: { id: true, name: true } },
@@ -48,7 +49,8 @@ export async function PATCH(
     if (!actor) return unauthorized();
 
     const { id } = await params;
-    const runbook = await prisma.runbook.findUnique({ where: { id } });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const runbook = await (prisma as any).runbook.findUnique({ where: { id } });
     if (!runbook) return notFound("Runbook not found");
 
     const result = await requireTeamRole(runbook.teamId, TeamRole.MANAGER);
@@ -57,7 +59,8 @@ export async function PATCH(
     const body = await req.json();
     const data = UpdateRunbookSchema.parse(body);
 
-    const updated = await prisma.runbook.update({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updated = await (prisma as any).runbook.update({
       where: { id },
       data,
       include: {
@@ -81,13 +84,15 @@ export async function DELETE(
     if (!actor) return unauthorized();
 
     const { id } = await params;
-    const runbook = await prisma.runbook.findUnique({ where: { id } });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const runbook = await (prisma as any).runbook.findUnique({ where: { id } });
     if (!runbook) return notFound("Runbook not found");
 
     const result = await requireTeamRole(runbook.teamId, TeamRole.MANAGER);
     if (isNextResponse(result)) return result;
 
-    await prisma.runbook.delete({ where: { id } });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (prisma as any).runbook.delete({ where: { id } });
     return noContent();
   } catch (error) {
     return handleError(error);
