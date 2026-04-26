@@ -123,7 +123,7 @@ export default async function SwapsPage() {
   const historySwaps = mySwaps.filter((s) => !activeStatuses.includes(s.status));
 
   const userCanApproveSwap = (swap: typeof pendingApproval[0]) =>
-    isAdmin || managedTeamIds.includes(swap.originalShift.policy.teamId);
+    isAdmin || managedTeamIds.includes(swap.originalShift.policy?.teamId ?? "");
 
   return (
     <div className="space-y-6">
@@ -135,7 +135,7 @@ export default async function SwapsPage() {
         <CreateSwapButton
           myShifts={myUpcomingShifts.map((s) => ({
             id: s.id,
-            label: `${s.policy.name} — ${format(s.startsAt, "EEE dd/MM HH:mm", { locale: vi })}`,
+            label: `${s.policy?.name ?? "—"} — ${format(s.startsAt, "EEE dd/MM HH:mm", { locale: vi })}`,
           }))}
         />
       </div>
@@ -197,7 +197,7 @@ export default async function SwapsPage() {
               currentUserId={currentUser.id}
               canApprove={
                 swap.status === SwapStatus.ACCEPTED_BY_TARGET &&
-                (isAdmin || managedTeamIds.includes(swap.originalShift.policy.teamId))
+                (isAdmin || managedTeamIds.includes(swap.originalShift.policy?.teamId ?? ""))
               }
               canTake={false}
               statusLabels={STATUS_LABELS}

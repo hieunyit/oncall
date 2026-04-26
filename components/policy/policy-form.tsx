@@ -37,14 +37,7 @@ interface PolicyFormProps {
   };
 }
 
-function timeToHHMM(hour: number, minute: number): string {
-  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-}
-
-function parseHHMM(value: string): { hour: number; minute: number } {
-  const [h, m] = value.split(":").map(Number);
-  return { hour: h ?? 0, minute: m ?? 0 };
-}
+const MINUTES = [0, 15, 30, 45];
 
 export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], initialData }: PolicyFormProps) {
   const router = useRouter();
@@ -101,17 +94,6 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
   function updateSlot(index: number, field: keyof TimeSlot, value: string | number) {
     setTimeSlots((prev) =>
       prev.map((slot, i) => (i === index ? { ...slot, [field]: value } : slot))
-    );
-  }
-
-  function updateSlotTime(index: number, field: "start" | "end", value: string) {
-    const { hour, minute } = parseHHMM(value);
-    setTimeSlots((prev) =>
-      prev.map((slot, i) =>
-        i === index
-          ? { ...slot, [`${field}Hour`]: hour, [`${field}Minute`]: minute }
-          : slot
-      )
     );
   }
 
@@ -307,19 +289,49 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
                     placeholder="Tên ca"
                     className="input text-sm w-28"
                   />
-                  <input
-                    type="time"
-                    value={timeToHHMM(slot.startHour, slot.startMinute)}
-                    onChange={(e) => updateSlotTime(index, "start", e.target.value)}
-                    className="input text-sm"
-                  />
+                  <div className="flex items-center gap-0.5">
+                    <select
+                      value={slot.startHour}
+                      onChange={(e) => updateSlot(index, "startHour", Number(e.target.value))}
+                      className="input text-sm w-14 text-gray-900"
+                    >
+                      {Array.from({ length: 24 }, (_, h) => (
+                        <option key={h} value={h}>{String(h).padStart(2, "0")}</option>
+                      ))}
+                    </select>
+                    <span className="text-gray-400 text-xs px-0.5">:</span>
+                    <select
+                      value={slot.startMinute}
+                      onChange={(e) => updateSlot(index, "startMinute", Number(e.target.value))}
+                      className="input text-sm w-14 text-gray-900"
+                    >
+                      {MINUTES.map((m) => (
+                        <option key={m} value={m}>{String(m).padStart(2, "0")}</option>
+                      ))}
+                    </select>
+                  </div>
                   <span className="text-gray-400 text-sm">–</span>
-                  <input
-                    type="time"
-                    value={timeToHHMM(slot.endHour, slot.endMinute)}
-                    onChange={(e) => updateSlotTime(index, "end", e.target.value)}
-                    className="input text-sm"
-                  />
+                  <div className="flex items-center gap-0.5">
+                    <select
+                      value={slot.endHour}
+                      onChange={(e) => updateSlot(index, "endHour", Number(e.target.value))}
+                      className="input text-sm w-14 text-gray-900"
+                    >
+                      {Array.from({ length: 25 }, (_, h) => (
+                        <option key={h} value={h}>{String(h).padStart(2, "0")}</option>
+                      ))}
+                    </select>
+                    <span className="text-gray-400 text-xs px-0.5">:</span>
+                    <select
+                      value={slot.endMinute}
+                      onChange={(e) => updateSlot(index, "endMinute", Number(e.target.value))}
+                      className="input text-sm w-14 text-gray-900"
+                    >
+                      {MINUTES.map((m) => (
+                        <option key={m} value={m}>{String(m).padStart(2, "0")}</option>
+                      ))}
+                    </select>
+                  </div>
                   <button
                     type="button"
                     onClick={() => removeSlot(index)}

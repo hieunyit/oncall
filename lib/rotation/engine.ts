@@ -118,13 +118,20 @@ export function generateShifts(
   // ── Time-slot mode ────────────────────────────────────────────────────────
   if (policy.timeSlots && policy.timeSlots.length > 0) {
     const days = eachDayOfInterval({ start: rangeStart, end: subDays(rangeEnd, 1) });
+    // Advance base person by 1 per day so each person rotates through all slot types.
+    // idx here is the base index for the current day; slot i within the day gets
+    // person (idx + i) % N, ensuring fair rotation across shift types.
+    let dayBaseIdx = startingIndex % participants.length;
 
     for (const day of days) {
       const dow = day.getUTCDay(); // 0=Sun … 6=Sat; use UTC to avoid server-tz shift
+      const slotsForDay = policy.timeSlots.filter(
+        (s) => !s.daysOfWeek || s.daysOfWeek.length === 0 || s.daysOfWeek.includes(dow)
+      );
+      if (slotsForDay.length === 0) continue;
 
-      for (const slot of policy.timeSlots) {
-        if (slot.daysOfWeek && slot.daysOfWeek.length > 0 && !slot.daysOfWeek.includes(dow)) continue;
-
+      for (let slotI = 0; slotI < slotsForDay.length; slotI++) {
+        const slot = slotsForDay[slotI];
         const startsAt = tzDateTime(day, slot.startHour, slot.startMinute, tz);
         let endsAt = tzDateTime(day, slot.endHour, slot.endMinute, tz);
 
@@ -136,10 +143,12 @@ export function generateShifts(
 
         if (isAfter(startsAt, rangeEnd)) break;
 
-        const participant = pickParticipant(participants, idx, { startsAt, endsAt }, policyId, occupied);
+        const slotIdx = (dayBaseIdx + slotI) % participants.length;
+        const participant = pickParticipant(participants, slotIdx, { startsAt, endsAt }, policyId, occupied);
         shifts.push({ assigneeId: participant.userId, backupId: participant.backupId, startsAt, endsAt });
-        idx++;
       }
+
+      dayBaseIdx = (dayBaseIdx + 1) % participants.length;
     }
     return shifts;
   }

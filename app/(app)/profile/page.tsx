@@ -98,7 +98,7 @@ export default async function ProfilePage() {
           <p className="px-5 py-8 text-center text-sm text-gray-400">Bạn chưa thuộc nhóm nào.</p>
         ) : (
           <div className="divide-y divide-gray-50">
-            {user.teamMembers.map(({ team, role }) => (
+            {user.teamMembers.filter((m) => m.team != null).map(({ team, role }) => (
               <div key={team.id} className="px-5 py-3.5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 font-semibold text-sm shrink-0">

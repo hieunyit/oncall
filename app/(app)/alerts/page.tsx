@@ -144,7 +144,7 @@ export default async function AlertsPage({ searchParams }: PageProps) {
                       <p className="text-xs text-gray-500 mt-0.5 truncate max-w-md">{alert.message}</p>
                     )}
                     <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-400 flex-wrap">
-                      <span className="font-medium text-gray-500">{alert.integration.team.name}</span>
+                      <span className="font-medium text-gray-500">{alert.integration.team?.name ?? "—"}</span>
                       <span>·</span>
                       <span>{alert.integration.name}</span>
                       <span>·</span>

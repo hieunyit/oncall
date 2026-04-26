@@ -62,9 +62,7 @@ export function MonthCalendar({
   }
 
   function getShiftsForDay(day: Date) {
-    return shifts.filter(
-      (s) => isSameDay(s.startsAt, day) || (s.startsAt < day && s.endsAt > day)
-    );
+    return shifts.filter((s) => isSameDay(s.startsAt, day));
   }
 
   function hasCrossPolicyConflict(shift: ShiftBlock, dayShifts: ShiftBlock[]): boolean {

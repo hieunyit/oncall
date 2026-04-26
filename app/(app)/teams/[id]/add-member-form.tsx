@@ -47,7 +47,7 @@ export function AddMemberForm({ teamId, availableUsers }: Props) {
       <select
         value={userId}
         onChange={(e) => setUserId(e.target.value)}
-        className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 flex-1 bg-white"
+        className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 flex-1 bg-white text-gray-900"
       >
         <option value="">Chọn người dùng...</option>
         {availableUsers.map((u) => (
@@ -59,7 +59,7 @@ export function AddMemberForm({ teamId, availableUsers }: Props) {
       <select
         value={role}
         onChange={(e) => setRole(e.target.value as "MEMBER" | "MANAGER")}
-        className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white"
+        className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-900"
       >
         <option value="MEMBER">Thành viên</option>
         <option value="MANAGER">Quản lý</option>

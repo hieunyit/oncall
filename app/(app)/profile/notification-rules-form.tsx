@@ -104,7 +104,7 @@ function RulesEditor({
                 {rule.stepOrder}
               </span>
               <select
-                className="input flex-1 text-xs py-1.5"
+                className="input flex-1 text-xs py-1.5 text-gray-900"
                 value={rule.channelType}
                 onChange={(e) => updateRule(rule.key, { channelType: e.target.value as ChannelType })}
               >
@@ -119,7 +119,7 @@ function RulesEditor({
                   type="number"
                   min={0}
                   max={120}
-                  className="input w-16 text-xs py-1.5 text-center"
+                  className="input w-16 text-xs py-1.5 text-center text-gray-900"
                   value={rule.delayMinutes}
                   onChange={(e) => updateRule(rule.key, { delayMinutes: parseInt(e.target.value) || 0 })}
                 />

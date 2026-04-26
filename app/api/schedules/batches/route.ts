@@ -112,8 +112,15 @@ export async function POST(req: NextRequest) {
         status: { notIn: [ShiftStatus.CANCELLED] },
       },
     });
+    const timeSlots = policy.timeSlots as TimeSlot[] | null | undefined;
+    const slotsPerDay = timeSlots && timeSlots.length > 0 ? timeSlots.length : 1;
+    // For time-slot mode, rotation advances 1 position per day (not per shift),
+    // so startingIndex = number of previously scheduled days % participants.
+    // For non-time-slot mode, it advances per shift as before.
     const startingIndex = participants.length > 0
-      ? previousShiftCount % participants.length
+      ? timeSlots && timeSlots.length > 0
+        ? Math.floor(previousShiftCount / slotsPerDay) % participants.length
+        : previousShiftCount % participants.length
       : 0;
 
     // Build occupied map: existing shifts from OTHER policies in the same team
@@ -139,7 +146,7 @@ export async function POST(req: NextRequest) {
     }
 
     const generatedShifts = generateShifts(
-      { ...policy, timeSlots: policy.timeSlots as TimeSlot[] | null | undefined },
+      { ...policy, timeSlots },
       participants,
       rangeStart,
       rangeEnd,
