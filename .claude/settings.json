@@ -2,6 +2,9 @@
   "permissions": {
     "additionalDirectories": [
       "C:\\Users\\hieuny\\Documents\\HieuNY\\oncall\\app\\api\\shifts\\[id]\\tasks"
+    ],
+    "allow": [
+      "Bash(docker builder *)"
     ]
   }
 }

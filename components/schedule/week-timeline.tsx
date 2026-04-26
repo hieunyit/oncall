@@ -26,6 +26,7 @@ interface WeekTimelineProps {
   shifts: ShiftBlock[];
   currentUserId: string;
   highlightMe: boolean;
+  selectedPersonId?: string | null;
   onShiftClick?: (shift: ShiftBlock) => void;
 }
 
@@ -68,6 +69,7 @@ export function WeekTimeline({
   shifts,
   currentUserId,
   highlightMe,
+  selectedPersonId,
   onShiftClick,
 }: WeekTimelineProps) {
   const weekEnd = addDays(weekStart, numDays);
@@ -193,7 +195,7 @@ export function WeekTimeline({
         const userShifts = visible.filter((s) => s.assigneeId === userId);
         const color = getUserColor(userId);
         const isMe = userId === currentUserId;
-        const dimmed = highlightMe && !isMe;
+        const dimmed = (highlightMe && !isMe) || (!!selectedPersonId && userId !== selectedPersonId);
 
         return (
           <div

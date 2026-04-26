@@ -25,6 +25,7 @@ interface MonthCalendarProps {
   shifts: ShiftBlock[];
   currentUserId: string;
   highlightMe?: boolean;
+  selectedPersonId?: string | null;
   isManager?: boolean;
   onShiftClick?: (shift: ShiftBlock) => void;
   onOverride?: (shift: ShiftBlock) => void;
@@ -37,7 +38,9 @@ export function MonthCalendar({
   shifts,
   currentUserId,
   highlightMe,
+  selectedPersonId,
   onShiftClick,
+  onOverride,
 }: MonthCalendarProps) {
   const today = new Date();
 
@@ -62,7 +65,6 @@ export function MonthCalendar({
     );
   }
 
-  // Returns true if a shift has a cross-policy time conflict with another shift for the same person + team
   function hasCrossPolicyConflict(shift: ShiftBlock, dayShifts: ShiftBlock[]): boolean {
     return dayShifts.some(
       (other) =>
@@ -103,22 +105,34 @@ export function MonthCalendar({
             const isWeekend = di >= 5;
             const dayShifts = getShiftsForDay(day);
 
+            // Coverage gap: in-month, non-weekend day with no shifts at all
+            const isCoverageGap = inMonth && !isToday && dayShifts.length === 0;
+
             return (
               <div
                 key={day.toISOString()}
-                className={`min-h-[90px] p-1.5 border-r last:border-r-0 border-gray-100 ${
-                  isWeekend ? "bg-blue-50/40" : ""
+                className={`min-h-[96px] p-1.5 border-r last:border-r-0 border-gray-100 transition-colors ${
+                  isWeekend ? "bg-blue-50/40" : isCoverageGap ? "bg-red-50/60" : ""
                 } ${!inMonth ? "opacity-40" : ""}`}
               >
                 {/* Date number */}
-                <div className="flex justify-end mb-1">
+                <div className="flex justify-between items-start mb-1">
+                  <div className="w-4">
+                    {isCoverageGap && (
+                      <svg className="w-3 h-3 text-red-300 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                      </svg>
+                    )}
+                  </div>
                   <span
                     className={`text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full ${
                       isToday
                         ? "bg-blue-600 text-white"
                         : isWeekend
                           ? "text-blue-400"
-                          : "text-gray-500"
+                          : isCoverageGap
+                            ? "text-red-400"
+                            : "text-gray-500"
                     }`}
                   >
                     {format(day, "d")}
@@ -132,7 +146,8 @@ export function MonthCalendar({
                       ? { bg: "#fef3c7", border: "#d97706", text: "#78350f", solid: "#f59e0b" }
                       : getUserColor(shift.assigneeId);
                     const isMe = shift.assigneeId === currentUserId;
-                    const dimmed = highlightMe && !isMe;
+                    const personDimmed = selectedPersonId && shift.assigneeId !== selectedPersonId;
+                    const dimmed = (highlightMe && !isMe) || !!personDimmed;
                     const confirmed = shift.confirmationStatus === "CONFIRMED";
                     const declined = shift.confirmationStatus === "DECLINED";
                     const pending = shift.confirmationStatus === "PENDING";
@@ -148,9 +163,14 @@ export function MonthCalendar({
                       <div
                         key={shift.id}
                         onClick={() => onShiftClick?.(shift)}
+                        onContextMenu={
+                          onOverride
+                            ? (e) => { e.preventDefault(); onOverride(shift); }
+                            : undefined
+                        }
                         style={{
                           backgroundColor: conflict ? "#dc2626" : color.solid,
-                          opacity: dimmed ? 0.3 : 1,
+                          opacity: dimmed ? 0.25 : 1,
                           outline: checklistIncomplete ? "2px solid #f97316" : undefined,
                           outlineOffset: "-1px",
                         }}
