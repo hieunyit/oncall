@@ -134,6 +134,8 @@ export default async function SchedulePage({ searchParams }: PageProps) {
     id: s.id,
     assigneeName: s.assignee.fullName,
     assigneeId: s.assignee.id,
+    policyId: s.policyId,
+    teamId: s.policy.teamId,
     policyName: s.policy.name,
     startsAt: s.startsAt,
     endsAt: s.endsAt,

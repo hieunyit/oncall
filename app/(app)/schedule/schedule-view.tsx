@@ -12,6 +12,8 @@ interface ShiftBlock {
   id: string;
   assigneeName: string;
   assigneeId: string;
+  policyId: string;
+  teamId: string;
   policyName: string;
   startsAt: Date;
   endsAt: Date;

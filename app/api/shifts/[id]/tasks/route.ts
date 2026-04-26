@@ -21,17 +21,38 @@ export async function GET(
     const { id } = await params;
     const shift = await prisma.shift.findUnique({
       where: { id },
-      include: { policy: { select: { teamId: true } } },
+      include: { policy: { select: { teamId: true, id: true } } },
     });
     if (!shift) return notFound("Shift not found");
 
     const result = await requireTeamRole(shift.policy.teamId, TeamRole.MEMBER);
     if (isNextResponse(result)) return result;
 
-    const tasks = await prisma.shiftTask.findMany({
+    let tasks = await prisma.shiftTask.findMany({
       where: { shiftId: id },
       orderBy: [{ order: "asc" }, { createdAt: "asc" }],
     });
+
+    // Auto-seed from policy template if shift has no tasks yet
+    if (tasks.length === 0) {
+      try {
+        const rows = await prisma.$queryRaw<Array<{ template_tasks: unknown }>>`
+          SELECT template_tasks FROM rotation_policies WHERE id = ${shift.policyId}::uuid
+        `;
+        const templateTasks = rows[0]?.template_tasks as string[] | null;
+        if (Array.isArray(templateTasks) && templateTasks.length > 0) {
+          await prisma.shiftTask.createMany({
+            data: templateTasks.map((title, order) => ({ shiftId: id, title, order })),
+          });
+          tasks = await prisma.shiftTask.findMany({
+            where: { shiftId: id },
+            orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+          });
+        }
+      } catch {
+        // migration 4 not yet applied — no template tasks
+      }
+    }
 
     return ok(tasks);
   } catch (error) {

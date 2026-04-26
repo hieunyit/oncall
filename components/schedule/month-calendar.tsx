@@ -7,6 +7,8 @@ interface ShiftBlock {
   id: string;
   assigneeName: string;
   assigneeId: string;
+  policyId: string;
+  teamId: string;
   policyName: string;
   startsAt: Date;
   endsAt: Date;
@@ -56,6 +58,19 @@ export function MonthCalendar({
   function getShiftsForDay(day: Date) {
     return shifts.filter(
       (s) => isSameDay(s.startsAt, day) || (s.startsAt < day && s.endsAt > day)
+    );
+  }
+
+  // Returns true if a shift has a cross-policy time conflict with another shift for the same person + team
+  function hasCrossPolicyConflict(shift: ShiftBlock, dayShifts: ShiftBlock[]): boolean {
+    return dayShifts.some(
+      (other) =>
+        other.id !== shift.id &&
+        other.assigneeId === shift.assigneeId &&
+        other.teamId === shift.teamId &&
+        other.policyId !== shift.policyId &&
+        other.startsAt < shift.endsAt &&
+        other.endsAt > shift.startsAt
     );
   }
 
@@ -122,23 +137,29 @@ export function MonthCalendar({
                     const pending = shift.confirmationStatus === "PENDING";
                     const hasChecklist =
                       shift.checklistTotal !== undefined && shift.checklistTotal > 0;
+                    const conflict = hasCrossPolicyConflict(shift, dayShifts);
 
                     return (
                       <div
                         key={shift.id}
                         onClick={() => onShiftClick?.(shift)}
                         style={{
-                          backgroundColor: color.solid,
+                          backgroundColor: conflict ? "#dc2626" : color.solid,
                           opacity: dimmed ? 0.3 : 1,
                         }}
                         className={`rounded px-1.5 py-0.5 text-[11px] leading-tight cursor-pointer hover:brightness-110 flex items-center gap-1 transition-all text-white shadow-sm ${
                           isMe ? "font-semibold" : "font-medium"
                         }`}
-                        title={`${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`}
+                        title={
+                          conflict
+                            ? `⚠ Chồng chéo chính sách! ${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`
+                            : `${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`
+                        }
                       >
-                        {confirmed && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-green-300" />}
-                        {declined && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-red-300" />}
-                        {pending && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-yellow-200" />}
+                        {conflict && <span className="shrink-0 text-[10px]">⚠</span>}
+                        {!conflict && confirmed && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-green-300" />}
+                        {!conflict && declined && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-red-300" />}
+                        {!conflict && pending && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-yellow-200" />}
                         <span className="truncate">{shift.assigneeName}</span>
                         {hasChecklist && (
                           <span className="opacity-70 text-[9px] shrink-0 ml-auto">

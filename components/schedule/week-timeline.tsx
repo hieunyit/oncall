@@ -7,6 +7,8 @@ interface ShiftBlock {
   id: string;
   assigneeName: string;
   assigneeId: string;
+  policyId: string;
+  teamId: string;
   policyName: string;
   startsAt: Date;
   endsAt: Date;
@@ -82,6 +84,18 @@ export function WeekTimeline({
       userOrder.push(s.assigneeId);
       userNames[s.assigneeId] = s.assigneeName;
     }
+  }
+
+  function hasCrossPolicyConflict(shift: ShiftBlock): boolean {
+    return visible.some(
+      (other) =>
+        other.id !== shift.id &&
+        other.assigneeId === shift.assigneeId &&
+        other.teamId === shift.teamId &&
+        other.policyId !== shift.policyId &&
+        other.startsAt < shift.endsAt &&
+        other.endsAt > shift.startsAt
+    );
   }
 
   const days = Array.from({ length: numDays }, (_, i) => addDays(weekStart, i));
@@ -239,9 +253,12 @@ export function WeekTimeline({
               {/* Shift bars */}
               {userShifts.map((shift) => {
                 const style = barStyle(shift);
-                const barColor = shift.isOverride
-                  ? { bg: "#fef3c7", border: "#d97706", text: "#78350f", solid: "#f59e0b" }
-                  : color;
+                const conflict = hasCrossPolicyConflict(shift);
+                const barColor = conflict
+                  ? { solid: "#dc2626" }
+                  : shift.isOverride
+                    ? { solid: "#f59e0b" }
+                    : color;
                 const confirmed = shift.confirmationStatus === "CONFIRMED";
                 const declined = shift.confirmationStatus === "DECLINED";
                 const pending = shift.confirmationStatus === "PENDING";
@@ -256,24 +273,31 @@ export function WeekTimeline({
                       backgroundColor: barColor.solid,
                     }}
                     className="absolute top-1.5 bottom-1.5 rounded cursor-pointer hover:brightness-110 px-2 flex items-center gap-1.5 overflow-hidden transition-all z-20 shadow-sm"
-                    title={`${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`}
+                    title={
+                      conflict
+                        ? `⚠ Chồng chéo chính sách! ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
+                        : `${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
+                    }
                   >
+                    {conflict && <span className="shrink-0 text-[11px]">⚠</span>}
                     <span className="text-[11px] font-semibold text-white truncate leading-tight flex-1 flex items-center gap-1 min-w-0">
-                      <span className="truncate">{shift.assigneeName}</span>
+                      <span className="truncate">{shift.policyName}</span>
                       <span className="opacity-70 shrink-0 hidden sm:inline">
                         {format(shift.startsAt, "HH:mm")}
                       </span>
                     </span>
-                    <span className="shrink-0 flex items-center gap-0.5">
-                      {confirmed && <span className="w-1.5 h-1.5 rounded-full bg-green-300" />}
-                      {pending && <span className="w-1.5 h-1.5 rounded-full bg-yellow-200" />}
-                      {declined && <span className="w-1.5 h-1.5 rounded-full bg-red-300" />}
-                      {shift.checklistTotal && shift.checklistTotal > 0 ? (
-                        <span className="text-[9px] text-white/70 ml-0.5">
-                          ✓{shift.checklistDone}/{shift.checklistTotal}
-                        </span>
-                      ) : null}
-                    </span>
+                    {!conflict && (
+                      <span className="shrink-0 flex items-center gap-0.5">
+                        {confirmed && <span className="w-1.5 h-1.5 rounded-full bg-green-300" />}
+                        {pending && <span className="w-1.5 h-1.5 rounded-full bg-yellow-200" />}
+                        {declined && <span className="w-1.5 h-1.5 rounded-full bg-red-300" />}
+                        {shift.checklistTotal && shift.checklistTotal > 0 ? (
+                          <span className="text-[9px] text-white/70 ml-0.5">
+                            ✓{shift.checklistDone}/{shift.checklistTotal}
+                          </span>
+                        ) : null}
+                      </span>
+                    )}
                   </div>
                 );
               })}
