@@ -112,6 +112,24 @@ export default async function SchedulePage({ searchParams }: PageProps) {
     // shift_tasks table not yet created — checklist counts will be 0
   }
 
+  // Load checklistRequired per policy via raw SQL (field added in migration 4)
+  let checklistRequiredByPolicy: Record<string, boolean> = {};
+  try {
+    const policyIds = [...new Set(shifts.map((s) => s.policyId))];
+    if (policyIds.length > 0) {
+      const rows = await prisma.$queryRaw<Array<{ id: string; checklist_required: boolean }>>`
+        SELECT id::text, checklist_required
+        FROM rotation_policies
+        WHERE id = ANY(${policyIds}::uuid[])
+      `;
+      checklistRequiredByPolicy = Object.fromEntries(
+        rows.map((r) => [r.id, r.checklist_required ?? false])
+      );
+    }
+  } catch {
+    // migration 4 not yet applied
+  }
+
   const shiftBlocks = shifts.map((s) => ({
     id: s.id,
     assigneeName: s.assignee.fullName,
@@ -123,7 +141,7 @@ export default async function SchedulePage({ searchParams }: PageProps) {
     confirmationToken: s.confirmation?.token ?? null,
     isMe: s.assignee.id === currentUser.id,
     isOverride: s.overrideForShiftId !== null,
-    checklistRequired: false, // populated after migration + prisma generate
+    checklistRequired: checklistRequiredByPolicy[s.policyId] ?? false,
     checklistTotal: totalMap[s.id] ?? 0,
     checklistDone: doneMap[s.id] ?? 0,
   }));

@@ -10,7 +10,8 @@ import { addDays } from "date-fns";
 
 const CreateSwapSchema = z.object({
   originalShiftId: z.string().uuid(),
-  targetUserId: z.string().uuid(),
+  // null = open request (anyone can take); uuid = targeted at specific person
+  targetUserId: z.string().uuid().nullable().optional(),
   targetShiftId: z.string().uuid().optional(),
   requesterNote: z.string().max(500).optional(),
 });
@@ -22,16 +23,40 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = req.nextUrl;
     const status = searchParams.get("status") as SwapStatus | null;
+    const mode = searchParams.get("mode"); // "available" = open swaps from teammates
     const page = Number(searchParams.get("page") ?? 1);
     const limit = Math.min(Number(searchParams.get("limit") ?? 20), 100);
 
-    const where = {
-      OR: [
-        { requesterId: actor.id },
-        { targetUserId: actor.id },
-      ],
-      ...(status && { status }),
-    };
+    let where: object;
+
+    if (mode === "available") {
+      // Open swap requests from teammates (excluding own)
+      const myTeamIds = (
+        await prisma.teamMember.findMany({
+          where: { userId: actor.id },
+          select: { teamId: true },
+        })
+      ).map((m) => m.teamId);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      where = {
+        status: SwapStatus.REQUESTED,
+        targetUserId: null as any,       // nullable after migration 5
+        requesterId: { not: actor.id },
+        expiresAt: { gt: new Date() },
+        originalShift: {
+          policy: { teamId: { in: myTeamIds } },
+        },
+      };
+    } else {
+      where = {
+        OR: [
+          { requesterId: actor.id },
+          { targetUserId: actor.id },
+        ],
+        ...(status && { status }),
+      };
+    }
 
     const [swaps, total] = await Promise.all([
       prisma.swapRequest.findMany({
@@ -39,7 +64,9 @@ export async function GET(req: NextRequest) {
         include: {
           requester: { select: { id: true, fullName: true, email: true } },
           targetUser: { select: { id: true, fullName: true, email: true } },
-          originalShift: { select: { id: true, startsAt: true, endsAt: true } },
+          originalShift: {
+            include: { policy: { select: { name: true, teamId: true } } },
+          },
           targetShift: { select: { id: true, startsAt: true, endsAt: true } },
         },
         orderBy: { createdAt: "desc" },
@@ -68,7 +95,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = CreateSwapSchema.parse(body);
 
-    if (data.targetUserId === actor.id) {
+    if (data.targetUserId && data.targetUserId === actor.id) {
       return badRequest("Cannot swap with yourself");
     }
 
@@ -89,15 +116,16 @@ export async function POST(req: NextRequest) {
     }
 
     const swap = await prisma.swapRequest.create({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data: {
         requesterId: actor.id,
-        targetUserId: data.targetUserId,
+        ...(data.targetUserId != null && { targetUserId: data.targetUserId }),
         originalShiftId: data.originalShiftId,
         targetShiftId: data.targetShiftId,
         requesterNote: data.requesterNote,
         expiresAt: addDays(new Date(), 7),
         idempotencyKey: idempotencyKey ?? undefined,
-      },
+      } as any,
     });
 
     await writeAuditLog({

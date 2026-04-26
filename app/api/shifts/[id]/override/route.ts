@@ -5,6 +5,8 @@ import { getSessionUser, requireTeamRole, isNextResponse } from "@/lib/rbac";
 import { ok, badRequest, unauthorized, notFound, handleError } from "@/lib/api-response";
 import { ShiftStatus, ShiftSource, TeamRole } from "@/app/generated/prisma/client";
 import { writeAuditLog } from "@/lib/audit";
+import { computeConfirmationDueAt } from "@/lib/rotation/engine";
+import { scheduleRemindersForConfirmation, scheduleEscalationForConfirmation } from "@/lib/queue/scheduler";
 
 const OverrideSchema = z.object({
   assigneeId: z.string().uuid(),
@@ -40,6 +42,12 @@ export async function POST(
 
     if (endsAt <= startsAt) return badRequest("endsAt must be after startsAt");
 
+    // Fetch policy for confirmation due hours + reminder config
+    const policy = await prisma.rotationPolicy.findUnique({
+      where: { id: shift.policyId },
+      select: { id: true, confirmationDueHours: true, reminderLeadHours: true },
+    });
+
     const override = await prisma.shift.create({
       data: {
         policyId: shift.policyId,
@@ -57,6 +65,28 @@ export async function POST(
         policy: { select: { id: true, name: true } },
       },
     });
+
+    // Create confirmation for the override assignee
+    const dueAt = policy
+      ? computeConfirmationDueAt(
+          { assigneeId: data.assigneeId, startsAt, endsAt },
+          policy.confirmationDueHours
+        )
+      : startsAt; // fallback: due at shift start
+    const confirmation = await prisma.shiftConfirmation.create({
+      data: { shiftId: override.id, userId: data.assigneeId, dueAt },
+    });
+
+    if (policy) {
+      await scheduleRemindersForConfirmation(
+        { id: confirmation.id, shiftId: override.id, userId: data.assigneeId, dueAt, shift: { startsAt, endsAt } },
+        policy
+      );
+      await scheduleEscalationForConfirmation(
+        { id: confirmation.id, shiftId: override.id, userId: data.assigneeId, dueAt, shift: { startsAt, endsAt } },
+        policy
+      );
+    }
 
     await writeAuditLog({
       actorId: actor.id,

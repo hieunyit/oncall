@@ -6,6 +6,7 @@ import {
   ok,
   unauthorized,
   forbidden,
+  badRequest,
   notFound,
   conflict,
   handleError,
@@ -30,6 +31,8 @@ export async function POST(
     const swap = await prisma.swapRequest.findUnique({ where: { id } });
     if (!swap) return notFound("Swap request not found");
 
+    // Open swaps (targetUserId = null) must be taken via /take, not /respond
+    if (swap.targetUserId === null) return badRequest("Use /take for open swap requests");
     if (swap.targetUserId !== actor.id) return forbidden();
 
     if (swap.status !== SwapStatus.REQUESTED) {

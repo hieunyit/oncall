@@ -113,14 +113,13 @@ export function MonthCalendar({
                 <div className="space-y-0.5">
                   {dayShifts.slice(0, 4).map((shift) => {
                     const color = shift.isOverride
-                      ? { bg: "#fef3c7", border: "#d97706", text: "#78350f" }
+                      ? { bg: "#fef3c7", border: "#d97706", text: "#78350f", solid: "#f59e0b" }
                       : getUserColor(shift.assigneeId);
                     const isMe = shift.assigneeId === currentUserId;
                     const dimmed = highlightMe && !isMe;
-                    const statusDot =
-                      shift.confirmationStatus === "CONFIRMED" ? "bg-green-500" :
-                      shift.confirmationStatus === "DECLINED" ? "bg-red-500" :
-                      shift.confirmationStatus === "PENDING" ? "bg-yellow-400" : null;
+                    const confirmed = shift.confirmationStatus === "CONFIRMED";
+                    const declined = shift.confirmationStatus === "DECLINED";
+                    const pending = shift.confirmationStatus === "PENDING";
                     const hasChecklist =
                       shift.checklistTotal !== undefined && shift.checklistTotal > 0;
 
@@ -129,22 +128,20 @@ export function MonthCalendar({
                         key={shift.id}
                         onClick={() => onShiftClick?.(shift)}
                         style={{
-                          backgroundColor: color.bg,
-                          borderColor: color.border,
-                          color: color.text,
+                          backgroundColor: color.solid,
                           opacity: dimmed ? 0.3 : 1,
                         }}
-                        className={`rounded border px-1.5 py-0.5 text-[11px] leading-tight cursor-pointer hover:brightness-95 flex items-center gap-1 transition-all ${
-                          isMe ? "font-semibold" : ""
+                        className={`rounded px-1.5 py-0.5 text-[11px] leading-tight cursor-pointer hover:brightness-110 flex items-center gap-1 transition-all text-white shadow-sm ${
+                          isMe ? "font-semibold" : "font-medium"
                         }`}
                         title={`${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`}
                       >
-                        {statusDot && (
-                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusDot}`} />
-                        )}
+                        {confirmed && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-green-300" />}
+                        {declined && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-red-300" />}
+                        {pending && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-yellow-200" />}
                         <span className="truncate">{shift.assigneeName}</span>
                         {hasChecklist && (
-                          <span className="opacity-60 text-[10px] shrink-0 ml-auto">
+                          <span className="opacity-70 text-[9px] shrink-0 ml-auto">
                             ✓{shift.checklistDone}/{shift.checklistTotal}
                           </span>
                         )}

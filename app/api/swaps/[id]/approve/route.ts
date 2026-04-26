@@ -9,7 +9,7 @@ import {
   conflict,
   handleError,
 } from "@/lib/api-response";
-import { SwapStatus, ShiftSource, TeamRole } from "@/app/generated/prisma/client";
+import { SwapStatus, ShiftSource, ShiftStatus, TeamRole } from "@/app/generated/prisma/client";
 import { writeAuditLog } from "@/lib/audit";
 
 const ApproveSchema = z.object({
@@ -30,8 +30,12 @@ export async function POST(
     const swap = await prisma.swapRequest.findUnique({
       where: { id },
       include: {
-        originalShift: { include: { policy: { select: { teamId: true } } } },
-        targetShift: true,
+        originalShift: {
+          include: { policy: { select: { teamId: true, id: true } } },
+        },
+        targetShift: {
+          include: { policy: { select: { teamId: true, id: true } } },
+        },
       },
     });
     if (!swap) return notFound("Swap request not found");
@@ -46,6 +50,54 @@ export async function POST(
     const body = await req.json().catch(() => ({}));
     const { note } = ApproveSchema.parse(body);
 
+    // Cross-policy constraint: the new assignee of each shift must not already have
+    // a shift from a DIFFERENT policy (same team) that overlaps. Same-policy overlaps are allowed.
+    const activeStatuses = [ShiftStatus.PUBLISHED, ShiftStatus.ACTIVE];
+
+    // Target user is taking the original shift
+    const conflict1 = await prisma.shift.findFirst({
+      where: {
+        assigneeId: swap.targetUserId!,
+        policyId: { not: swap.originalShift.policyId },
+        policy: { teamId: swap.originalShift.policy.teamId },
+        status: { in: activeStatuses },
+        startsAt: { lt: swap.originalShift.endsAt },
+        endsAt: { gt: swap.originalShift.startsAt },
+        // exclude the target shift itself (it's being swapped away)
+        id: swap.targetShiftId ? { not: swap.targetShiftId } : undefined,
+      },
+      select: { id: true },
+    });
+    if (conflict1) {
+      return conflict(
+        "Target user already has a shift from another policy overlapping the original shift's time",
+        "CROSS_POLICY_CONFLICT"
+      );
+    }
+
+    // If mutual swap: requester is taking the target shift
+    if (swap.targetShiftId && swap.targetShift) {
+      const conflict2 = await prisma.shift.findFirst({
+        where: {
+          assigneeId: swap.requesterId,
+          policyId: { not: swap.targetShift.policyId },
+          policy: { teamId: swap.targetShift.policy.teamId },
+          status: { in: activeStatuses },
+          startsAt: { lt: swap.targetShift.endsAt },
+          endsAt: { gt: swap.targetShift.startsAt },
+          // exclude the original shift (it's being swapped away)
+          id: { not: swap.originalShiftId },
+        },
+        select: { id: true },
+      });
+      if (conflict2) {
+        return conflict(
+          "Requester already has a shift from another policy overlapping the target shift's time",
+          "CROSS_POLICY_CONFLICT"
+        );
+      }
+    }
+
     // Execute the swap atomically
     await prisma.$transaction(async (tx) => {
       // Reassign original shift to target user
@@ -58,6 +110,12 @@ export async function POST(
         },
       });
 
+      // Transfer confirmation ownership to new assignee so reminders/escalations go to the right person
+      await tx.shiftConfirmation.updateMany({
+        where: { shiftId: swap.originalShiftId },
+        data: { userId: swap.targetUserId! },
+      });
+
       // If mutual swap, reassign target shift to requester
       if (swap.targetShiftId) {
         await tx.shift.update({
@@ -67,6 +125,11 @@ export async function POST(
             source: ShiftSource.SWAP,
             version: { increment: 1 },
           },
+        });
+
+        await tx.shiftConfirmation.updateMany({
+          where: { shiftId: swap.targetShiftId },
+          data: { userId: swap.requesterId },
         });
       }
 

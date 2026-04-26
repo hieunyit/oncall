@@ -27,16 +27,16 @@ interface WeekTimelineProps {
 }
 
 const PALETTE = [
-  { bg: "#ede9fe", border: "#7c3aed", text: "#4c1d95" },
-  { bg: "#fce7f3", border: "#db2777", text: "#831843" },
-  { bg: "#ffedd5", border: "#ea580c", text: "#7c2d12" },
-  { bg: "#ccfbf1", border: "#0d9488", text: "#134e4a" },
-  { bg: "#cffafe", border: "#0891b2", text: "#164e63" },
-  { bg: "#d9f99d", border: "#65a30d", text: "#365314" },
-  { bg: "#fee2e2", border: "#e11d48", text: "#881337" },
-  { bg: "#e0e7ff", border: "#4338ca", text: "#1e1b4b" },
-  { bg: "#fef9c3", border: "#ca8a04", text: "#713f12" },
-  { bg: "#dcfce7", border: "#16a34a", text: "#14532d" },
+  { bg: "#ede9fe", border: "#7c3aed", text: "#4c1d95", solid: "#7c3aed" },
+  { bg: "#fce7f3", border: "#db2777", text: "#831843", solid: "#db2777" },
+  { bg: "#ffedd5", border: "#ea580c", text: "#7c2d12", solid: "#ea580c" },
+  { bg: "#ccfbf1", border: "#0d9488", text: "#134e4a", solid: "#0d9488" },
+  { bg: "#cffafe", border: "#0891b2", text: "#164e63", solid: "#0891b2" },
+  { bg: "#d9f99d", border: "#65a30d", text: "#365314", solid: "#65a30d" },
+  { bg: "#fee2e2", border: "#e11d48", text: "#881337", solid: "#e11d48" },
+  { bg: "#e0e7ff", border: "#4338ca", text: "#1e1b4b", solid: "#4338ca" },
+  { bg: "#fef9c3", border: "#ca8a04", text: "#713f12", solid: "#ca8a04" },
+  { bg: "#dcfce7", border: "#16a34a", text: "#14532d", solid: "#16a34a" },
 ];
 
 export function getUserColor(userId: string) {
@@ -45,6 +45,18 @@ export function getUserColor(userId: string) {
     hash = ((hash * 31) + userId.charCodeAt(i)) >>> 0;
   }
   return PALETTE[hash % PALETTE.length];
+}
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+// Hour marks to show per day based on view width
+function getHourMarks(numDays: number): number[] {
+  if (numDays <= 7) return [0, 6, 12, 18];   // every 6h for week view
+  return [0, 12];                              // every 12h for 2-week view
 }
 
 export function WeekTimeline({
@@ -57,11 +69,10 @@ export function WeekTimeline({
 }: WeekTimelineProps) {
   const weekEnd = addDays(weekStart, numDays);
   const totalMinutes = numDays * 24 * 60;
-  const today = new Date();
+  const now = new Date();
 
   const visible = shifts.filter((s) => s.startsAt < weekEnd && s.endsAt > weekStart);
 
-  // Collect users in order of first appearance
   const seenUsers = new Set<string>();
   const userOrder: string[] = [];
   const userNames: Record<string, string> = {};
@@ -74,6 +85,13 @@ export function WeekTimeline({
   }
 
   const days = Array.from({ length: numDays }, (_, i) => addDays(weekStart, i));
+  const hourMarks = getHourMarks(numDays);
+
+  // Current time indicator position (% from left)
+  const nowInRange = now >= weekStart && now < weekEnd;
+  const nowPct = nowInRange
+    ? (differenceInMinutes(now, weekStart) / totalMinutes) * 100
+    : null;
 
   function barStyle(shift: ShiftBlock) {
     const clampedStart = shift.startsAt < weekStart ? weekStart : shift.startsAt;
@@ -82,8 +100,20 @@ export function WeekTimeline({
     const durMin = differenceInMinutes(clampedEnd, clampedStart);
     return {
       left: `${(startMin / totalMinutes) * 100}%`,
-      width: `${Math.max((durMin / totalMinutes) * 100, 0.5)}%`,
+      width: `${Math.max((durMin / totalMinutes) * 100, 0.3)}%`,
     };
+  }
+
+  // Build all hour-mark positions (as % of total width)
+  const hourMarkPositions: { pct: number; label: string; isDayBoundary: boolean }[] = [];
+  for (let d = 0; d < numDays; d++) {
+    for (const h of hourMarks) {
+      const minFromStart = d * 24 * 60 + h * 60;
+      const pct = (minFromStart / totalMinutes) * 100;
+      const isDayBoundary = h === 0;
+      const label = h === 0 ? format(addDays(weekStart, d), "d/M") : `${String(h).padStart(2, "0")}:00`;
+      hourMarkPositions.push({ pct, label, isDayBoundary });
+    }
   }
 
   if (userOrder.length === 0) {
@@ -95,37 +125,51 @@ export function WeekTimeline({
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      {/* Header */}
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden select-none">
+      {/* Header: day columns + hour sub-labels */}
       <div className="flex border-b border-gray-200">
-        <div className="w-36 shrink-0 border-r border-gray-200 bg-gray-50 py-2.5 px-3 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-          Người trực
-        </div>
-        <div className="flex-1 flex">
-          {days.map((day, i) => {
-            const isToday = isSameDay(day, today);
-            const isWeekend = day.getDay() === 0 || day.getDay() === 6;
-            return (
-              <div
-                key={i}
-                style={{ width: `${100 / numDays}%` }}
-                className={`py-2 text-center border-r last:border-r-0 border-gray-100 ${
-                  isWeekend ? "bg-blue-50" : ""
+        <div className="w-36 shrink-0 border-r border-gray-200 bg-gray-50" />
+        <div className="flex-1 relative">
+          {/* Day header row */}
+          <div className="flex">
+            {days.map((day, i) => {
+              const isToday = isSameDay(day, now);
+              const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+              return (
+                <div
+                  key={i}
+                  style={{ width: `${100 / numDays}%` }}
+                  className={`py-2 text-center border-r last:border-r-0 border-gray-100 ${isWeekend ? "bg-blue-50" : ""}`}
+                >
+                  <div className="flex flex-col items-center gap-0.5">
+                    <span className={`text-[10px] uppercase tracking-wide ${isWeekend ? "text-blue-400" : "text-gray-400"}`}>
+                      {format(day, "EEE", { locale: vi })}
+                    </span>
+                    <span className={`text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full ${
+                      isToday ? "bg-blue-600 text-white" : isWeekend ? "text-blue-500" : "text-gray-600"
+                    }`}>
+                      {format(day, "d")}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Hour sub-labels row */}
+          <div className="relative h-5 border-t border-gray-100 bg-gray-50/60">
+            {hourMarkPositions.map(({ pct, label, isDayBoundary }, idx) => (
+              <span
+                key={idx}
+                style={{ left: `${pct}%` }}
+                className={`absolute top-0.5 -translate-x-1/2 text-[9px] tabular-nums ${
+                  isDayBoundary ? "hidden" : "text-gray-400"
                 }`}
               >
-                <div className="flex flex-col items-center gap-0.5">
-                  <span className={`text-[10px] uppercase tracking-wide ${isWeekend ? "text-blue-400" : "text-gray-400"}`}>
-                    {format(day, "EEE", { locale: vi })}
-                  </span>
-                  <span className={`text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full ${
-                    isToday ? "bg-blue-600 text-white" : isWeekend ? "text-blue-500" : "text-gray-600"
-                  }`}>
-                    {format(day, "d")}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+                {label}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -139,18 +183,20 @@ export function WeekTimeline({
         return (
           <div
             key={userId}
-            className={`flex border-b last:border-b-0 border-gray-100 transition-opacity duration-200 ${dimmed ? "opacity-25" : ""}`}
+            className={`flex border-b last:border-b-0 border-gray-100 transition-opacity duration-200 ${dimmed ? "opacity-20" : ""}`}
           >
-            {/* Name */}
+            {/* Avatar + name */}
             <div className="w-36 shrink-0 border-r border-gray-100 bg-gray-50 px-3 flex items-center min-h-[56px]">
               <div className="flex items-center gap-2 min-w-0">
                 <div
-                  className="w-2.5 h-2.5 rounded-full shrink-0"
-                  style={{ backgroundColor: color.border }}
-                />
+                  className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-[11px] font-bold text-white leading-none"
+                  style={{ backgroundColor: color.solid }}
+                >
+                  {initials(userNames[userId])}
+                </div>
                 <span
                   className={`text-xs truncate ${isMe ? "font-bold" : "font-medium text-gray-700"}`}
-                  style={isMe ? { color: color.border } : {}}
+                  style={isMe ? { color: color.solid } : {}}
                 >
                   {userNames[userId]}
                 </span>
@@ -159,28 +205,46 @@ export function WeekTimeline({
 
             {/* Timeline area */}
             <div className="flex-1 relative min-h-[56px]">
-              {/* Day dividers */}
+              {/* Hour grid lines */}
+              {hourMarkPositions.map(({ pct, isDayBoundary }, idx) => (
+                <div
+                  key={idx}
+                  className={`absolute top-0 bottom-0 ${isDayBoundary ? "border-r border-gray-200" : "border-r border-gray-100/70"}`}
+                  style={{ left: `${pct}%` }}
+                />
+              ))}
+
+              {/* Weekend backgrounds */}
               {days.map((day, i) => {
                 const isWeekend = day.getDay() === 0 || day.getDay() === 6;
-                return (
+                return isWeekend ? (
                   <div
                     key={i}
-                    className={`absolute top-0 bottom-0 border-r border-gray-100 ${isWeekend ? "bg-blue-50/30" : ""}`}
+                    className="absolute top-0 bottom-0 bg-blue-50/40"
                     style={{ left: `${(i / numDays) * 100}%`, width: `${100 / numDays}%` }}
                   />
-                );
+                ) : null;
               })}
+
+              {/* Current time line */}
+              {nowPct !== null && (
+                <div
+                  className="absolute top-0 bottom-0 w-px bg-red-500 z-10"
+                  style={{ left: `${nowPct}%` }}
+                >
+                  <div className="absolute -top-0 -translate-x-1/2 w-2 h-2 rounded-full bg-red-500" />
+                </div>
+              )}
 
               {/* Shift bars */}
               {userShifts.map((shift) => {
                 const style = barStyle(shift);
                 const barColor = shift.isOverride
-                  ? { bg: "#fef3c7", border: "#d97706", text: "#78350f" }
+                  ? { bg: "#fef3c7", border: "#d97706", text: "#78350f", solid: "#f59e0b" }
                   : color;
-                const statusDot =
-                  shift.confirmationStatus === "CONFIRMED" ? "#22c55e" :
-                  shift.confirmationStatus === "DECLINED" ? "#ef4444" :
-                  shift.confirmationStatus === "PENDING" ? "#eab308" : null;
+                const confirmed = shift.confirmationStatus === "CONFIRMED";
+                const declined = shift.confirmationStatus === "DECLINED";
+                const pending = shift.confirmationStatus === "PENDING";
 
                 return (
                   <div
@@ -189,20 +253,25 @@ export function WeekTimeline({
                     style={{
                       left: style.left,
                       width: style.width,
-                      backgroundColor: barColor.bg,
-                      borderColor: barColor.border,
-                      color: barColor.text,
+                      backgroundColor: barColor.solid,
                     }}
-                    className="absolute top-2 bottom-2 rounded border cursor-pointer hover:brightness-95 px-1.5 flex items-center gap-1 overflow-hidden transition-all"
+                    className="absolute top-1.5 bottom-1.5 rounded cursor-pointer hover:brightness-110 px-2 flex items-center gap-1.5 overflow-hidden transition-all z-20 shadow-sm"
                     title={`${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`}
                   >
-                    {statusDot && (
-                      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: statusDot }} />
-                    )}
-                    <span className="text-[11px] font-medium truncate leading-tight">
-                      {format(shift.startsAt, "HH:mm")}
+                    <span className="text-[11px] font-semibold text-white truncate leading-tight flex-1 flex items-center gap-1 min-w-0">
+                      <span className="truncate">{shift.assigneeName}</span>
+                      <span className="opacity-70 shrink-0 hidden sm:inline">
+                        {format(shift.startsAt, "HH:mm")}
+                      </span>
+                    </span>
+                    <span className="shrink-0 flex items-center gap-0.5">
+                      {confirmed && <span className="w-1.5 h-1.5 rounded-full bg-green-300" />}
+                      {pending && <span className="w-1.5 h-1.5 rounded-full bg-yellow-200" />}
+                      {declined && <span className="w-1.5 h-1.5 rounded-full bg-red-300" />}
                       {shift.checklistTotal && shift.checklistTotal > 0 ? (
-                        <span className="ml-1 opacity-60 text-[10px]">✓{shift.checklistDone}/{shift.checklistTotal}</span>
+                        <span className="text-[9px] text-white/70 ml-0.5">
+                          ✓{shift.checklistDone}/{shift.checklistTotal}
+                        </span>
                       ) : null}
                     </span>
                   </div>

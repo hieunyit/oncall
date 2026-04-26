@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser, requireTeamRole, isNextResponse } from "@/lib/rbac";
-import { ok, unauthorized, notFound, conflict, handleError } from "@/lib/api-response";
+import { ok, unauthorized, notFound, conflict, forbidden, handleError } from "@/lib/api-response";
 import { SwapStatus, TeamRole } from "@/app/generated/prisma/client";
 import { writeAuditLog } from "@/lib/audit";
 
@@ -25,8 +25,9 @@ export async function POST(
     });
     if (!swap) return notFound("Swap request not found");
 
-    const terminal: string[] = [SwapStatus.APPROVED, SwapStatus.CANCELLED, SwapStatus.EXPIRED];
-    if (terminal.includes(swap.status)) {
+    // Only allow reject from active states; REQUESTED = target hasn't responded, ACCEPTED_BY_TARGET = pending manager
+    const rejectableStates: string[] = [SwapStatus.REQUESTED, SwapStatus.ACCEPTED_BY_TARGET];
+    if (!rejectableStates.includes(swap.status)) {
       return conflict(`Cannot reject a swap in state ${swap.status}`, "INVALID_STATE");
     }
 

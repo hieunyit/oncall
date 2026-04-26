@@ -223,6 +223,7 @@ model RotationPolicy {
   reminderLeadHours     Int[]       @default([24, 2]) @map("reminder_lead_hours")
   maxGenerateWeeks      Int         @default(4) @map("max_generate_weeks")
   timeSlots             Json?       @default("[]") @map("time_slots")
+  timezone              String      @default("Asia/Ho_Chi_Minh")
   checklistRequired     Boolean     @default(false) @map("checklist_required")
   templateTasks         Json        @default("[]") @map("template_tasks")
   isActive              Boolean     @default(true) @map("is_active")
@@ -306,7 +307,7 @@ model ShiftConfirmation {
 model SwapRequest {
   id              String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   requesterId     String     @map("requester_id") @db.Uuid
-  targetUserId    String     @map("target_user_id") @db.Uuid
+  targetUserId    String?    @map("target_user_id") @db.Uuid
   originalShiftId String     @map("original_shift_id") @db.Uuid
   targetShiftId   String?    @map("target_shift_id") @db.Uuid
   status          SwapStatus @default(REQUESTED)
@@ -320,7 +321,7 @@ model SwapRequest {
   updatedAt       DateTime   @updatedAt @map("updated_at")
 
   requester     User   @relation("SwapRequester", fields: [requesterId], references: [id])
-  targetUser    User   @relation("SwapTarget", fields: [targetUserId], references: [id])
+  targetUser    User?  @relation("SwapTarget", fields: [targetUserId], references: [id])
   originalShift Shift  @relation("SwapOriginalShift", fields: [originalShiftId], references: [id])
   targetShift   Shift? @relation("SwapTargetShift", fields: [targetShiftId], references: [id])
 
