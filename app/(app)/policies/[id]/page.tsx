@@ -187,8 +187,8 @@ export default async function PolicyDetailPage({
             <tbody className="divide-y divide-gray-100">
               {recentShifts.map((s) => (
                 <tr key={s.id}>
-                  <td className="px-4 py-2 text-gray-700">{s.startsAt.toLocaleString("vi-VN")}</td>
-                  <td className="px-4 py-2 text-gray-700">{s.endsAt.toLocaleString("vi-VN")}</td>
+                  <td className="px-4 py-2 text-gray-700">{s.startsAt.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}</td>
+                  <td className="px-4 py-2 text-gray-700">{s.endsAt.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}</td>
                   <td className="px-4 py-2 font-medium text-gray-900">{s.assignee.fullName}</td>
                   <td className="px-4 py-2">
                     <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${

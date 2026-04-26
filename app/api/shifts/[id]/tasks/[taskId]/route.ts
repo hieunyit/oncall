@@ -39,6 +39,15 @@ export async function PATCH(
       return forbidden("Only the shift assignee can check tasks");
     }
 
+    // Tasks can only be toggled within 2 hours before shift starts
+    if (data.isCompleted !== undefined) {
+      const now = new Date();
+      const earliest = new Date(shift.startsAt.getTime() - 2 * 60 * 60 * 1000);
+      if (now < earliest) {
+        return forbidden("Checklist chỉ có thể cập nhật khi ca trực sắp bắt đầu hoặc đang diễn ra");
+      }
+    }
+
     const updated = await prisma.shiftTask.update({
       where: { id: taskId },
       data: {

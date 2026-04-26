@@ -12,9 +12,11 @@ interface ShiftBlock {
   policyName: string;
   startsAt: Date;
   endsAt: Date;
+  status?: string;
   confirmationStatus?: string | null;
   isMe: boolean;
   isOverride?: boolean;
+  source?: string;
   checklistRequired?: boolean;
   checklistTotal?: number;
   checklistDone?: number;
@@ -154,10 +156,14 @@ export function MonthCalendar({
                     const hasChecklist =
                       shift.checklistTotal !== undefined && shift.checklistTotal > 0;
                     const conflict = hasCrossPolicyConflict(shift, dayShifts);
+                    // Only warn about incomplete checklist when the shift is active or starts within 2h
+                    const shiftNear = shift.startsAt <= new Date(today.getTime() + 2 * 60 * 60 * 1000);
                     const checklistIncomplete =
+                      shiftNear &&
                       shift.checklistRequired &&
                       (shift.checklistTotal === 0 || (shift.checklistDone ?? 0) < (shift.checklistTotal ?? 0));
                     const allChecklistDone = hasChecklist && shift.checklistDone === shift.checklistTotal;
+                    const isSwap = shift.source === "SWAP";
 
                     return (
                       <div
@@ -187,9 +193,10 @@ export function MonthCalendar({
                       >
                         {conflict && <span className="shrink-0 text-[10px]">⚠</span>}
                         {!conflict && checklistIncomplete && <span className="shrink-0 text-[10px]">!</span>}
-                        {!conflict && !checklistIncomplete && confirmed && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-green-300" />}
-                        {!conflict && !checklistIncomplete && declined && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-red-300" />}
-                        {!conflict && !checklistIncomplete && pending && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-yellow-200" />}
+                        {!conflict && !checklistIncomplete && isSwap && <span className="shrink-0 text-[10px]">⇄</span>}
+                        {!conflict && !checklistIncomplete && !isSwap && confirmed && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-green-300" />}
+                        {!conflict && !checklistIncomplete && !isSwap && declined && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-red-300" />}
+                        {!conflict && !checklistIncomplete && !isSwap && pending && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-yellow-200" />}
                         <span className="truncate">{shift.assigneeName}</span>
                         {hasChecklist && (
                           <span className={`text-[9px] shrink-0 ml-auto ${allChecklistDone ? "text-green-300" : checklistIncomplete ? "text-orange-200 font-bold" : "opacity-70"}`}>

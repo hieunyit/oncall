@@ -178,15 +178,20 @@ export async function POST(req: NextRequest) {
         select: { id: true, assigneeId: true, startsAt: true, endsAt: true },
       });
 
+      const batchCreatedAt = new Date();
+      const minDueAt = new Date(batchCreatedAt.getTime() + 60 * 60 * 1000); // at least 1h from now
       await tx.shiftConfirmation.createMany({
-        data: createdShifts.map((s) => ({
-          shiftId: s.id,
-          userId: s.assigneeId,
-          dueAt: computeConfirmationDueAt(
+        data: createdShifts.map((s) => {
+          const computed = computeConfirmationDueAt(
             { assigneeId: s.assigneeId, startsAt: s.startsAt, endsAt: s.endsAt },
             policy.confirmationDueHours
-          ),
-        })),
+          );
+          return {
+            shiftId: s.id,
+            userId: s.assigneeId,
+            dueAt: computed < minDueAt ? minDueAt : computed,
+          };
+        }),
       });
 
       const tasks = (policy as any).templateTasks as string[];

@@ -20,8 +20,11 @@ export interface ShiftBlock {
   startsAt: Date;
   endsAt: Date;
   status?: string;
+  source?: string;
   confirmationStatus?: string | null;
   confirmationToken?: string | null;
+  confirmationDueAt?: Date | null;
+  confirmationRespondedAt?: Date | null;
   isMe: boolean;
   isOverride?: boolean;
   backupName?: string | null;
@@ -285,6 +288,7 @@ export function ScheduleView({
         <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-300 inline-block" /> Chờ xác nhận</span>
         <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" /> Từ chối</span>
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-400 inline-block" /> Override</span>
+        <span className="flex items-center gap-1.5"><span className="text-xs font-bold text-gray-500">⇄</span> Đổi ca</span>
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-blue-50 border border-blue-200 inline-block" /> Thứ 7 / CN</span>
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded border-2 border-orange-400 inline-block" /> Checklist chưa xong</span>
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-50 border border-red-100 inline-block" /> Không có ca trực</span>
@@ -352,6 +356,7 @@ function ShiftDetailModal({
   const isPending = localConfirmStatus === "PENDING";
   const isActive = shift.status === "ACTIVE";
   const canRequestSwap = isMe && !isActive && shift.status !== "COMPLETED";
+  const canEditChecklist = isMe && shift.startsAt <= new Date(Date.now() + 2 * 60 * 60 * 1000);
 
   useEffect(() => {
     fetch(`/api/shifts/${shift.id}/tasks`)
@@ -522,6 +527,37 @@ function ShiftDetailModal({
               <p className="text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-2 leading-relaxed">{shift.notes}</p>
             </div>
           )}
+
+          {/* Lifecycle */}
+          <div className="pt-1 border-t border-gray-100 space-y-1.5">
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Vòng đời</p>
+            {shift.source === "SWAP" && (
+              <div className="flex items-center gap-2 text-xs text-indigo-700 bg-indigo-50 rounded px-2 py-1">
+                <span>⇄</span><span>Ca được tạo từ đổi ca</span>
+              </div>
+            )}
+            {shift.isOverride && (
+              <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 rounded px-2 py-1">
+                <span>Override</span>
+              </div>
+            )}
+            {shift.confirmationDueAt && (
+              <p className="text-xs text-gray-500">
+                Hạn xác nhận:{" "}
+                <span className="font-medium text-gray-700">
+                  {format(shift.confirmationDueAt, "HH:mm dd/MM/yyyy")}
+                </span>
+              </p>
+            )}
+            {shift.confirmationRespondedAt && (
+              <p className="text-xs text-gray-500">
+                {localConfirmStatus === "CONFIRMED" ? "Đã xác nhận" : "Đã từ chối"} lúc:{" "}
+                <span className="font-medium text-gray-700">
+                  {format(shift.confirmationRespondedAt, "HH:mm dd/MM/yyyy")}
+                </span>
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Actions */}
@@ -656,8 +692,10 @@ function ShiftDetailModal({
                     <input
                       type="checkbox"
                       checked={task.isCompleted}
-                      onChange={() => handleToggleTask(task.id, task.isCompleted)}
-                      className="w-4 h-4 rounded border-gray-300 text-blue-600 shrink-0"
+                      onChange={() => canEditChecklist && handleToggleTask(task.id, task.isCompleted)}
+                      disabled={!canEditChecklist}
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+                      title={canEditChecklist ? undefined : "Chỉ có thể tick khi ca sắp bắt đầu hoặc đang diễn ra"}
                     />
                     <span className={`flex-1 text-sm ${task.isCompleted ? "line-through text-gray-400" : "text-gray-800"}`}>
                       {task.title}

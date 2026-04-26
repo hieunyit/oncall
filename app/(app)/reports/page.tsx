@@ -153,6 +153,12 @@ export default async function ReportsPage({ searchParams }: PageProps) {
         />
       </div>
 
+      <div className="flex gap-3 -mt-2">
+        <Link href="/reports/checklist" className="text-sm px-3 py-1.5 bg-white border border-indigo-200 text-indigo-700 rounded-lg hover:bg-indigo-50 font-medium">
+          Checklist công việc →
+        </Link>
+      </div>
+
       <p className="text-sm text-gray-500 -mt-3">
         {format(monthStart, "dd/MM/yyyy", { locale: vi })} –{" "}
         {format(monthEnd, "dd/MM/yyyy", { locale: vi })}
