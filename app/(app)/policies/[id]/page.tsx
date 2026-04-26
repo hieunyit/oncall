@@ -57,6 +57,24 @@ export default async function PolicyDetailPage({
     }),
   ]);
 
+  // Load checklist fields via raw SQL (not yet in generated Prisma client)
+  let checklistRequired = false;
+  let templateTasks: string[] = [];
+  try {
+    const rows = await prisma.$queryRaw<Array<{ checklist_required: boolean; template_tasks: unknown }>>`
+      SELECT checklist_required, template_tasks
+      FROM rotation_policies
+      WHERE id = ${id}::uuid
+    `;
+    if (rows[0]) {
+      checklistRequired = rows[0].checklist_required ?? false;
+      const raw = rows[0].template_tasks;
+      templateTasks = Array.isArray(raw) ? (raw as string[]) : [];
+    }
+  } catch {
+    // Columns not yet created — migration 4 pending
+  }
+
   const recentBatches = await prisma.scheduleBatch.findMany({
     where: { policyId: id },
     include: {
@@ -106,8 +124,8 @@ export default async function PolicyDetailPage({
               maxGenerateWeeks: policy.maxGenerateWeeks,
               escalationPolicyId: policy.escalationPolicyId,
               timeSlots: policy.timeSlots as Array<{ label: string; startHour: number; startMinute: number; endHour: number; endMinute: number; daysOfWeek?: number[] }> | null,
-              checklistRequired: (policy as any).checklistRequired as boolean,
-              templateTasks: (policy as any).templateTasks as string[] | null,
+              checklistRequired,
+              templateTasks,
             }}
           />
         </>

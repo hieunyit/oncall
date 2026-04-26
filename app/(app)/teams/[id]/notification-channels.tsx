@@ -99,39 +99,41 @@ export function NotificationChannels({
         const cfg = ch.configJson as Record<string, string>;
         const summary = Object.values(cfg).filter(Boolean).join(" · ");
         return (
-          <div key={ch.id} className="px-5 py-3.5 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                ch.type === "EMAIL" ? "bg-blue-100 text-blue-700" :
-                ch.type === "TELEGRAM" ? "bg-sky-100 text-sky-700" :
-                "bg-purple-100 text-purple-700"
-              }`}>{CHANNEL_LABELS[ch.type] ?? ch.type}</span>
-              <div>
-                <p className="text-sm font-medium text-gray-900">{ch.name}</p>
-                {summary && <p className="text-xs text-gray-400 truncate max-w-xs">{summary}</p>}
+          <div key={ch.id} className="px-5 py-3.5 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                  ch.type === "EMAIL" ? "bg-blue-100 text-blue-700" :
+                  ch.type === "TELEGRAM" ? "bg-sky-100 text-sky-700" :
+                  "bg-purple-100 text-purple-700"
+                }`}>{CHANNEL_LABELS[ch.type] ?? ch.type}</span>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{ch.name}</p>
+                  {summary && <p className="text-xs text-gray-400 truncate max-w-xs">{summary}</p>}
+                </div>
               </div>
-            </div>
-            {isManager && (
-              <div className="flex items-center gap-2 shrink-0">
-                {(ch.type === "TEAMS" || ch.type === "TELEGRAM") && (
+              {isManager && (
+                <div className="flex items-center gap-2 shrink-0">
+                  {(ch.type === "TEAMS" || ch.type === "TELEGRAM" || ch.type === "EMAIL") && (
+                    <button
+                      onClick={() => handleTest(ch.id)}
+                      disabled={testingId === ch.id}
+                      className="text-xs px-2 py-1 text-indigo-600 border border-indigo-200 rounded hover:bg-indigo-50 disabled:opacity-50"
+                    >
+                      {testingId === ch.id ? "Đang gửi..." : "Test"}
+                    </button>
+                  )}
                   <button
-                    onClick={() => handleTest(ch.id)}
-                    disabled={testingId === ch.id}
-                    className="text-xs px-2 py-1 text-indigo-600 border border-indigo-200 rounded hover:bg-indigo-50 disabled:opacity-50"
+                    onClick={() => handleDelete(ch.id)}
+                    className="text-xs text-red-400 hover:text-red-600 transition-colors"
                   >
-                    {testingId === ch.id ? "Đang gửi..." : "Test"}
+                    Xóa
                   </button>
-                )}
-                <button
-                  onClick={() => handleDelete(ch.id)}
-                  className="text-xs text-red-400 hover:text-red-600 transition-colors"
-                >
-                  Xóa
-                </button>
-              </div>
-            )}
+                </div>
+              )}
+            </div>
             {testResult?.id === ch.id && (
-              <div className={`mt-1.5 text-xs px-2 py-1 rounded w-full ${testResult.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+              <div className={`text-xs px-2.5 py-1.5 rounded ${testResult.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
                 {testResult.ok ? "✓" : "✗"} {testResult.msg}
               </div>
             )}

@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { format } from "date-fns";
+import { format, addDays, startOfWeek, addWeeks, subWeeks, isSameMonth } from "date-fns";
 import { vi } from "date-fns/locale";
 import { MonthCalendar } from "@/components/schedule/month-calendar";
 import { MonthNav } from "@/components/schedule/month-nav";
+import { WeekTimeline } from "@/components/schedule/week-timeline";
 import { OverrideShiftModal } from "./override-shift-modal";
 
 interface ShiftBlock {
@@ -33,6 +34,8 @@ interface Team {
   name: string;
 }
 
+type ViewMode = "week" | "2week" | "month";
+
 interface Props {
   monthStart: Date;
   shifts: ShiftBlock[];
@@ -52,14 +55,42 @@ export function ScheduleView({
   myTeams,
   teamId,
 }: Props) {
+  const [view, setView] = useState<ViewMode>("month");
+  const [highlightMe, setHighlightMe] = useState(false);
+  const [weekStart, setWeekStart] = useState(() => {
+    const today = new Date();
+    return isSameMonth(monthStart, today)
+      ? startOfWeek(today, { weekStartsOn: 1 })
+      : startOfWeek(monthStart, { weekStartsOn: 1 });
+  });
   const [overrideShift, setOverrideShift] = useState<ShiftBlock | null>(null);
   const [selectedShift, setSelectedShift] = useState<ShiftBlock | null>(null);
 
+  const numDays = view === "2week" ? 14 : 7;
+
+  function prevPeriod() {
+    setWeekStart((ws) => subWeeks(ws, view === "2week" ? 2 : 1));
+  }
+
+  function nextPeriod() {
+    setWeekStart((ws) => addWeeks(ws, view === "2week" ? 2 : 1));
+  }
+
+  function goToday() {
+    setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
+  }
+
+  const weekEnd = addDays(weekStart, numDays - 1);
+  const weekLabel = `${format(weekStart, "dd/MM")} – ${format(weekEnd, "dd/MM/yyyy")}`;
+
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      {/* Header row */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-gray-900">Lịch trực</h1>
-        <div className="flex items-center gap-3">
+
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Team filter */}
           {myTeams.length > 0 && (
             <select
               defaultValue={teamId ?? ""}
@@ -77,27 +108,99 @@ export function ScheduleView({
               ))}
             </select>
           )}
-          <MonthNav monthStart={monthStart} />
+
+          {/* View toggle */}
+          <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+            {(["week", "2week", "month"] as ViewMode[]).map((v) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                  view === v
+                    ? "bg-indigo-600 text-white"
+                    : "bg-white text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {v === "week" ? "Tuần" : v === "2week" ? "2 Tuần" : "Tháng"}
+              </button>
+            ))}
+          </div>
+
+          {/* Highlight my shifts */}
+          <button
+            onClick={() => setHighlightMe((h) => !h)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+              highlightMe
+                ? "bg-indigo-50 border-indigo-300 text-indigo-700"
+                : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            <span className={`w-2 h-2 rounded-full ${highlightMe ? "bg-indigo-500" : "bg-gray-300"}`} />
+            Nổi bật ca của tôi
+          </button>
+
+          {/* Month nav (month view) or week nav (week/2week view) */}
+          {view === "month" ? (
+            <MonthNav monthStart={monthStart} />
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={prevPeriod}
+                className="px-2 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600"
+              >
+                ‹
+              </button>
+              <span className="text-sm font-medium text-gray-800 min-w-36 text-center">
+                {weekLabel}
+              </span>
+              <button
+                onClick={nextPeriod}
+                className="px-2 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600"
+              >
+                ›
+              </button>
+              <button
+                onClick={goToday}
+                className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-500"
+              >
+                Hôm nay
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      <MonthCalendar
-        monthStart={monthStart}
-        shifts={shifts}
-        currentUserId={currentUserId}
-        isManager={isManager}
-        onShiftClick={(shift) => setSelectedShift(shift)}
-        onOverride={isManager ? setOverrideShift : undefined}
-      />
+      {/* Calendar / Timeline */}
+      {view === "month" ? (
+        <MonthCalendar
+          monthStart={monthStart}
+          shifts={shifts}
+          currentUserId={currentUserId}
+          highlightMe={highlightMe}
+          isManager={isManager}
+          onShiftClick={(shift) => setSelectedShift(shift)}
+          onOverride={isManager ? setOverrideShift : undefined}
+        />
+      ) : (
+        <WeekTimeline
+          weekStart={weekStart}
+          numDays={numDays}
+          shifts={shifts}
+          currentUserId={currentUserId}
+          highlightMe={highlightMe}
+          onShiftClick={(shift) => setSelectedShift(shift)}
+        />
+      )}
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1 py-2.5 bg-gray-50 rounded-lg border border-gray-100 text-xs text-gray-500">
-        <span className="flex items-center gap-1.5 font-medium text-gray-400 uppercase tracking-wide text-[10px]">Chú thích:</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-green-300 border border-green-400 inline-block shrink-0" /> Đã xác nhận</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-yellow-200 border border-yellow-300 inline-block shrink-0" /> Chờ xác nhận</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-blue-200 border border-blue-300 inline-block shrink-0" /> Ca của tôi</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-200 border border-red-300 inline-block shrink-0" /> Từ chối</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-200 border border-amber-300 inline-block shrink-0" /> Override</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-blue-50 border border-blue-200 inline-block shrink-0" /> Thứ 7 / CN</span>
+      {/* Legend */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-3 py-2.5 bg-gray-50 rounded-lg border border-gray-100 text-xs text-gray-500">
+        <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Chú thích:</span>
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" /> Đã xác nhận</span>
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-400 inline-block" /> Chờ xác nhận</span>
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /> Từ chối</span>
+        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-100 border border-amber-400 inline-block" /> Override</span>
+        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-blue-50 border border-blue-200 inline-block" /> Thứ 7 / CN</span>
+        <span className="text-[10px] text-gray-400 ml-auto">Mỗi người trực có màu riêng</span>
       </div>
 
       {overrideShift && (
@@ -262,7 +365,7 @@ function ShiftDetailModal({ shift, onClose }: { shift: ShiftBlock; onClose: () =
                       onChange={() => handleToggleTask(task.id, task.isCompleted)}
                       className="w-4 h-4 rounded border-gray-300 text-blue-600 shrink-0"
                     />
-                    <span className={`flex-1 text-sm ${task.isCompleted ? "line-through text-gray-400" : "text-gray-700"}`}>
+                    <span className={`flex-1 text-sm text-gray-800 ${task.isCompleted ? "line-through text-gray-400" : ""}`}>
                       {task.title}
                     </span>
                     <button
@@ -281,7 +384,7 @@ function ShiftDetailModal({ shift, onClose }: { shift: ShiftBlock; onClose: () =
                 onChange={(e) => setNewTaskTitle(e.target.value)}
                 onKeyDown={handleAddTask}
                 disabled={addingTask}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                className="w-full text-sm text-gray-900 bg-white border border-gray-200 rounded-lg px-3 py-2 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
               />
             </>
           )}

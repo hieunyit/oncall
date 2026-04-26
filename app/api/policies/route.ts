@@ -64,12 +64,26 @@ export async function POST(req: NextRequest) {
     if (!actor) return unauthorized();
 
     const body = await req.json();
-    const data = CreatePolicySchema.parse(body);
+    const { checklistRequired, templateTasks, ...data } = CreatePolicySchema.parse(body);
 
     const result = await requireTeamRole(data.teamId, TeamRole.MANAGER);
     if (isNextResponse(result)) return result;
 
     const policy = await prisma.rotationPolicy.create({ data });
+
+    // Save checklist fields via raw SQL (migration 4 may not be applied yet)
+    if (checklistRequired !== undefined || (templateTasks && templateTasks.length > 0)) {
+      try {
+        await prisma.$executeRaw`
+          UPDATE rotation_policies
+          SET checklist_required = ${checklistRequired ?? false}::boolean,
+              template_tasks     = ${JSON.stringify(templateTasks ?? [])}::jsonb
+          WHERE id = ${policy.id}::uuid
+        `;
+      } catch {
+        // Columns not yet created — migration 4 pending.
+      }
+    }
 
     await writeAuditLog({
       actorId: actor.id,

@@ -83,17 +83,33 @@ export async function PATCH(
     if (isNextResponse(result)) return result;
 
     const body = await req.json();
-    const { escalationPolicyId, timeSlots, templateTasks, ...rest } = UpdatePolicySchema.parse(body);
+    const { escalationPolicyId, timeSlots, templateTasks, checklistRequired, ...rest } = UpdatePolicySchema.parse(body);
 
+    // Fields supported by current generated Prisma client (stable columns)
     const updated = await prisma.rotationPolicy.update({
       where: { id },
       data: {
         ...rest,
         ...(escalationPolicyId !== undefined && { escalationPolicyId }),
         ...(timeSlots !== undefined && { timeSlots: timeSlots ?? [] }),
-        ...(templateTasks !== undefined && { templateTasks: templateTasks ?? [] }),
       },
     });
+
+    // checklistRequired + templateTasks require migration 4 — update via raw SQL,
+    // silently skip if columns don't exist yet (pre-migration environments)
+    if (checklistRequired !== undefined || templateTasks !== undefined) {
+      try {
+        await prisma.$executeRaw`
+          UPDATE rotation_policies
+          SET
+            checklist_required = COALESCE(${checklistRequired ?? null}::boolean, checklist_required),
+            template_tasks     = COALESCE(${templateTasks !== undefined ? JSON.stringify(templateTasks ?? []) : null}::jsonb, template_tasks)
+          WHERE id = ${id}::uuid
+        `;
+      } catch {
+        // Columns not yet created — migration 4 pending. Changes ignored until deployed.
+      }
+    }
 
     await writeAuditLog({
       actorId: actor.id,

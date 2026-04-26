@@ -1,7 +1,7 @@
 "use client";
 
 import { addDays, format, isSameDay, isSameMonth, startOfMonth, startOfWeek, endOfMonth, endOfWeek } from "date-fns";
-import { vi } from "date-fns/locale";
+import { getUserColor } from "./week-timeline";
 
 interface ShiftBlock {
   id: string;
@@ -21,17 +21,11 @@ interface MonthCalendarProps {
   monthStart: Date;
   shifts: ShiftBlock[];
   currentUserId: string;
+  highlightMe?: boolean;
   isManager?: boolean;
   onShiftClick?: (shift: ShiftBlock) => void;
   onOverride?: (shift: ShiftBlock) => void;
 }
-
-const STATUS_COLORS: Record<string, string> = {
-  CONFIRMED: "bg-green-100 border-green-300 text-green-800",
-  PENDING: "bg-yellow-100 border-yellow-300 text-yellow-800",
-  DECLINED: "bg-red-100 border-red-300 text-red-800",
-  EXPIRED: "bg-gray-100 border-gray-300 text-gray-500",
-};
 
 const DOW_LABELS = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 
@@ -39,13 +33,11 @@ export function MonthCalendar({
   monthStart,
   shifts,
   currentUserId,
-  isManager,
+  highlightMe,
   onShiftClick,
-  onOverride,
 }: MonthCalendarProps) {
   const today = new Date();
 
-  // Build grid: start from Monday of first week, end on Sunday of last week
   const gridStart = startOfWeek(startOfMonth(monthStart), { weekStartsOn: 1 });
   const gridEnd = endOfWeek(endOfMonth(monthStart), { weekStartsOn: 1 });
 
@@ -92,13 +84,13 @@ export function MonthCalendar({
           {week.map((day, di) => {
             const isToday = isSameDay(day, today);
             const inMonth = isSameMonth(day, monthStart);
-            const isWeekend = di >= 5; // Sat(index 5), Sun(index 6)
+            const isWeekend = di >= 5;
             const dayShifts = getShiftsForDay(day);
 
             return (
               <div
                 key={day.toISOString()}
-                className={`min-h-[100px] p-1.5 border-r last:border-r-0 border-gray-100 ${
+                className={`min-h-[90px] p-1.5 border-r last:border-r-0 border-gray-100 ${
                   isWeekend ? "bg-blue-50/40" : ""
                 } ${!inMonth ? "opacity-40" : ""}`}
               >
@@ -119,14 +111,16 @@ export function MonthCalendar({
 
                 {/* Shift chips */}
                 <div className="space-y-0.5">
-                  {dayShifts.slice(0, 3).map((shift) => {
-                    const colorClass = shift.isOverride
-                      ? "bg-amber-100 border-amber-300 text-amber-800"
-                      : STATUS_COLORS[shift.confirmationStatus ?? ""] ??
-                        (shift.isMe
-                          ? "bg-blue-100 border-blue-300 text-blue-800"
-                          : "bg-gray-100 border-gray-300 text-gray-700");
-
+                  {dayShifts.slice(0, 4).map((shift) => {
+                    const color = shift.isOverride
+                      ? { bg: "#fef3c7", border: "#d97706", text: "#78350f" }
+                      : getUserColor(shift.assigneeId);
+                    const isMe = shift.assigneeId === currentUserId;
+                    const dimmed = highlightMe && !isMe;
+                    const statusDot =
+                      shift.confirmationStatus === "CONFIRMED" ? "bg-green-500" :
+                      shift.confirmationStatus === "DECLINED" ? "bg-red-500" :
+                      shift.confirmationStatus === "PENDING" ? "bg-yellow-400" : null;
                     const hasChecklist =
                       shift.checklistTotal !== undefined && shift.checklistTotal > 0;
 
@@ -134,23 +128,32 @@ export function MonthCalendar({
                       <div
                         key={shift.id}
                         onClick={() => onShiftClick?.(shift)}
-                        className={`rounded border px-1 py-0.5 text-[11px] leading-tight truncate cursor-pointer hover:opacity-80 ${colorClass} ${shift.isMe ? "font-semibold" : ""}`}
-                        title={`${shift.assigneeName} • ${shift.policyName} • ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`}
+                        style={{
+                          backgroundColor: color.bg,
+                          borderColor: color.border,
+                          color: color.text,
+                          opacity: dimmed ? 0.3 : 1,
+                        }}
+                        className={`rounded border px-1.5 py-0.5 text-[11px] leading-tight cursor-pointer hover:brightness-95 flex items-center gap-1 transition-all ${
+                          isMe ? "font-semibold" : ""
+                        }`}
+                        title={`${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`}
                       >
-                        <span className="truncate block">
-                          {format(shift.startsAt, "HH:mm")} {shift.assigneeName}
-                        </span>
+                        {statusDot && (
+                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusDot}`} />
+                        )}
+                        <span className="truncate">{shift.assigneeName}</span>
                         {hasChecklist && (
-                          <span className="opacity-60 text-[10px]">
-                            ✓ {shift.checklistDone}/{shift.checklistTotal}
+                          <span className="opacity-60 text-[10px] shrink-0 ml-auto">
+                            ✓{shift.checklistDone}/{shift.checklistTotal}
                           </span>
                         )}
                       </div>
                     );
                   })}
-                  {dayShifts.length > 3 && (
+                  {dayShifts.length > 4 && (
                     <div className="text-[10px] text-gray-400 pl-1">
-                      +{dayShifts.length - 3} ca nữa
+                      +{dayShifts.length - 4} ca nữa
                     </div>
                   )}
                 </div>
