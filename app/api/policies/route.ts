@@ -27,6 +27,8 @@ const CreatePolicySchema = z.object({
   maxGenerateWeeks: z.number().int().min(1).max(52).default(4),
   escalationPolicyId: z.string().uuid().nullable().optional(),
   timeSlots: z.array(TimeSlotSchema).optional(),
+  checklistRequired: z.boolean().optional(),
+  templateTasks: z.array(z.string().min(1).max(500)).optional(),
 });
 
 export async function GET(req: NextRequest) {

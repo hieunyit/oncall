@@ -27,6 +27,8 @@ const UpdatePolicySchema = z.object({
   escalationPolicyId: z.string().uuid().nullable().optional(),
   isActive: z.boolean().optional(),
   timeSlots: z.array(TimeSlotSchema).optional().nullable(),
+  checklistRequired: z.boolean().optional(),
+  templateTasks: z.array(z.string().min(1).max(500)).optional().nullable(),
 });
 
 export async function GET(
@@ -81,7 +83,7 @@ export async function PATCH(
     if (isNextResponse(result)) return result;
 
     const body = await req.json();
-    const { escalationPolicyId, timeSlots, ...rest } = UpdatePolicySchema.parse(body);
+    const { escalationPolicyId, timeSlots, templateTasks, ...rest } = UpdatePolicySchema.parse(body);
 
     const updated = await prisma.rotationPolicy.update({
       where: { id },
@@ -89,6 +91,7 @@ export async function PATCH(
         ...rest,
         ...(escalationPolicyId !== undefined && { escalationPolicyId }),
         ...(timeSlots !== undefined && { timeSlots: timeSlots ?? [] }),
+        ...(templateTasks !== undefined && { templateTasks: templateTasks ?? [] }),
       },
     });
 

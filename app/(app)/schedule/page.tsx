@@ -2,11 +2,11 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { ShiftStatus, TeamRole } from "@/app/generated/prisma/client";
-import { startOfWeek, endOfWeek } from "date-fns";
+import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, parse } from "date-fns";
 import { ScheduleView } from "./schedule-view";
 
 interface PageProps {
-  searchParams: Promise<{ week?: string; teamId?: string }>;
+  searchParams: Promise<{ month?: string; teamId?: string }>;
 }
 
 export const metadata = { title: "Lịch trực" };
@@ -25,12 +25,15 @@ export default async function SchedulePage({ searchParams }: PageProps) {
   });
   if (!currentUser) redirect("/login");
 
-  const { week, teamId } = await searchParams;
+  const { month, teamId } = await searchParams;
 
-  const weekStart = week
-    ? startOfWeek(new Date(week), { weekStartsOn: 1 })
-    : startOfWeek(new Date(), { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+  const baseDate = month
+    ? parse(month, "yyyy-MM", new Date())
+    : new Date();
+  const monthStart = startOfMonth(baseDate);
+  // Query range: from Monday of first week to Sunday of last week (to fill grid)
+  const rangeStart = startOfWeek(monthStart, { weekStartsOn: 1 });
+  const rangeEnd = endOfWeek(endOfMonth(monthStart), { weekStartsOn: 1 });
 
   const isAdmin = currentUser.systemRole === "ADMIN";
   const managedTeamIds = currentUser.teamMembers
@@ -53,15 +56,16 @@ export default async function SchedulePage({ searchParams }: PageProps) {
   const shifts = await prisma.shift.findMany({
     where: {
       ...teamFilter,
-      startsAt: { lte: weekEnd },
-      endsAt: { gte: weekStart },
+      startsAt: { lte: rangeEnd },
+      endsAt: { gte: rangeStart },
       status: { in: [ShiftStatus.PUBLISHED, ShiftStatus.ACTIVE, ShiftStatus.COMPLETED] },
     },
     include: {
       assignee: { select: { id: true, fullName: true } },
-      policy: { select: { name: true, teamId: true } },
+      policy: { select: { name: true, teamId: true, checklistRequired: true } as any },
       confirmation: { select: { status: true, token: true } },
       overrideForShift: { select: { id: true } },
+      _count: { select: { tasks: true } },
     },
     orderBy: { startsAt: "asc" },
   });
@@ -72,7 +76,6 @@ export default async function SchedulePage({ searchParams }: PageProps) {
     orderBy: { name: "asc" },
   });
 
-  // Team members for override modal (filtered by selected team or all accessible teams)
   const teamMembersRaw = await prisma.teamMember.findMany({
     where: teamId
       ? { teamId }
@@ -87,23 +90,38 @@ export default async function SchedulePage({ searchParams }: PageProps) {
     fullName: m.user.fullName,
   }));
 
-  const shiftBlocks = shifts.map((s) => ({
-    id: s.id,
-    assigneeName: s.assignee.fullName,
-    assigneeId: s.assignee.id,
-    policyName: s.policy.name,
-    startsAt: s.startsAt,
-    endsAt: s.endsAt,
-    confirmationStatus: s.confirmation?.status ?? null,
-    confirmationToken: s.confirmation?.token ?? null,
-    isMe: s.assignee.id === currentUser.id,
-    isOverride: s.overrideForShiftId !== null,
-  }));
+  // Count completed tasks per shift
+  const shiftIds = shifts.map((s) => s.id);
+  const doneCounts = await prisma.shiftTask.groupBy({
+    by: ["shiftId"],
+    where: { shiftId: { in: shiftIds }, isCompleted: true },
+    _count: { id: true },
+  });
+  const doneMap = Object.fromEntries(doneCounts.map((r) => [r.shiftId, r._count.id]));
+
+  const shiftBlocks = shifts.map((s) => {
+    const shift = s as any;
+    return {
+      id: s.id,
+      assigneeName: shift.assignee.fullName as string,
+      assigneeId: shift.assignee.id as string,
+      policyName: shift.policy.name as string,
+      startsAt: s.startsAt,
+      endsAt: s.endsAt,
+      confirmationStatus: shift.confirmation?.status ?? null,
+      confirmationToken: shift.confirmation?.token ?? null,
+      isMe: shift.assignee.id === currentUser.id,
+      isOverride: s.overrideForShiftId !== null,
+      checklistRequired: shift.policy.checklistRequired as boolean,
+      checklistTotal: shift._count.tasks as number,
+      checklistDone: doneMap[s.id] ?? 0,
+    };
+  });
 
   return (
     <div className="space-y-5">
       <ScheduleView
-        weekStart={weekStart}
+        monthStart={monthStart}
         shifts={shiftBlocks}
         currentUserId={currentUser.id}
         isManager={isManager}

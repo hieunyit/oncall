@@ -151,6 +151,15 @@ export async function POST(req: NextRequest) {
         })),
       });
 
+      const tasks = (policy as any).templateTasks as string[];
+      if (tasks && tasks.length > 0) {
+        await tx.shiftTask.createMany({
+          data: createdShifts.flatMap((s) =>
+            tasks.map((title, order) => ({ shiftId: s.id, title, order }))
+          ),
+        });
+      }
+
       return newBatch;
     });
 

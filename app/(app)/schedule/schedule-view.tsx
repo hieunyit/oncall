@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { WeekCalendar } from "@/components/schedule/week-calendar";
-import { WeekNav } from "@/components/schedule/week-nav";
+import { MonthCalendar } from "@/components/schedule/month-calendar";
+import { MonthNav } from "@/components/schedule/month-nav";
 import { OverrideShiftModal } from "./override-shift-modal";
 
 interface ShiftBlock {
@@ -18,6 +18,9 @@ interface ShiftBlock {
   confirmationToken?: string | null;
   isMe: boolean;
   isOverride?: boolean;
+  checklistRequired?: boolean;
+  checklistTotal?: number;
+  checklistDone?: number;
 }
 
 interface TeamMember {
@@ -31,7 +34,7 @@ interface Team {
 }
 
 interface Props {
-  weekStart: Date;
+  monthStart: Date;
   shifts: ShiftBlock[];
   currentUserId: string;
   isManager: boolean;
@@ -40,44 +43,8 @@ interface Props {
   teamId?: string;
 }
 
-function DayShiftItem({ shift, onClick }: { shift: ShiftBlock; onClick: () => void }) {
-  return (
-    <div
-      className="px-5 py-3 hover:bg-gray-50 cursor-pointer"
-      onClick={onClick}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="font-medium text-gray-900 truncate">{shift.assigneeName}</p>
-          <p className="text-xs text-gray-500 mt-0.5">{shift.policyName}</p>
-          <p className="text-xs text-gray-600 mt-1">
-            {format(shift.startsAt, "HH:mm")} – {format(shift.endsAt, "HH:mm")}
-          </p>
-        </div>
-        <div className="flex flex-col items-end gap-1 shrink-0">
-          {shift.confirmationStatus && (
-            <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
-              shift.confirmationStatus === "CONFIRMED" ? "bg-green-100 text-green-700" :
-              shift.confirmationStatus === "PENDING" ? "bg-yellow-100 text-yellow-700" :
-              shift.confirmationStatus === "DECLINED" ? "bg-red-100 text-red-700" :
-              "bg-gray-100 text-gray-500"
-            }`}>
-              {shift.confirmationStatus}
-            </span>
-          )}
-          {shift.isOverride && (
-            <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-amber-100 text-amber-700">
-              override
-            </span>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function ScheduleView({
-  weekStart,
+  monthStart,
   shifts,
   currentUserId,
   isManager,
@@ -86,8 +53,6 @@ export function ScheduleView({
   teamId,
 }: Props) {
   const [overrideShift, setOverrideShift] = useState<ShiftBlock | null>(null);
-  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
-  const [selectedDayShifts, setSelectedDayShifts] = useState<ShiftBlock[]>([]);
   const [selectedShift, setSelectedShift] = useState<ShiftBlock | null>(null);
 
   return (
@@ -112,26 +77,17 @@ export function ScheduleView({
               ))}
             </select>
           )}
-          <WeekNav weekStart={weekStart} />
+          <MonthNav monthStart={monthStart} />
         </div>
       </div>
 
-      <WeekCalendar
-        weekStart={weekStart}
+      <MonthCalendar
+        monthStart={monthStart}
         shifts={shifts}
         currentUserId={currentUserId}
         isManager={isManager}
-        teamMembers={teamMembers}
+        onShiftClick={(shift) => setSelectedShift(shift)}
         onOverride={isManager ? setOverrideShift : undefined}
-        onShiftClick={(shift) => {
-          setSelectedShift(shift);
-          setSelectedDay(null);
-        }}
-        onDayClick={(day, dayShifts) => {
-          setSelectedDay(day);
-          setSelectedDayShifts(dayShifts);
-          setSelectedShift(null);
-        }}
       />
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1 py-2.5 bg-gray-50 rounded-lg border border-gray-100 text-xs text-gray-500">
@@ -141,6 +97,7 @@ export function ScheduleView({
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-blue-200 border border-blue-300 inline-block shrink-0" /> Ca của tôi</span>
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-200 border border-red-300 inline-block shrink-0" /> Từ chối</span>
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-200 border border-amber-300 inline-block shrink-0" /> Override</span>
+        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-blue-50 border border-blue-200 inline-block shrink-0" /> Thứ 7 / CN</span>
       </div>
 
       {overrideShift && (
@@ -149,43 +106,6 @@ export function ScheduleView({
           teamMembers={teamMembers}
           onClose={() => setOverrideShift(null)}
         />
-      )}
-
-      {selectedDay && (
-        <div
-          className="fixed inset-0 bg-black/30 z-40 flex justify-end"
-          onClick={() => setSelectedDay(null)}
-        >
-          <div
-            className="bg-white w-full max-w-sm h-full overflow-y-auto shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-5 py-4 border-b flex items-center justify-between">
-              <h2 className="font-semibold text-gray-900">
-                {format(selectedDay, "EEEE, dd/MM/yyyy", { locale: vi })}
-              </h2>
-              <button
-                onClick={() => setSelectedDay(null)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                ✕
-              </button>
-            </div>
-            {selectedDayShifts.length === 0 ? (
-              <p className="px-5 py-8 text-center text-gray-400 text-sm">Không có ca trực.</p>
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {selectedDayShifts.map((shift) => (
-                  <DayShiftItem
-                    key={shift.id}
-                    shift={shift}
-                    onClick={() => setSelectedShift(shift)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
       )}
 
       {selectedShift && (
@@ -213,6 +133,10 @@ function ShiftDetailModal({ shift, onClose }: { shift: ShiftBlock; onClose: () =
       })
       .catch(() => setTasksLoaded(true));
   }, [shift.id]);
+
+  const totalTasks = tasks.length;
+  const doneTasks = tasks.filter((t) => t.isCompleted).length;
+  const allDone = totalTasks > 0 && doneTasks === totalTasks;
 
   async function handleAddTask(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key !== "Enter" || !newTaskTitle.trim()) return;
@@ -256,13 +180,16 @@ function ShiftDetailModal({ shift, onClose }: { shift: ShiftBlock; onClose: () =
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[80vh] overflow-y-auto"
+        className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Header */}
         <div className="px-5 py-4 border-b flex items-center justify-between">
           <h2 className="font-semibold text-gray-900">Chi tiết ca trực</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
         </div>
+
+        {/* Shift info */}
         <div className="px-5 py-4 space-y-3 border-b border-gray-100">
           <div>
             <p className="text-xs text-gray-500">Người trực</p>
@@ -278,7 +205,7 @@ function ShiftDetailModal({ shift, onClose }: { shift: ShiftBlock; onClose: () =
               {format(shift.startsAt, "HH:mm dd/MM/yyyy")} – {format(shift.endsAt, "HH:mm dd/MM/yyyy")}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {shift.confirmationStatus && (
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                 shift.confirmationStatus === "CONFIRMED" ? "bg-green-100 text-green-700" :
@@ -290,33 +217,57 @@ function ShiftDetailModal({ shift, onClose }: { shift: ShiftBlock; onClose: () =
               </span>
             )}
             {shift.isOverride && (
-              <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700">
-                override
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700">override</span>
+            )}
+            {shift.checklistRequired && !allDone && totalTasks > 0 && (
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-orange-100 text-orange-700">
+                Cần hoàn thành checklist
               </span>
             )}
           </div>
         </div>
+
+        {/* Checklist */}
         <div className="px-5 py-4">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">Checklist</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-gray-700">Checklist công việc</h3>
+            {tasksLoaded && totalTasks > 0 && (
+              <div className="flex items-center gap-2">
+                <span className={`text-xs font-semibold ${allDone ? "text-green-600" : "text-gray-500"}`}>
+                  {doneTasks}/{totalTasks}
+                </span>
+                <div className="w-20 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${allDone ? "bg-green-500" : "bg-blue-500"}`}
+                    style={{ width: `${totalTasks > 0 ? (doneTasks / totalTasks) * 100 : 0}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
           {!tasksLoaded ? (
             <p className="text-xs text-gray-400">Đang tải...</p>
           ) : (
             <>
-              <div className="space-y-2 mb-3">
+              {totalTasks === 0 && (
+                <p className="text-xs text-gray-400 mb-3">Chưa có mục nào. Nhập bên dưới để thêm.</p>
+              )}
+              <div className="space-y-1.5 mb-3">
                 {tasks.map((task) => (
-                  <div key={task.id} className="flex items-center gap-2 group">
+                  <div key={task.id} className="flex items-center gap-2.5 group py-0.5">
                     <input
                       type="checkbox"
                       checked={task.isCompleted}
                       onChange={() => handleToggleTask(task.id, task.isCompleted)}
-                      className="w-4 h-4 rounded border-gray-300 text-blue-600"
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 shrink-0"
                     />
                     <span className={`flex-1 text-sm ${task.isCompleted ? "line-through text-gray-400" : "text-gray-700"}`}>
                       {task.title}
                     </span>
                     <button
                       onClick={() => handleDeleteTask(task.id)}
-                      className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 text-xs"
+                      className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 text-xs shrink-0"
                     >
                       ✕
                     </button>

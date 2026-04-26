@@ -105,7 +105,9 @@ export default async function PolicyDetailPage({
               reminderLeadHours: policy.reminderLeadHours,
               maxGenerateWeeks: policy.maxGenerateWeeks,
               escalationPolicyId: policy.escalationPolicyId,
-              timeSlots: policy.timeSlots as Array<{ label: string; startHour: number; startMinute: number; endHour: number; endMinute: number }> | null,
+              timeSlots: policy.timeSlots as Array<{ label: string; startHour: number; startMinute: number; endHour: number; endMinute: number; daysOfWeek?: number[] }> | null,
+              checklistRequired: (policy as any).checklistRequired as boolean,
+              templateTasks: (policy as any).templateTasks as string[] | null,
             }}
           />
         </>

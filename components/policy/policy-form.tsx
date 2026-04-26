@@ -32,6 +32,8 @@ interface PolicyFormProps {
     maxGenerateWeeks: number;
     escalationPolicyId?: string | null;
     timeSlots?: TimeSlot[] | null;
+    checklistRequired?: boolean;
+    templateTasks?: string[] | null;
   };
 }
 
@@ -66,6 +68,13 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>(
     Array.isArray(initialSlots) && initialSlots.length > 0
       ? initialSlots
+      : []
+  );
+
+  const [checklistRequired, setChecklistRequired] = useState(initialData?.checklistRequired ?? false);
+  const [templateTasks, setTemplateTasks] = useState<string[]>(
+    Array.isArray(initialData?.templateTasks) && (initialData?.templateTasks?.length ?? 0) > 0
+      ? (initialData.templateTasks as string[])
       : []
   );
 
@@ -140,6 +149,8 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
       maxGenerateWeeks: Number(form.maxGenerateWeeks),
       escalationPolicyId: form.escalationPolicyId || null,
       timeSlots: useTimeSlots ? timeSlots : [],
+      checklistRequired,
+      templateTasks: templateTasks.filter((t) => t.trim()),
     };
 
     const url = isEdit ? `/api/policies/${initialData!.id}` : "/api/policies";
@@ -354,6 +365,54 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
             </button>
           </div>
         )}
+      </div>
+
+      {/* Checklist template section */}
+      <div className="border border-gray-200 rounded-lg p-4 space-y-3">
+        <div className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            id="checklistRequired"
+            checked={checklistRequired}
+            onChange={(e) => setChecklistRequired(e.target.checked)}
+            className="w-4 h-4 rounded border-gray-300 text-blue-600"
+          />
+          <label htmlFor="checklistRequired" className="text-sm font-medium text-gray-700">
+            Bắt buộc hoàn thành checklist trước khi ca kết thúc
+          </label>
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-xs text-gray-500">
+            Các mục dưới đây sẽ tự động tạo checklist cho mỗi ca khi sinh lịch.
+          </p>
+          {templateTasks.map((task, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className="text-xs text-gray-400 w-5 text-right">{i + 1}.</span>
+              <input
+                type="text"
+                value={task}
+                onChange={(e) => setTemplateTasks((prev) => prev.map((t, j) => j === i ? e.target.value : t))}
+                placeholder="Tên công việc..."
+                className="input text-sm flex-1"
+              />
+              <button
+                type="button"
+                onClick={() => setTemplateTasks((prev) => prev.filter((_, j) => j !== i))}
+                className="text-xs px-2 py-1 text-red-500 hover:bg-red-50 rounded"
+              >
+                Xoá
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setTemplateTasks((prev) => [...prev, ""])}
+            className="text-xs px-3 py-1.5 bg-gray-50 border border-gray-200 text-gray-600 rounded hover:bg-gray-100"
+          >
+            + Thêm mục checklist
+          </button>
+        </div>
       </div>
 
       <div className="flex items-center gap-3 pt-2">
