@@ -159,7 +159,12 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
     }
 
     const data = await res.json();
-    router.push(`/policies/${isEdit ? initialData!.id : data.data.id}`);
+    if (isEdit) {
+      router.refresh();
+      setLoading(false);
+    } else {
+      router.push(`/policies/${data.data.id}`);
+    }
   }
 
   return (
