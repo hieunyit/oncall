@@ -12,6 +12,7 @@ const schema = z.object({
   ),
   teamsConversationId: z.string().max(200).nullable().optional(),
   phone: z.string().max(30).nullable().optional(),
+  theme: z.enum(["light", "dark"]).optional(),
 });
 
 function serializeUser(u: { telegramChatId?: bigint | null; [k: string]: unknown }) {

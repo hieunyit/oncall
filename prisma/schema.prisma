@@ -156,6 +156,7 @@ model User {
   phone               String?    @map("phone")
   systemRole          SystemRole @default(USER) @map("system_role")
   timezone            String     @default("Asia/Ho_Chi_Minh")
+  theme               String     @default("light")
   isActive            Boolean    @default(true) @map("is_active")
   createdAt           DateTime   @default(now()) @map("created_at")
   updatedAt           DateTime   @updatedAt @map("updated_at")

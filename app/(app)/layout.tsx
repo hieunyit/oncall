@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { AppSidebar } from "@/components/app-sidebar";
 import { AppHeader } from "@/components/app-header";
+import { ThemeSync } from "@/components/theme-sync";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -10,7 +11,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const dbUser = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { fullName: true },
+    select: { fullName: true, theme: true },
   });
 
   const enrichedUser = {
@@ -19,12 +20,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <AppSidebar />
-      <div className="flex flex-col flex-1 overflow-hidden min-w-0">
-        <AppHeader user={enrichedUser} />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+    <>
+      <ThemeSync theme={dbUser?.theme ?? "light"} />
+      <div className="flex h-screen bg-gray-50 overflow-hidden">
+        <AppSidebar />
+        <div className="flex flex-col flex-1 overflow-hidden min-w-0">
+          <AppHeader user={enrichedUser} />
+          <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

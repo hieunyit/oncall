@@ -3,6 +3,7 @@
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import type { Session } from "next-auth";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface AppHeaderProps {
   user: Session["user"];
@@ -18,6 +19,10 @@ export function AppHeader({ user, pageTitle }: AppHeaderProps) {
       <div className="text-sm font-medium text-gray-500">{pageTitle ?? ""}</div>
 
       <div className="flex items-center gap-3">
+        <ThemeToggle />
+
+        <div className="w-px h-5 bg-gray-200" />
+
         <Link
           href="/profile"
           className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-gray-50 transition-colors group"
