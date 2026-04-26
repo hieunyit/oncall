@@ -273,7 +273,7 @@ export default async function DashboardPage() {
                         )}
                       </div>
                       <p className="text-xs text-gray-400">
-                        {shift.policy.team.name} · {shift.policy.name}
+                        {shift.policy?.team?.name ?? "—"} · {shift.policy?.name ?? "—"}
                       </p>
                     </div>
                   </div>

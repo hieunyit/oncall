@@ -56,7 +56,7 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/oncall?schema=public"
-    command: sh -c "npx prisma migrate resolve --applied 0_init 2>/dev/null; npx prisma migrate resolve --rolled-back 7_cascade_delete_fix 2>/dev/null; npx prisma migrate resolve --rolled-back 9_override_shift_cascade 2>/dev/null; npx prisma migrate resolve --rolled-back 10_escalation_policy_cascade 2>/dev/null; npx prisma migrate deploy"
+    command: sh -c "npx prisma migrate resolve --applied 0_init 2>/dev/null; npx prisma migrate resolve --rolled-back 7_cascade_delete_fix 2>/dev/null; npx prisma migrate resolve --rolled-back 9_override_shift_cascade 2>/dev/null; npx prisma migrate resolve --rolled-back 10_escalation_policy_cascade 2>/dev/null; npx prisma migrate resolve --rolled-back 11_cleanup_orphaned_shifts 2>/dev/null; npx prisma migrate deploy"
     depends_on:
       postgres:
         condition: service_healthy

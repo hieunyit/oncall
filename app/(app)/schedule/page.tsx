@@ -64,7 +64,7 @@ export default async function SchedulePage({ searchParams }: PageProps) {
     include: {
       assignee: { select: { id: true, fullName: true } },
       backup: { select: { id: true, fullName: true } },
-      policy: { select: { name: true, teamId: true } },
+      policy: { select: { name: true, teamId: true, team: { select: { name: true } } } },
       confirmation: { select: { status: true, token: true } },
       overrideForShift: { select: { id: true } },
     },
@@ -132,12 +132,15 @@ export default async function SchedulePage({ searchParams }: PageProps) {
     // migration 4 not yet applied
   }
 
-  const shiftBlocks: ShiftBlock[] = shifts.map((s) => ({
+  const shiftBlocks: ShiftBlock[] = shifts
+    .filter((s) => s.policy != null)
+    .map((s) => ({
     id: s.id,
     assigneeName: s.assignee.fullName,
     assigneeId: s.assignee.id,
     policyId: s.policyId,
     teamId: s.policy.teamId,
+    teamName: s.policy.team.name,
     policyName: s.policy.name,
     startsAt: s.startsAt,
     endsAt: s.endsAt,

@@ -15,6 +15,7 @@ export interface ShiftBlock {
   assigneeId: string;
   policyId: string;
   teamId: string;
+  teamName?: string | null;
   policyName: string;
   startsAt: Date;
   endsAt: Date;
@@ -485,8 +486,12 @@ function ShiftDetailModal({
           </div>
 
           <div>
-            <p className="text-xs text-gray-400 mb-0.5">Chính sách</p>
-            <p className="text-sm text-gray-700">{shift.policyName}</p>
+            <p className="text-xs text-gray-400 mb-0.5">Nhóm / Chính sách</p>
+            <p className="text-sm text-gray-700">
+              {shift.teamName && <span className="font-medium">{shift.teamName}</span>}
+              {shift.teamName && <span className="text-gray-400 mx-1.5">·</span>}
+              {shift.policyName}
+            </p>
           </div>
 
           <div>
