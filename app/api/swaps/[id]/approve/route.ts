@@ -104,7 +104,7 @@ export async function POST(
       await tx.shift.update({
         where: { id: swap.originalShiftId },
         data: {
-          assigneeId: swap.targetUserId,
+          assigneeId: swap.targetUserId!,
           source: ShiftSource.SWAP,
           version: { increment: 1 },
         },
