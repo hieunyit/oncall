@@ -15,6 +15,7 @@ interface ShiftBlock {
   confirmationStatus?: string | null;
   isMe: boolean;
   isOverride?: boolean;
+  checklistRequired?: boolean;
   checklistTotal?: number;
   checklistDone?: number;
 }
@@ -262,6 +263,12 @@ export function WeekTimeline({
                 const confirmed = shift.confirmationStatus === "CONFIRMED";
                 const declined = shift.confirmationStatus === "DECLINED";
                 const pending = shift.confirmationStatus === "PENDING";
+                const checklistIncomplete =
+                  shift.checklistRequired &&
+                  (shift.checklistTotal === 0 || (shift.checklistDone ?? 0) < (shift.checklistTotal ?? 0));
+                const allChecklistDone =
+                  (shift.checklistTotal ?? 0) > 0 &&
+                  shift.checklistDone === shift.checklistTotal;
 
                 return (
                   <div
@@ -271,15 +278,20 @@ export function WeekTimeline({
                       left: style.left,
                       width: style.width,
                       backgroundColor: barColor.solid,
+                      outline: checklistIncomplete ? "2px solid #f97316" : undefined,
+                      outlineOffset: "-2px",
                     }}
                     className="absolute top-1.5 bottom-1.5 rounded cursor-pointer hover:brightness-110 px-2 flex items-center gap-1.5 overflow-hidden transition-all z-20 shadow-sm"
                     title={
                       conflict
                         ? `⚠ Chồng chéo chính sách! ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
-                        : `${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
+                        : checklistIncomplete
+                          ? `! Checklist chưa hoàn thành · ${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
+                          : `${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
                     }
                   >
                     {conflict && <span className="shrink-0 text-[11px]">⚠</span>}
+                    {!conflict && checklistIncomplete && <span className="shrink-0 text-[11px]">!</span>}
                     <span className="text-[11px] font-semibold text-white truncate leading-tight flex-1 flex items-center gap-1 min-w-0">
                       <span className="truncate">{shift.policyName}</span>
                       <span className="opacity-70 shrink-0 hidden sm:inline">
@@ -291,8 +303,8 @@ export function WeekTimeline({
                         {confirmed && <span className="w-1.5 h-1.5 rounded-full bg-green-300" />}
                         {pending && <span className="w-1.5 h-1.5 rounded-full bg-yellow-200" />}
                         {declined && <span className="w-1.5 h-1.5 rounded-full bg-red-300" />}
-                        {shift.checklistTotal && shift.checklistTotal > 0 ? (
-                          <span className="text-[9px] text-white/70 ml-0.5">
+                        {(shift.checklistTotal ?? 0) > 0 ? (
+                          <span className={`text-[9px] ml-0.5 ${allChecklistDone ? "text-green-300" : checklistIncomplete ? "text-orange-200 font-bold" : "text-white/70"}`}>
                             ✓{shift.checklistDone}/{shift.checklistTotal}
                           </span>
                         ) : null}

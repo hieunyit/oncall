@@ -74,12 +74,11 @@ export default async function SwapsPage() {
       take: 50,
     }) as unknown as Promise<SwapWithRelations[]>,
 
-    // Open swaps from teammates that I can take
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // Open swaps from teammates that I can take (targetUserId IS NULL = open request)
     prisma.swapRequest.findMany({
       where: {
         status: SwapStatus.REQUESTED,
-        targetUserId: null as any,       // nullable after migration 5
+        targetUserId: null as any,       // nullable after migration 5 — null as any bypasses generated-client type
         requesterId: { not: currentUser.id },
         expiresAt: { gt: new Date() },
         originalShift: {
@@ -89,7 +88,7 @@ export default async function SwapsPage() {
       include: swapInclude,
       orderBy: { createdAt: "desc" },
       take: 20,
-    }) as unknown as Promise<SwapWithRelations[]>,
+    }).catch(() => [] as SwapWithRelations[]) as unknown as Promise<SwapWithRelations[]>,
 
     // Swaps waiting for manager approval
     (isAdmin || isManager)

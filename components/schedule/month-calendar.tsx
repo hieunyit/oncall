@@ -15,6 +15,7 @@ interface ShiftBlock {
   confirmationStatus?: string | null;
   isMe: boolean;
   isOverride?: boolean;
+  checklistRequired?: boolean;
   checklistTotal?: number;
   checklistDone?: number;
 }
@@ -138,6 +139,10 @@ export function MonthCalendar({
                     const hasChecklist =
                       shift.checklistTotal !== undefined && shift.checklistTotal > 0;
                     const conflict = hasCrossPolicyConflict(shift, dayShifts);
+                    const checklistIncomplete =
+                      shift.checklistRequired &&
+                      (shift.checklistTotal === 0 || (shift.checklistDone ?? 0) < (shift.checklistTotal ?? 0));
+                    const allChecklistDone = hasChecklist && shift.checklistDone === shift.checklistTotal;
 
                     return (
                       <div
@@ -146,6 +151,8 @@ export function MonthCalendar({
                         style={{
                           backgroundColor: conflict ? "#dc2626" : color.solid,
                           opacity: dimmed ? 0.3 : 1,
+                          outline: checklistIncomplete ? "2px solid #f97316" : undefined,
+                          outlineOffset: "-1px",
                         }}
                         className={`rounded px-1.5 py-0.5 text-[11px] leading-tight cursor-pointer hover:brightness-110 flex items-center gap-1 transition-all text-white shadow-sm ${
                           isMe ? "font-semibold" : "font-medium"
@@ -153,16 +160,19 @@ export function MonthCalendar({
                         title={
                           conflict
                             ? `⚠ Chồng chéo chính sách! ${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`
-                            : `${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`
+                            : checklistIncomplete
+                              ? `! Checklist chưa hoàn thành · ${shift.assigneeName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`
+                              : `${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`
                         }
                       >
                         {conflict && <span className="shrink-0 text-[10px]">⚠</span>}
-                        {!conflict && confirmed && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-green-300" />}
-                        {!conflict && declined && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-red-300" />}
-                        {!conflict && pending && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-yellow-200" />}
+                        {!conflict && checklistIncomplete && <span className="shrink-0 text-[10px]">!</span>}
+                        {!conflict && !checklistIncomplete && confirmed && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-green-300" />}
+                        {!conflict && !checklistIncomplete && declined && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-red-300" />}
+                        {!conflict && !checklistIncomplete && pending && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-yellow-200" />}
                         <span className="truncate">{shift.assigneeName}</span>
                         {hasChecklist && (
-                          <span className="opacity-70 text-[9px] shrink-0 ml-auto">
+                          <span className={`text-[9px] shrink-0 ml-auto ${allChecklistDone ? "text-green-300" : checklistIncomplete ? "text-orange-200 font-bold" : "opacity-70"}`}>
                             ✓{shift.checklistDone}/{shift.checklistTotal}
                           </span>
                         )}

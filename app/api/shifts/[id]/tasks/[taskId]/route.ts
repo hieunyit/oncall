@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser, requireTeamRole, isNextResponse } from "@/lib/rbac";
-import { ok, noContent, unauthorized, notFound, handleError } from "@/lib/api-response";
+import { ok, noContent, unauthorized, forbidden, notFound, handleError } from "@/lib/api-response";
 import { TeamRole } from "@/app/generated/prisma/client";
 
 const UpdateTaskSchema = z.object({
@@ -33,6 +33,11 @@ export async function PATCH(
 
     const body = await req.json();
     const data = UpdateTaskSchema.parse(body);
+
+    // Only the shift assignee can check/uncheck tasks
+    if (data.isCompleted !== undefined && actor.id !== shift.assigneeId) {
+      return forbidden("Only the shift assignee can check tasks");
+    }
 
     const updated = await prisma.shiftTask.update({
       where: { id: taskId },
