@@ -233,7 +233,7 @@ model RotationPolicy {
   updatedAt             DateTime    @updatedAt @map("updated_at")
 
   team              Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  escalationPolicy  EscalationPolicy? @relation(fields: [escalationPolicyId], references: [id])
+  escalationPolicy  EscalationPolicy? @relation(fields: [escalationPolicyId], references: [id], onDelete: SetNull)
   scheduleBatches   ScheduleBatch[]
   shifts            Shift[]
 
@@ -276,7 +276,7 @@ model Shift {
   batch            ScheduleBatch?     @relation(fields: [batchId], references: [id])
   assignee         User               @relation("ShiftAssignee", fields: [assigneeId], references: [id])
   backup           User?              @relation("ShiftBackup", fields: [backupId], references: [id])
-  overrideForShift Shift?             @relation("ShiftOverride", fields: [overrideForShiftId], references: [id])
+  overrideForShift Shift?             @relation("ShiftOverride", fields: [overrideForShiftId], references: [id], onDelete: SetNull)
   overrides        Shift[]            @relation("ShiftOverride")
   confirmation     ShiftConfirmation?
   swapRequestsAsOriginal SwapRequest[] @relation("SwapOriginalShift")

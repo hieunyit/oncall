@@ -186,7 +186,7 @@ export function SwapCard({
           <button
             onClick={() => handle("cancel", () => callApi(`/api/swaps/${swap.id}/respond`, { action: "cancel" }))}
             disabled={!!loading}
-            className="text-xs text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+            className="text-sm px-3 py-1.5 bg-white border border-gray-200 text-gray-500 rounded-lg hover:border-red-200 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
           >
             {loading === "cancel" ? "Đang hủy..." : "Hủy yêu cầu này"}
           </button>

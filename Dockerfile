@@ -11,6 +11,7 @@ RUN npm install
 FROM deps-all AS builder
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
 COPY . .
+RUN npx prisma generate
 RUN npm run build
 
 # ── app runner ────────────────────────────────────────────────────────────────
@@ -32,4 +33,5 @@ CMD ["node", "server.js"]
 FROM deps-all AS workers-runner
 ENV NODE_ENV=production
 COPY . .
+RUN npx prisma generate
 CMD ["node", "--require", "tsx/esm", "workers/index.ts"]
