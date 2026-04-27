@@ -11,6 +11,7 @@ import {
 } from "@/lib/api-response";
 import { SwapStatus, ShiftSource, ShiftStatus, TeamRole } from "@/app/generated/prisma/client";
 import { writeAuditLog } from "@/lib/audit";
+import { notifyTeamChannels } from "@/lib/notifications/notify-channel";
 
 const ApproveSchema = z.object({
   note: z.string().max(500).optional(),
@@ -30,11 +31,13 @@ export async function POST(
     const swap = await prisma.swapRequest.findUnique({
       where: { id },
       include: {
+        requester: { select: { id: true, fullName: true } },
+        targetUser: { select: { id: true, fullName: true } },
         originalShift: {
-          include: { policy: { select: { teamId: true, id: true } } },
+          include: { policy: { select: { teamId: true, id: true, name: true } } },
         },
         targetShift: {
-          include: { policy: { select: { teamId: true, id: true } } },
+          include: { policy: { select: { teamId: true, id: true, name: true } } },
         },
       },
     });
@@ -151,6 +154,21 @@ export async function POST(
       oldValue: { status: swap.status },
       newValue: { status: SwapStatus.APPROVED },
     });
+
+    // Notify team Telegram channels
+    notifyTeamChannels({
+      teamId: swap.originalShift.policy.teamId,
+      eventType: "SWAP_APPROVED",
+      templateId: "swap-approved",
+      recipientId: actor.id,
+      variables: {
+        requesterName: swap.requester.fullName,
+        targetName: swap.targetUser?.fullName ?? "—",
+        policyName: swap.originalShift.policy.name,
+        shiftDate: swap.originalShift.startsAt.toISOString(),
+        appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "",
+      },
+    }).catch((e) => console.error("notify team channels failed:", e));
 
     return ok({ swapId: id, status: SwapStatus.APPROVED });
   } catch (error) {

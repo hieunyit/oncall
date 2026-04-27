@@ -9,6 +9,7 @@ interface UserProfile {
   timezone: string | null;
   telegramChatId: string | null;
   phone: string | null;
+  systemRole?: string;
 }
 
 export function ProfileForm({ user }: { user: UserProfile }) {
@@ -16,6 +17,8 @@ export function ProfileForm({ user }: { user: UserProfile }) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const [checkingTg, setCheckingTg] = useState(false);
+  const [setupWebhook, setSetupWebhook] = useState<"idle" | "loading" | "ok" | "err">("idle");
   const [form, setForm] = useState({
     fullName: user.fullName ?? "",
     timezone: user.timezone ?? "Asia/Ho_Chi_Minh",
@@ -26,6 +29,29 @@ export function ProfileForm({ user }: { user: UserProfile }) {
   const telegramDeepLink = botUsername
     ? `https://t.me/${botUsername}?start=${user.id}`
     : null;
+
+  async function checkTelegramStatus() {
+    setCheckingTg(true);
+    try {
+      const res = await fetch("/api/users/me");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.telegramChatId) router.refresh();
+      }
+    } finally {
+      setCheckingTg(false);
+    }
+  }
+
+  async function registerWebhook() {
+    setSetupWebhook("loading");
+    try {
+      const res = await fetch("/api/telegram/setup", { method: "POST" });
+      setSetupWebhook(res.ok ? "ok" : "err");
+    } catch {
+      setSetupWebhook("err");
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,22 +144,49 @@ export function ProfileForm({ user }: { user: UserProfile }) {
               <p className="text-xs text-gray-500 mt-1 mb-2">
                 Nhấn nút bên dưới để mở bot Telegram và liên kết tài khoản tự động.
               </p>
-              {telegramDeepLink ? (
-                <a
-                  href={telegramDeepLink}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2CA5E0] text-white text-xs font-medium rounded-lg hover:bg-[#239fd6] transition-colors"
-                >
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/>
-                  </svg>
-                  {user.telegramChatId ? "Kết nối lại Telegram" : "Kết nối Telegram"}
-                </a>
-              ) : (
-                <p className="text-xs text-amber-600 bg-amber-50 px-2.5 py-1.5 rounded">
-                  Cần cấu hình <code className="font-mono">NEXT_PUBLIC_TELEGRAM_BOT_USERNAME</code> trong .env
-                </p>
+              <div className="flex flex-wrap items-center gap-2">
+                {telegramDeepLink ? (
+                  <a
+                    href={telegramDeepLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2CA5E0] text-white text-xs font-medium rounded-lg hover:bg-[#239fd6] transition-colors"
+                  >
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/>
+                    </svg>
+                    {user.telegramChatId ? "Kết nối lại Telegram" : "Kết nối Telegram"}
+                  </a>
+                ) : (
+                  <p className="text-xs text-amber-600 bg-amber-50 px-2.5 py-1.5 rounded">
+                    Cần cấu hình <code className="font-mono">NEXT_PUBLIC_TELEGRAM_BOT_USERNAME</code> trong .env
+                  </p>
+                )}
+                {!user.telegramChatId && telegramDeepLink && (
+                  <button
+                    type="button"
+                    onClick={checkTelegramStatus}
+                    disabled={checkingTg}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                  >
+                    {checkingTg ? "Đang kiểm tra..." : "↻ Kiểm tra trạng thái"}
+                  </button>
+                )}
+              </div>
+              {/* Admin: register Telegram webhook */}
+              {user.systemRole === "ADMIN" && (
+                <div className="mt-2 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={registerWebhook}
+                    disabled={setupWebhook === "loading"}
+                    className="text-xs text-gray-500 underline hover:text-gray-700 disabled:opacity-50"
+                  >
+                    {setupWebhook === "loading" ? "Đang đăng ký..." : "Đăng ký Telegram Webhook"}
+                  </button>
+                  {setupWebhook === "ok" && <span className="text-xs text-green-600">✓ Thành công</span>}
+                  {setupWebhook === "err" && <span className="text-xs text-red-600">✗ Lỗi</span>}
+                </div>
               )}
             </div>
           </div>

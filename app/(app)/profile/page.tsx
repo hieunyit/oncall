@@ -45,6 +45,7 @@ export default async function ProfilePage() {
   const profileUser = {
     ...user,
     telegramChatId: user.telegramChatId?.toString() ?? null,
+    systemRole: user.systemRole,
   };
 
   return (

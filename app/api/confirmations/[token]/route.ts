@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { ok, badRequest, notFound, conflict, handleError } from "@/lib/api-response";
 import { ConfirmationStatus } from "@/app/generated/prisma/client";
 import { writeAuditLog } from "@/lib/audit";
+import { notifyTeamChannels } from "@/lib/notifications/notify-channel";
 
 const RespondSchema = z.object({
   action: z.enum(["confirm", "decline"]),
@@ -42,6 +43,14 @@ export async function POST(
     const { token } = await params;
     const confirmation = await prisma.shiftConfirmation.findUnique({
       where: { token },
+      include: {
+        shift: {
+          include: {
+            assignee: { select: { id: true, fullName: true } },
+            policy: { select: { name: true, teamId: true } },
+          },
+        },
+      },
     });
 
     if (!confirmation) return notFound("Confirmation not found");
@@ -79,6 +88,21 @@ export async function POST(
       oldValue: { status: confirmation.status },
       newValue: { status: newStatus },
     });
+
+    // Notify team channels
+    notifyTeamChannels({
+      teamId: confirmation.shift.policy.teamId,
+      eventType: newStatus === ConfirmationStatus.CONFIRMED ? "SHIFT_CONFIRMED" : "SHIFT_DECLINED",
+      templateId: newStatus === ConfirmationStatus.CONFIRMED ? "shift-confirmed" : "shift-declined",
+      recipientId: confirmation.userId,
+      variables: {
+        recipientName: confirmation.shift.assignee.fullName,
+        policyName: confirmation.shift.policy.name,
+        shiftStart: confirmation.shift.startsAt.toISOString(),
+        shiftEnd: confirmation.shift.endsAt.toISOString(),
+        appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "",
+      },
+    }).catch((e) => console.error("notify team channels failed:", e));
 
     return ok(updated);
   } catch (error) {

@@ -14,6 +14,7 @@ import { ShiftStatus, ShiftSource, TeamRole } from "@/app/generated/prisma/clien
 import { generateShifts, computeConfirmationDueAt, TimeSlot, OccupiedMap } from "@/lib/rotation/engine";
 import { writeAuditLog } from "@/lib/audit";
 import { scheduleAllRemindersForBatch } from "@/lib/queue/scheduler";
+import { notifyTeamChannels } from "@/lib/notifications/notify-channel";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { addWeeks } from "date-fns";
 
@@ -238,6 +239,22 @@ export async function POST(req: NextRequest) {
       newValue: { policyId: data.policyId, rangeStart, rangeEnd, shiftCount: generatedShifts.length },
       ipAddress: req.headers.get("x-forwarded-for") ?? undefined,
     });
+
+    // Notify team Telegram channels that a new schedule has been published
+    notifyTeamChannels({
+      teamId: policy.teamId,
+      eventType: "SCHEDULE_PUBLISHED",
+      templateId: "schedule-published",
+      recipientId: actor.id,
+      variables: {
+        actorName: actor.fullName,
+        policyName: policy.name,
+        shiftCount: generatedShifts.length.toString(),
+        rangeStart: rangeStart.toISOString(),
+        rangeEnd: rangeEnd.toISOString(),
+        appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "",
+      },
+    }).catch((e) => console.error("notify team channels failed:", e));
 
     return created(batch);
   } catch (error) {

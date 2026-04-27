@@ -128,7 +128,7 @@ export async function POST(
           messageId: tgMsg.id,
           chatId: oncallUser.telegramChatId.toString(),
           templateId: "alert-firing",
-          variables: vars,
+          variables: { ...vars, alertId: alert.id },
         });
       }
 

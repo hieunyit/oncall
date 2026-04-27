@@ -21,6 +21,16 @@ const CHANNEL_ICONS: Record<string, string> = {
   TEAMS: "💼",
 };
 
+const EVENT_LABELS: Record<string, string> = {
+  SHIFT_REMINDER: "Nhắc ca trực",
+  SHIFT_CONFIRMED: "Xác nhận ca",
+  SHIFT_DECLINED: "Từ chối ca",
+  SCHEDULE_PUBLISHED: "Xuất bản lịch",
+  SWAP_APPROVED: "Duyệt đổi ca",
+  ALERT_FIRING: "Cảnh báo",
+  ESCALATION: "Escalation",
+};
+
 export default async function NotificationsPage({
   searchParams,
 }: {
@@ -71,12 +81,18 @@ export default async function NotificationsPage({
       take: limit,
     }),
     prisma.notificationDelivery.count({ where }),
-    // Status counts
     prisma.notificationDelivery.groupBy({
       by: ["status"],
       _count: { status: true },
     }),
   ]);
+
+  const userIds = [...new Set(deliveries.map((d) => d.message.recipientId))];
+  const users = await prisma.user.findMany({
+    where: { id: { in: userIds } },
+    select: { id: true, fullName: true },
+  });
+  const userMap = Object.fromEntries(users.map((u) => [u.id, u.fullName]));
 
   const statMap = Object.fromEntries(
     stats.map((s) => [s.status, s._count.status])
@@ -120,6 +136,7 @@ export default async function NotificationsPage({
             <tr>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Kênh</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Sự kiện</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">Người nhận</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Trạng thái</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Số lần thử</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Thời gian</th>
@@ -135,8 +152,13 @@ export default async function NotificationsPage({
                     <span className="text-gray-600">{d.channelType}</span>
                   </span>
                 </td>
-                <td className="px-4 py-3 text-gray-600 font-mono text-xs">
-                  {d.message.eventType}
+                <td className="px-4 py-3 text-gray-700 text-sm">
+                  {EVENT_LABELS[d.message.eventType] ?? (
+                    <span className="font-mono text-xs text-gray-400">{d.message.eventType}</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-600">
+                  {userMap[d.message.recipientId] ?? <span className="text-gray-300 text-xs">{d.message.recipientId.slice(0, 8)}…</span>}
                 </td>
                 <td className="px-4 py-3">
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[d.status] ?? ""}`}>

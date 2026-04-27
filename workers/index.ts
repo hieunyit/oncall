@@ -4,6 +4,7 @@ import { startEscalationWorker } from "./escalation-worker";
 import { startEmailWorker } from "./email-worker";
 import { startTelegramWorker } from "./telegram-worker";
 import { startTeamsWorker } from "./teams-worker";
+import { setTelegramWebhook } from "@/lib/notifications/telegram";
 
 console.log("Starting workers...");
 
@@ -14,6 +15,14 @@ const workers = [
   startTelegramWorker(),
   startTeamsWorker(),
 ];
+
+// Auto-register Telegram webhook on startup
+const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+if (appUrl && process.env.TELEGRAM_BOT_TOKEN) {
+  setTelegramWebhook(`${appUrl}/api/telegram/webhook`)
+    .then((r) => console.log("Telegram webhook registered:", JSON.stringify(r)))
+    .catch((e: Error) => console.warn("Failed to register Telegram webhook:", e.message));
+}
 
 console.log(`Started ${workers.length} workers`);
 

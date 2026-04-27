@@ -4,7 +4,7 @@ import { QUEUE_NAMES } from "@/lib/queue/queues";
 import type { TelegramJobPayload } from "@/lib/queue/jobs";
 import { prisma } from "@/lib/prisma";
 import { DeliveryStatus } from "@/app/generated/prisma/client";
-import { sendTelegramMessage, renderTelegramMessage } from "@/lib/notifications/telegram";
+import { sendTelegramMessage, renderTelegramMessage, buildInlineKeyboard } from "@/lib/notifications/telegram";
 
 export function startTelegramWorker() {
   const worker = new Worker<TelegramJobPayload>(
@@ -23,7 +23,8 @@ export function startTelegramWorker() {
 
       try {
         const text = renderTelegramMessage(templateId, variables);
-        const result = await sendTelegramMessage(chatId, text, "HTML");
+        const keyboard = buildInlineKeyboard(templateId, variables);
+        const result = await sendTelegramMessage(chatId, text, "HTML", keyboard);
 
         if (!result.ok) throw new Error(result.description ?? "Telegram API error");
 
