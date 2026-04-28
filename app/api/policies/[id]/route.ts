@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser, requireTeamRole, isNextResponse } from "@/lib/rbac";
 import { ok, noContent, unauthorized, notFound, handleError } from "@/lib/api-response";
-import { CadenceKind, TeamRole } from "@/app/generated/prisma/client";
+import { CadenceKind, ShiftStatus, TeamRole } from "@/app/generated/prisma/client";
 import { writeAuditLog } from "@/lib/audit";
 
 const TimeSlotSchema = z.object({
@@ -142,10 +142,22 @@ export async function DELETE(
     const result = await requireTeamRole(policy.teamId, TeamRole.MANAGER);
     if (isNextResponse(result)) return result;
 
-    await prisma.rotationPolicy.update({
-      where: { id },
-      data: { isActive: false },
-    });
+    const now = new Date();
+    await prisma.$transaction([
+      prisma.rotationPolicy.update({
+        where: { id },
+        data: { isActive: false },
+      }),
+      // Cancel all future PUBLISHED shifts so they don't ghost the calendar
+      prisma.shift.updateMany({
+        where: {
+          policyId: id,
+          startsAt: { gte: now },
+          status: ShiftStatus.PUBLISHED,
+        },
+        data: { status: ShiftStatus.CANCELLED },
+      }),
+    ]);
 
     await writeAuditLog({
       actorId: actor.id,

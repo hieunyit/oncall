@@ -57,12 +57,11 @@ export async function POST(
       );
     }
 
-    // fromDate = start of today so ALL of today's published shifts are replaced.
-    // We use startOfDay so that if the user changes a 08:00 slot at 14:00, the
-    // old 08:00 shift (still PUBLISHED) is deleted and recreated with the new time.
     const now = new Date();
-    const todayStart = startOfDay(now);
-    const fromDate = todayStart < batch.rangeStart ? batch.rangeStart : todayStart;
+    // Use start of today (server UTC) as the cut point — do NOT clamp to
+    // batch.rangeStart. If the batch starts tomorrow (midnight local), clamping
+    // would push fromDate past today's shifts and leave them unreplaced.
+    const fromDate = startOfDay(now);
 
     if (fromDate >= batch.rangeEnd) {
       return conflict(
@@ -71,13 +70,13 @@ export async function POST(
       );
     }
 
-    // Block only if a shift starting AFTER RIGHT NOW is already ACTIVE or COMPLETED.
-    // We deliberately use `now` (not `fromDate`) so a currently-running shift that started
-    // earlier today does not block the reschedule — it's ACTIVE but will be left intact
-    // because the delete query filters by status = PUBLISHED only.
+    // Block only if a shift starting AFTER RIGHT NOW (across ALL batches for
+    // this policy) is already ACTIVE or COMPLETED. We use `now` so a currently-
+    // running shift that started earlier today doesn't block the reschedule —
+    // it's ACTIVE but won't be deleted because the delete query filters PUBLISHED only.
     const blockedCount = await prisma.shift.count({
       where: {
-        batchId: batch.id,
+        policyId,
         startsAt: { gte: now },
         status: { in: [ShiftStatus.ACTIVE, ShiftStatus.COMPLETED] },
       },
@@ -112,17 +111,23 @@ export async function POST(
         ? Math.floor(keptShiftCount / slotsPerDay) % participants.length
         : keptShiftCount % participants.length;
 
+    // Generate from start-of-today so the engine covers today's full day slots,
+    // but only keep shifts that start at or after NOW to avoid creating PUBLISHED
+    // duplicates of shifts that are already ACTIVE or have already passed today.
     const newShifts = generateShifts(
       { ...policy, timeSlots },
       participants,
-      fromDate,
+      fromDate,      // rangeStart = midnight — engine needs full-day coverage
       batch.rangeEnd,
       startingIndex
-    ).filter((s) => s.startsAt >= fromDate);
+    ).filter((s) => s.startsAt >= now);
 
-    // Find shifts to remove: PUBLISHED and start >= fromDate
+    // Delete PUBLISHED shifts starting from NOW onwards (not midnight) across ALL
+    // batches for this policy. Using policyId catches orphaned shifts from old or
+    // rolled-back batches. Using `now` avoids touching shifts that have already
+    // started (they'd be ACTIVE anyway, but belt-and-suspenders).
     const shiftsToRemove = await prisma.shift.findMany({
-      where: { batchId: batch.id, startsAt: { gte: fromDate }, status: ShiftStatus.PUBLISHED },
+      where: { policyId, startsAt: { gte: now }, status: ShiftStatus.PUBLISHED },
       select: { id: true },
     });
     const removeIds = shiftsToRemove.map((s) => s.id);
@@ -162,7 +167,7 @@ export async function POST(
 
     // Create confirmations for new shifts
     const createdShifts = await prisma.shift.findMany({
-      where: { batchId: batch.id, startsAt: { gte: fromDate }, status: ShiftStatus.PUBLISHED },
+      where: { batchId: batch.id, startsAt: { gte: now }, status: ShiftStatus.PUBLISHED },
       select: { id: true, assigneeId: true, startsAt: true, endsAt: true },
     });
 
@@ -183,7 +188,7 @@ export async function POST(
 
     // Schedule reminders
     const confirmations = await prisma.shiftConfirmation.findMany({
-      where: { shift: { batchId: batch.id, startsAt: { gte: fromDate } } },
+      where: { shift: { batchId: batch.id, startsAt: { gte: now } } },
       include: { shift: { select: { startsAt: true, endsAt: true } } },
     });
 

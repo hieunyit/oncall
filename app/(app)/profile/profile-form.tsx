@@ -40,13 +40,14 @@ export function ProfileForm({ user }: { user: UserProfile }) {
     setTgLinkError("");
     try {
       const res = await fetch("/api/users/me/telegram-link", { method: "POST" });
-      const data = await res.json();
+      const json = await res.json();
       if (!res.ok) {
-        setTgLinkError(data.error ?? "Không thể tạo liên kết Telegram.");
+        setTgLinkError(json.error ?? "Không thể tạo liên kết Telegram.");
         return;
       }
-      if (data.linkUrl) {
-        window.open(data.linkUrl, "_blank", "noopener,noreferrer");
+      const linkUrl = (json.data ?? json).linkUrl;
+      if (linkUrl) {
+        window.open(linkUrl, "_blank", "noopener,noreferrer");
       } else {
         setTgLinkError("Cần cấu hình TELEGRAM_BOT_USERNAME trên server.");
       }
@@ -83,8 +84,9 @@ export function ProfileForm({ user }: { user: UserProfile }) {
     try {
       const res = await fetch("/api/users/me");
       if (res.ok) {
-        const data = await res.json();
-        if (data.telegramChatId) {
+        const json = await res.json();
+        const d = json.data ?? json;
+        if (d.telegramChatId) {
           setTgLinked(true);
           router.refresh();
         } else {

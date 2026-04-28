@@ -73,13 +73,14 @@ export function BatchList({ batches }: Props) {
       body: JSON.stringify({ fromDate: new Date(fromDate).toISOString() }),
     });
 
-    const data = await res.json().catch(() => ({}));
+    const json = await res.json().catch(() => ({}));
     setRescheduleLoading(false);
 
     if (!res.ok) {
-      setRescheduleError(data.error ?? "Cập nhật thất bại");
+      setRescheduleError(json.error ?? "Cập nhật thất bại");
     } else {
-      setRescheduleResult({ removedShifts: data.removedShifts, newShifts: data.newShifts });
+      const d = json.data ?? json;
+      setRescheduleResult({ removedShifts: d.removedShifts, newShifts: d.newShifts });
       router.refresh();
     }
   }

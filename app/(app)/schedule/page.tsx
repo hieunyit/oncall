@@ -60,6 +60,7 @@ export default async function SchedulePage({ searchParams }: PageProps) {
       startsAt: { lte: rangeEnd },
       endsAt: { gte: rangeStart },
       status: { in: [ShiftStatus.PUBLISHED, ShiftStatus.ACTIVE, ShiftStatus.COMPLETED] },
+      policy: { isActive: true },
     },
     include: {
       assignee: { select: { id: true, fullName: true } },
