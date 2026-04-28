@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { startOfDay } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser, requireTeamRole, isNextResponse } from "@/lib/rbac";
 import { ok, unauthorized, notFound, conflict, badRequest, handleError } from "@/lib/api-response";
@@ -56,9 +57,12 @@ export async function POST(
       );
     }
 
-    // fromDate = now, but clamped to [rangeStart, rangeEnd)
+    // fromDate = start of today so ALL of today's published shifts are replaced.
+    // We use startOfDay so that if the user changes a 08:00 slot at 14:00, the
+    // old 08:00 shift (still PUBLISHED) is deleted and recreated with the new time.
     const now = new Date();
-    const fromDate = now < batch.rangeStart ? batch.rangeStart : now;
+    const todayStart = startOfDay(now);
+    const fromDate = todayStart < batch.rangeStart ? batch.rangeStart : todayStart;
 
     if (fromDate >= batch.rangeEnd) {
       return conflict(
@@ -67,11 +71,14 @@ export async function POST(
       );
     }
 
-    // Block if any shift at/after fromDate is ACTIVE or COMPLETED
+    // Block only if a shift starting AFTER RIGHT NOW is already ACTIVE or COMPLETED.
+    // We deliberately use `now` (not `fromDate`) so a currently-running shift that started
+    // earlier today does not block the reschedule — it's ACTIVE but will be left intact
+    // because the delete query filters by status = PUBLISHED only.
     const blockedCount = await prisma.shift.count({
       where: {
         batchId: batch.id,
-        startsAt: { gte: fromDate },
+        startsAt: { gte: now },
         status: { in: [ShiftStatus.ACTIVE, ShiftStatus.COMPLETED] },
       },
     });

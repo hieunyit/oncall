@@ -14,12 +14,13 @@ export function RescheduleButton({ policyId }: { policyId: string }) {
     setError(null);
     try {
       const res = await fetch(`/api/policies/${policyId}/reschedule-from-now`, { method: "POST" });
-      const data = await res.json().catch(() => ({}));
+      const json = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error ?? "Không thể tạo lại lịch.");
+        setError(json.error ?? "Không thể tạo lại lịch.");
         setState("err");
       } else {
-        setResult({ removedShifts: data.removedShifts, newShifts: data.newShifts });
+        const d = json.data ?? json;
+        setResult({ removedShifts: d.removedShifts, newShifts: d.newShifts });
         setState("ok");
         router.refresh();
       }

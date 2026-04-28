@@ -178,11 +178,12 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
       const res = await fetch(`/api/policies/${initialData.id}/reschedule-from-now`, {
         method: "POST",
       });
-      const data = await res.json().catch(() => ({}));
+      const json = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setRescheduleError(data.error ?? "Không thể tạo lại lịch trực.");
+        setRescheduleError(json.error ?? "Không thể tạo lại lịch trực.");
       } else {
-        setRescheduleResult({ removedShifts: data.removedShifts, newShifts: data.newShifts });
+        const d = json.data ?? json;
+        setRescheduleResult({ removedShifts: d.removedShifts, newShifts: d.newShifts });
         router.refresh();
       }
     } catch {
