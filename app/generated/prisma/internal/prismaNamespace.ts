@@ -404,7 +404,8 @@ export const ModelName = {
   AuditLog: 'AuditLog',
   AlertIntegration: 'AlertIntegration',
   Alert: 'Alert',
-  ShiftTask: 'ShiftTask'
+  ShiftTask: 'ShiftTask',
+  Runbook: 'Runbook'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -420,7 +421,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "user" | "team" | "teamMember" | "rotationPolicy" | "scheduleBatch" | "shift" | "shiftConfirmation" | "swapRequest" | "teamNotificationChannel" | "notificationMessage" | "notificationDelivery" | "escalationPolicy" | "escalationRule" | "userNotificationRule" | "auditLog" | "alertIntegration" | "alert" | "shiftTask"
+    modelProps: "account" | "session" | "verificationToken" | "user" | "team" | "teamMember" | "rotationPolicy" | "scheduleBatch" | "shift" | "shiftConfirmation" | "swapRequest" | "teamNotificationChannel" | "notificationMessage" | "notificationDelivery" | "escalationPolicy" | "escalationRule" | "userNotificationRule" | "auditLog" | "alertIntegration" | "alert" | "shiftTask" | "runbook"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1978,6 +1979,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Runbook: {
+      payload: Prisma.$RunbookPayload<ExtArgs>
+      fields: Prisma.RunbookFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RunbookFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RunbookPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RunbookFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RunbookPayload>
+        }
+        findFirst: {
+          args: Prisma.RunbookFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RunbookPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RunbookFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RunbookPayload>
+        }
+        findMany: {
+          args: Prisma.RunbookFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RunbookPayload>[]
+        }
+        create: {
+          args: Prisma.RunbookCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RunbookPayload>
+        }
+        createMany: {
+          args: Prisma.RunbookCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RunbookCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RunbookPayload>[]
+        }
+        delete: {
+          args: Prisma.RunbookDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RunbookPayload>
+        }
+        update: {
+          args: Prisma.RunbookUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RunbookPayload>
+        }
+        deleteMany: {
+          args: Prisma.RunbookDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RunbookUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RunbookUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RunbookPayload>[]
+        }
+        upsert: {
+          args: Prisma.RunbookUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RunbookPayload>
+        }
+        aggregate: {
+          args: Prisma.RunbookAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRunbook>
+        }
+        groupBy: {
+          args: Prisma.RunbookGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RunbookGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RunbookCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RunbookCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2060,11 +2135,14 @@ export const UserScalarFieldEnum = {
   fullName: 'fullName',
   keycloakId: 'keycloakId',
   telegramChatId: 'telegramChatId',
+  telegramLinkToken: 'telegramLinkToken',
+  telegramLinkTokenExp: 'telegramLinkTokenExp',
   teamsUserId: 'teamsUserId',
   teamsConversationId: 'teamsConversationId',
   phone: 'phone',
   systemRole: 'systemRole',
   timezone: 'timezone',
+  theme: 'theme',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -2110,6 +2188,9 @@ export const RotationPolicyScalarFieldEnum = {
   reminderLeadHours: 'reminderLeadHours',
   maxGenerateWeeks: 'maxGenerateWeeks',
   timeSlots: 'timeSlots',
+  timezone: 'timezone',
+  checklistRequired: 'checklistRequired',
+  templateTasks: 'templateTasks',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -2335,6 +2416,21 @@ export const ShiftTaskScalarFieldEnum = {
 } as const
 
 export type ShiftTaskScalarFieldEnum = (typeof ShiftTaskScalarFieldEnum)[keyof typeof ShiftTaskScalarFieldEnum]
+
+
+export const RunbookScalarFieldEnum = {
+  id: 'id',
+  teamId: 'teamId',
+  title: 'title',
+  content: 'content',
+  keywords: 'keywords',
+  isActive: 'isActive',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RunbookScalarFieldEnum = (typeof RunbookScalarFieldEnum)[keyof typeof RunbookScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2808,6 +2904,7 @@ export type GlobalOmitConfig = {
   alertIntegration?: Prisma.AlertIntegrationOmit
   alert?: Prisma.AlertOmit
   shiftTask?: Prisma.ShiftTaskOmit
+  runbook?: Prisma.RunbookOmit
 }
 
 /* Types for Logging */

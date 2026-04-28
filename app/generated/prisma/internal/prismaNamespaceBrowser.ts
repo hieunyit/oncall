@@ -71,7 +71,8 @@ export const ModelName = {
   AuditLog: 'AuditLog',
   AlertIntegration: 'AlertIntegration',
   Alert: 'Alert',
-  ShiftTask: 'ShiftTask'
+  ShiftTask: 'ShiftTask',
+  Runbook: 'Runbook'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -133,11 +134,14 @@ export const UserScalarFieldEnum = {
   fullName: 'fullName',
   keycloakId: 'keycloakId',
   telegramChatId: 'telegramChatId',
+  telegramLinkToken: 'telegramLinkToken',
+  telegramLinkTokenExp: 'telegramLinkTokenExp',
   teamsUserId: 'teamsUserId',
   teamsConversationId: 'teamsConversationId',
   phone: 'phone',
   systemRole: 'systemRole',
   timezone: 'timezone',
+  theme: 'theme',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -183,6 +187,9 @@ export const RotationPolicyScalarFieldEnum = {
   reminderLeadHours: 'reminderLeadHours',
   maxGenerateWeeks: 'maxGenerateWeeks',
   timeSlots: 'timeSlots',
+  timezone: 'timezone',
+  checklistRequired: 'checklistRequired',
+  templateTasks: 'templateTasks',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -408,6 +415,21 @@ export const ShiftTaskScalarFieldEnum = {
 } as const
 
 export type ShiftTaskScalarFieldEnum = (typeof ShiftTaskScalarFieldEnum)[keyof typeof ShiftTaskScalarFieldEnum]
+
+
+export const RunbookScalarFieldEnum = {
+  id: 'id',
+  teamId: 'teamId',
+  title: 'title',
+  content: 'content',
+  keywords: 'keywords',
+  isActive: 'isActive',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RunbookScalarFieldEnum = (typeof RunbookScalarFieldEnum)[keyof typeof RunbookScalarFieldEnum]
 
 
 export const SortOrder = {

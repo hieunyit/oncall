@@ -490,10 +490,6 @@ export type EnumConfirmationStatusFieldUpdateOperationsInput = {
   set?: $Enums.ConfirmationStatus
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type ShiftConfirmationCreateWithoutUserInput = {
   id?: string
   status?: $Enums.ConfirmationStatus

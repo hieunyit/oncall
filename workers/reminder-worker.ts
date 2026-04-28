@@ -90,6 +90,15 @@ export function startReminderWorker() {
       }
 
       // Telegram — send to all configured Telegram channels of this policy's team
+      // No confirmationToken: group chats show info only, no confirm/decline buttons
+      const channelVariables = {
+        recipientName: user.fullName,
+        shiftStart: shift.startsAt.toISOString(),
+        shiftEnd: shift.endsAt.toISOString(),
+        policyName: shift.policy.name,
+        appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "",
+      };
+
       const telegramChannels = await prisma.teamNotificationChannel.findMany({
         where: { teamId: shift.policy.teamId, type: ChannelType.TELEGRAM },
       });
@@ -105,7 +114,7 @@ export function startReminderWorker() {
           messageId: message.id,
           chatId,
           templateId: "shift-reminder",
-          variables,
+          variables: channelVariables,
         });
       }
 

@@ -40,11 +40,14 @@ export type UserMinAggregateOutputType = {
   fullName: string | null
   keycloakId: string | null
   telegramChatId: bigint | null
+  telegramLinkToken: string | null
+  telegramLinkTokenExp: Date | null
   teamsUserId: string | null
   teamsConversationId: string | null
   phone: string | null
   systemRole: $Enums.SystemRole | null
   timezone: string | null
+  theme: string | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -56,11 +59,14 @@ export type UserMaxAggregateOutputType = {
   fullName: string | null
   keycloakId: string | null
   telegramChatId: bigint | null
+  telegramLinkToken: string | null
+  telegramLinkTokenExp: Date | null
   teamsUserId: string | null
   teamsConversationId: string | null
   phone: string | null
   systemRole: $Enums.SystemRole | null
   timezone: string | null
+  theme: string | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -72,11 +78,14 @@ export type UserCountAggregateOutputType = {
   fullName: number
   keycloakId: number
   telegramChatId: number
+  telegramLinkToken: number
+  telegramLinkTokenExp: number
   teamsUserId: number
   teamsConversationId: number
   phone: number
   systemRole: number
   timezone: number
+  theme: number
   isActive: number
   createdAt: number
   updatedAt: number
@@ -98,11 +107,14 @@ export type UserMinAggregateInputType = {
   fullName?: true
   keycloakId?: true
   telegramChatId?: true
+  telegramLinkToken?: true
+  telegramLinkTokenExp?: true
   teamsUserId?: true
   teamsConversationId?: true
   phone?: true
   systemRole?: true
   timezone?: true
+  theme?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -114,11 +126,14 @@ export type UserMaxAggregateInputType = {
   fullName?: true
   keycloakId?: true
   telegramChatId?: true
+  telegramLinkToken?: true
+  telegramLinkTokenExp?: true
   teamsUserId?: true
   teamsConversationId?: true
   phone?: true
   systemRole?: true
   timezone?: true
+  theme?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -130,11 +145,14 @@ export type UserCountAggregateInputType = {
   fullName?: true
   keycloakId?: true
   telegramChatId?: true
+  telegramLinkToken?: true
+  telegramLinkTokenExp?: true
   teamsUserId?: true
   teamsConversationId?: true
   phone?: true
   systemRole?: true
   timezone?: true
+  theme?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -233,11 +251,14 @@ export type UserGroupByOutputType = {
   fullName: string
   keycloakId: string | null
   telegramChatId: bigint | null
+  telegramLinkToken: string | null
+  telegramLinkTokenExp: Date | null
   teamsUserId: string | null
   teamsConversationId: string | null
   phone: string | null
   systemRole: $Enums.SystemRole
   timezone: string
+  theme: string
   isActive: boolean
   createdAt: Date
   updatedAt: Date
@@ -272,11 +293,14 @@ export type UserWhereInput = {
   fullName?: Prisma.StringFilter<"User"> | string
   keycloakId?: Prisma.StringNullableFilter<"User"> | string | null
   telegramChatId?: Prisma.BigIntNullableFilter<"User"> | bigint | number | null
+  telegramLinkToken?: Prisma.StringNullableFilter<"User"> | string | null
+  telegramLinkTokenExp?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   teamsUserId?: Prisma.StringNullableFilter<"User"> | string | null
   teamsConversationId?: Prisma.StringNullableFilter<"User"> | string | null
   phone?: Prisma.StringNullableFilter<"User"> | string | null
   systemRole?: Prisma.EnumSystemRoleFilter<"User"> | $Enums.SystemRole
   timezone?: Prisma.StringFilter<"User"> | string
+  theme?: Prisma.StringFilter<"User"> | string
   isActive?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -291,6 +315,7 @@ export type UserWhereInput = {
   auditLogs?: Prisma.AuditLogListRelationFilter
   notificationRules?: Prisma.UserNotificationRuleListRelationFilter
   acknowledgedAlerts?: Prisma.AlertListRelationFilter
+  createdRunbooks?: Prisma.RunbookListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -299,11 +324,14 @@ export type UserOrderByWithRelationInput = {
   fullName?: Prisma.SortOrder
   keycloakId?: Prisma.SortOrderInput | Prisma.SortOrder
   telegramChatId?: Prisma.SortOrderInput | Prisma.SortOrder
+  telegramLinkToken?: Prisma.SortOrderInput | Prisma.SortOrder
+  telegramLinkTokenExp?: Prisma.SortOrderInput | Prisma.SortOrder
   teamsUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   teamsConversationId?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   systemRole?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
+  theme?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -318,22 +346,26 @@ export type UserOrderByWithRelationInput = {
   auditLogs?: Prisma.AuditLogOrderByRelationAggregateInput
   notificationRules?: Prisma.UserNotificationRuleOrderByRelationAggregateInput
   acknowledgedAlerts?: Prisma.AlertOrderByRelationAggregateInput
+  createdRunbooks?: Prisma.RunbookOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   email?: string
   keycloakId?: string
+  telegramLinkToken?: string
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   fullName?: Prisma.StringFilter<"User"> | string
   telegramChatId?: Prisma.BigIntNullableFilter<"User"> | bigint | number | null
+  telegramLinkTokenExp?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   teamsUserId?: Prisma.StringNullableFilter<"User"> | string | null
   teamsConversationId?: Prisma.StringNullableFilter<"User"> | string | null
   phone?: Prisma.StringNullableFilter<"User"> | string | null
   systemRole?: Prisma.EnumSystemRoleFilter<"User"> | $Enums.SystemRole
   timezone?: Prisma.StringFilter<"User"> | string
+  theme?: Prisma.StringFilter<"User"> | string
   isActive?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -348,7 +380,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   auditLogs?: Prisma.AuditLogListRelationFilter
   notificationRules?: Prisma.UserNotificationRuleListRelationFilter
   acknowledgedAlerts?: Prisma.AlertListRelationFilter
-}, "id" | "email" | "keycloakId">
+  createdRunbooks?: Prisma.RunbookListRelationFilter
+}, "id" | "email" | "keycloakId" | "telegramLinkToken">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -356,11 +389,14 @@ export type UserOrderByWithAggregationInput = {
   fullName?: Prisma.SortOrder
   keycloakId?: Prisma.SortOrderInput | Prisma.SortOrder
   telegramChatId?: Prisma.SortOrderInput | Prisma.SortOrder
+  telegramLinkToken?: Prisma.SortOrderInput | Prisma.SortOrder
+  telegramLinkTokenExp?: Prisma.SortOrderInput | Prisma.SortOrder
   teamsUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   teamsConversationId?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   systemRole?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
+  theme?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -380,11 +416,14 @@ export type UserScalarWhereWithAggregatesInput = {
   fullName?: Prisma.StringWithAggregatesFilter<"User"> | string
   keycloakId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   telegramChatId?: Prisma.BigIntNullableWithAggregatesFilter<"User"> | bigint | number | null
+  telegramLinkToken?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  telegramLinkTokenExp?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   teamsUserId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   teamsConversationId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   phone?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   systemRole?: Prisma.EnumSystemRoleWithAggregatesFilter<"User"> | $Enums.SystemRole
   timezone?: Prisma.StringWithAggregatesFilter<"User"> | string
+  theme?: Prisma.StringWithAggregatesFilter<"User"> | string
   isActive?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -396,11 +435,14 @@ export type UserCreateInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -415,6 +457,7 @@ export type UserCreateInput = {
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
   acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -423,11 +466,14 @@ export type UserUncheckedCreateInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -442,6 +488,7 @@ export type UserUncheckedCreateInput = {
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
   acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUpdateInput = {
@@ -450,11 +497,14 @@ export type UserUpdateInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -469,6 +519,7 @@ export type UserUpdateInput = {
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
   acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -477,11 +528,14 @@ export type UserUncheckedUpdateInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -496,6 +550,7 @@ export type UserUncheckedUpdateInput = {
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
   acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -504,11 +559,14 @@ export type UserCreateManyInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -520,11 +578,14 @@ export type UserUpdateManyMutationInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -536,11 +597,14 @@ export type UserUncheckedUpdateManyInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -557,11 +621,14 @@ export type UserCountOrderByAggregateInput = {
   fullName?: Prisma.SortOrder
   keycloakId?: Prisma.SortOrder
   telegramChatId?: Prisma.SortOrder
+  telegramLinkToken?: Prisma.SortOrder
+  telegramLinkTokenExp?: Prisma.SortOrder
   teamsUserId?: Prisma.SortOrder
   teamsConversationId?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   systemRole?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
+  theme?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -577,11 +644,14 @@ export type UserMaxOrderByAggregateInput = {
   fullName?: Prisma.SortOrder
   keycloakId?: Prisma.SortOrder
   telegramChatId?: Prisma.SortOrder
+  telegramLinkToken?: Prisma.SortOrder
+  telegramLinkTokenExp?: Prisma.SortOrder
   teamsUserId?: Prisma.SortOrder
   teamsConversationId?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   systemRole?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
+  theme?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -593,11 +663,14 @@ export type UserMinOrderByAggregateInput = {
   fullName?: Prisma.SortOrder
   keycloakId?: Prisma.SortOrder
   telegramChatId?: Prisma.SortOrder
+  telegramLinkToken?: Prisma.SortOrder
+  telegramLinkTokenExp?: Prisma.SortOrder
   teamsUserId?: Prisma.SortOrder
   teamsConversationId?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   systemRole?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
+  theme?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -646,6 +719,10 @@ export type NullableBigIntFieldUpdateOperationsInput = {
   decrement?: bigint | number
   multiply?: bigint | number
   divide?: bigint | number
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
 }
 
 export type EnumSystemRoleFieldUpdateOperationsInput = {
@@ -734,10 +811,12 @@ export type UserUpdateOneRequiredWithoutSwapRequestsFromNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSwapRequestsFromInput, Prisma.UserUpdateWithoutSwapRequestsFromInput>, Prisma.UserUncheckedUpdateWithoutSwapRequestsFromInput>
 }
 
-export type UserUpdateOneRequiredWithoutSwapRequestsTargetNestedInput = {
+export type UserUpdateOneWithoutSwapRequestsTargetNestedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutSwapRequestsTargetInput, Prisma.UserUncheckedCreateWithoutSwapRequestsTargetInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutSwapRequestsTargetInput
   upsert?: Prisma.UserUpsertWithoutSwapRequestsTargetInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSwapRequestsTargetInput, Prisma.UserUpdateWithoutSwapRequestsTargetInput>, Prisma.UserUncheckedUpdateWithoutSwapRequestsTargetInput>
 }
@@ -788,17 +867,34 @@ export type UserUpdateOneWithoutAcknowledgedAlertsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAcknowledgedAlertsInput, Prisma.UserUpdateWithoutAcknowledgedAlertsInput>, Prisma.UserUncheckedUpdateWithoutAcknowledgedAlertsInput>
 }
 
+export type UserCreateNestedOneWithoutCreatedRunbooksInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedRunbooksInput, Prisma.UserUncheckedCreateWithoutCreatedRunbooksInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedRunbooksInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutCreatedRunbooksNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedRunbooksInput, Prisma.UserUncheckedCreateWithoutCreatedRunbooksInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedRunbooksInput
+  upsert?: Prisma.UserUpsertWithoutCreatedRunbooksInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCreatedRunbooksInput, Prisma.UserUpdateWithoutCreatedRunbooksInput>, Prisma.UserUncheckedUpdateWithoutCreatedRunbooksInput>
+}
+
 export type UserCreateWithoutAccountsInput = {
   id?: string
   email: string
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -812,6 +908,7 @@ export type UserCreateWithoutAccountsInput = {
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
   acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -820,11 +917,14 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -838,6 +938,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
   acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -862,11 +963,14 @@ export type UserUpdateWithoutAccountsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -880,6 +984,7 @@ export type UserUpdateWithoutAccountsInput = {
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
   acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -888,11 +993,14 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -906,6 +1014,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
   acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -914,11 +1023,14 @@ export type UserCreateWithoutSessionsInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -932,6 +1044,7 @@ export type UserCreateWithoutSessionsInput = {
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
   acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -940,11 +1053,14 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -958,6 +1074,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
   acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -982,11 +1099,14 @@ export type UserUpdateWithoutSessionsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1000,6 +1120,7 @@ export type UserUpdateWithoutSessionsInput = {
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
   acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -1008,11 +1129,14 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1026,6 +1150,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
   acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutTeamMembersInput = {
@@ -1034,11 +1159,14 @@ export type UserCreateWithoutTeamMembersInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1052,6 +1180,7 @@ export type UserCreateWithoutTeamMembersInput = {
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
   acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutTeamMembersInput = {
@@ -1060,11 +1189,14 @@ export type UserUncheckedCreateWithoutTeamMembersInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1078,6 +1210,7 @@ export type UserUncheckedCreateWithoutTeamMembersInput = {
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
   acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutTeamMembersInput = {
@@ -1102,11 +1235,14 @@ export type UserUpdateWithoutTeamMembersInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1120,6 +1256,7 @@ export type UserUpdateWithoutTeamMembersInput = {
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
   acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTeamMembersInput = {
@@ -1128,11 +1265,14 @@ export type UserUncheckedUpdateWithoutTeamMembersInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1146,6 +1286,7 @@ export type UserUncheckedUpdateWithoutTeamMembersInput = {
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
   acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutShiftsAsAssigneeInput = {
@@ -1154,11 +1295,14 @@ export type UserCreateWithoutShiftsAsAssigneeInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1172,6 +1316,7 @@ export type UserCreateWithoutShiftsAsAssigneeInput = {
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
   acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutShiftsAsAssigneeInput = {
@@ -1180,11 +1325,14 @@ export type UserUncheckedCreateWithoutShiftsAsAssigneeInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1198,6 +1346,7 @@ export type UserUncheckedCreateWithoutShiftsAsAssigneeInput = {
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
   acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutShiftsAsAssigneeInput = {
@@ -1211,11 +1360,14 @@ export type UserCreateWithoutShiftsAsBackupInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1229,6 +1381,7 @@ export type UserCreateWithoutShiftsAsBackupInput = {
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
   acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutShiftsAsBackupInput = {
@@ -1237,11 +1390,14 @@ export type UserUncheckedCreateWithoutShiftsAsBackupInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1255,6 +1411,7 @@ export type UserUncheckedCreateWithoutShiftsAsBackupInput = {
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
   acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutShiftsAsBackupInput = {
@@ -1279,11 +1436,14 @@ export type UserUpdateWithoutShiftsAsAssigneeInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1297,6 +1457,7 @@ export type UserUpdateWithoutShiftsAsAssigneeInput = {
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
   acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutShiftsAsAssigneeInput = {
@@ -1305,11 +1466,14 @@ export type UserUncheckedUpdateWithoutShiftsAsAssigneeInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1323,6 +1487,7 @@ export type UserUncheckedUpdateWithoutShiftsAsAssigneeInput = {
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
   acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUpsertWithoutShiftsAsBackupInput = {
@@ -1342,11 +1507,14 @@ export type UserUpdateWithoutShiftsAsBackupInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1360,6 +1528,7 @@ export type UserUpdateWithoutShiftsAsBackupInput = {
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
   acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutShiftsAsBackupInput = {
@@ -1368,11 +1537,14 @@ export type UserUncheckedUpdateWithoutShiftsAsBackupInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1386,6 +1558,7 @@ export type UserUncheckedUpdateWithoutShiftsAsBackupInput = {
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
   acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutShiftConfirmationsInput = {
@@ -1394,11 +1567,14 @@ export type UserCreateWithoutShiftConfirmationsInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1412,6 +1588,7 @@ export type UserCreateWithoutShiftConfirmationsInput = {
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
   acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutShiftConfirmationsInput = {
@@ -1420,11 +1597,14 @@ export type UserUncheckedCreateWithoutShiftConfirmationsInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1438,6 +1618,7 @@ export type UserUncheckedCreateWithoutShiftConfirmationsInput = {
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
   acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutShiftConfirmationsInput = {
@@ -1462,11 +1643,14 @@ export type UserUpdateWithoutShiftConfirmationsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1480,6 +1664,7 @@ export type UserUpdateWithoutShiftConfirmationsInput = {
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
   acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutShiftConfirmationsInput = {
@@ -1488,11 +1673,14 @@ export type UserUncheckedUpdateWithoutShiftConfirmationsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1506,6 +1694,7 @@ export type UserUncheckedUpdateWithoutShiftConfirmationsInput = {
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
   acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutSwapRequestsFromInput = {
@@ -1514,11 +1703,14 @@ export type UserCreateWithoutSwapRequestsFromInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1532,6 +1724,7 @@ export type UserCreateWithoutSwapRequestsFromInput = {
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
   acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutSwapRequestsFromInput = {
@@ -1540,11 +1733,14 @@ export type UserUncheckedCreateWithoutSwapRequestsFromInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1558,6 +1754,7 @@ export type UserUncheckedCreateWithoutSwapRequestsFromInput = {
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
   acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutSwapRequestsFromInput = {
@@ -1571,11 +1768,14 @@ export type UserCreateWithoutSwapRequestsTargetInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1589,6 +1789,7 @@ export type UserCreateWithoutSwapRequestsTargetInput = {
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
   acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutSwapRequestsTargetInput = {
@@ -1597,11 +1798,14 @@ export type UserUncheckedCreateWithoutSwapRequestsTargetInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1615,6 +1819,7 @@ export type UserUncheckedCreateWithoutSwapRequestsTargetInput = {
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
   acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutSwapRequestsTargetInput = {
@@ -1639,11 +1844,14 @@ export type UserUpdateWithoutSwapRequestsFromInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1657,6 +1865,7 @@ export type UserUpdateWithoutSwapRequestsFromInput = {
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
   acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSwapRequestsFromInput = {
@@ -1665,11 +1874,14 @@ export type UserUncheckedUpdateWithoutSwapRequestsFromInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1683,6 +1895,7 @@ export type UserUncheckedUpdateWithoutSwapRequestsFromInput = {
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
   acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUpsertWithoutSwapRequestsTargetInput = {
@@ -1702,11 +1915,14 @@ export type UserUpdateWithoutSwapRequestsTargetInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1720,6 +1936,7 @@ export type UserUpdateWithoutSwapRequestsTargetInput = {
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
   acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSwapRequestsTargetInput = {
@@ -1728,11 +1945,14 @@ export type UserUncheckedUpdateWithoutSwapRequestsTargetInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1746,6 +1966,7 @@ export type UserUncheckedUpdateWithoutSwapRequestsTargetInput = {
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
   acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutNotificationRulesInput = {
@@ -1754,11 +1975,14 @@ export type UserCreateWithoutNotificationRulesInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1772,6 +1996,7 @@ export type UserCreateWithoutNotificationRulesInput = {
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutNotificationRulesInput = {
@@ -1780,11 +2005,14 @@ export type UserUncheckedCreateWithoutNotificationRulesInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1798,6 +2026,7 @@ export type UserUncheckedCreateWithoutNotificationRulesInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutNotificationRulesInput = {
@@ -1822,11 +2051,14 @@ export type UserUpdateWithoutNotificationRulesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1840,6 +2072,7 @@ export type UserUpdateWithoutNotificationRulesInput = {
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotificationRulesInput = {
@@ -1848,11 +2081,14 @@ export type UserUncheckedUpdateWithoutNotificationRulesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1866,6 +2102,7 @@ export type UserUncheckedUpdateWithoutNotificationRulesInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutAuditLogsInput = {
@@ -1874,11 +2111,14 @@ export type UserCreateWithoutAuditLogsInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1892,6 +2132,7 @@ export type UserCreateWithoutAuditLogsInput = {
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
   acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutAuditLogsInput = {
@@ -1900,11 +2141,14 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1918,6 +2162,7 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
   acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -1942,11 +2187,14 @@ export type UserUpdateWithoutAuditLogsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1960,6 +2208,7 @@ export type UserUpdateWithoutAuditLogsInput = {
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
   acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -1968,11 +2217,14 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1986,6 +2238,7 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
   acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutAcknowledgedAlertsInput = {
@@ -1994,11 +2247,14 @@ export type UserCreateWithoutAcknowledgedAlertsInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2012,6 +2268,7 @@ export type UserCreateWithoutAcknowledgedAlertsInput = {
   swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
+  createdRunbooks?: Prisma.RunbookCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutAcknowledgedAlertsInput = {
@@ -2020,11 +2277,14 @@ export type UserUncheckedCreateWithoutAcknowledgedAlertsInput = {
   fullName: string
   keycloakId?: string | null
   telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
   teamsUserId?: string | null
   teamsConversationId?: string | null
   phone?: string | null
   systemRole?: $Enums.SystemRole
   timezone?: string
+  theme?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2038,6 +2298,7 @@ export type UserUncheckedCreateWithoutAcknowledgedAlertsInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
+  createdRunbooks?: Prisma.RunbookUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutAcknowledgedAlertsInput = {
@@ -2062,11 +2323,14 @@ export type UserUpdateWithoutAcknowledgedAlertsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2080,6 +2344,7 @@ export type UserUpdateWithoutAcknowledgedAlertsInput = {
   swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
+  createdRunbooks?: Prisma.RunbookUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAcknowledgedAlertsInput = {
@@ -2088,11 +2353,14 @@ export type UserUncheckedUpdateWithoutAcknowledgedAlertsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2106,6 +2374,143 @@ export type UserUncheckedUpdateWithoutAcknowledgedAlertsInput = {
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
+  createdRunbooks?: Prisma.RunbookUncheckedUpdateManyWithoutCreatedByNestedInput
+}
+
+export type UserCreateWithoutCreatedRunbooksInput = {
+  id?: string
+  email: string
+  fullName: string
+  keycloakId?: string | null
+  telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
+  teamsUserId?: string | null
+  teamsConversationId?: string | null
+  phone?: string | null
+  systemRole?: $Enums.SystemRole
+  timezone?: string
+  theme?: string
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  teamMembers?: Prisma.TeamMemberCreateNestedManyWithoutUserInput
+  shiftsAsAssignee?: Prisma.ShiftCreateNestedManyWithoutAssigneeInput
+  shiftsAsBackup?: Prisma.ShiftCreateNestedManyWithoutBackupInput
+  shiftConfirmations?: Prisma.ShiftConfirmationCreateNestedManyWithoutUserInput
+  swapRequestsFrom?: Prisma.SwapRequestCreateNestedManyWithoutRequesterInput
+  swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
+}
+
+export type UserUncheckedCreateWithoutCreatedRunbooksInput = {
+  id?: string
+  email: string
+  fullName: string
+  keycloakId?: string | null
+  telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
+  teamsUserId?: string | null
+  teamsConversationId?: string | null
+  phone?: string | null
+  systemRole?: $Enums.SystemRole
+  timezone?: string
+  theme?: string
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  teamMembers?: Prisma.TeamMemberUncheckedCreateNestedManyWithoutUserInput
+  shiftsAsAssignee?: Prisma.ShiftUncheckedCreateNestedManyWithoutAssigneeInput
+  shiftsAsBackup?: Prisma.ShiftUncheckedCreateNestedManyWithoutBackupInput
+  shiftConfirmations?: Prisma.ShiftConfirmationUncheckedCreateNestedManyWithoutUserInput
+  swapRequestsFrom?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutRequesterInput
+  swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
+}
+
+export type UserCreateOrConnectWithoutCreatedRunbooksInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutCreatedRunbooksInput, Prisma.UserUncheckedCreateWithoutCreatedRunbooksInput>
+}
+
+export type UserUpsertWithoutCreatedRunbooksInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutCreatedRunbooksInput, Prisma.UserUncheckedUpdateWithoutCreatedRunbooksInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutCreatedRunbooksInput, Prisma.UserUncheckedCreateWithoutCreatedRunbooksInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutCreatedRunbooksInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutCreatedRunbooksInput, Prisma.UserUncheckedUpdateWithoutCreatedRunbooksInput>
+}
+
+export type UserUpdateWithoutCreatedRunbooksInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  teamMembers?: Prisma.TeamMemberUpdateManyWithoutUserNestedInput
+  shiftsAsAssignee?: Prisma.ShiftUpdateManyWithoutAssigneeNestedInput
+  shiftsAsBackup?: Prisma.ShiftUpdateManyWithoutBackupNestedInput
+  shiftConfirmations?: Prisma.ShiftConfirmationUpdateManyWithoutUserNestedInput
+  swapRequestsFrom?: Prisma.SwapRequestUpdateManyWithoutRequesterNestedInput
+  swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutCreatedRunbooksInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  teamMembers?: Prisma.TeamMemberUncheckedUpdateManyWithoutUserNestedInput
+  shiftsAsAssignee?: Prisma.ShiftUncheckedUpdateManyWithoutAssigneeNestedInput
+  shiftsAsBackup?: Prisma.ShiftUncheckedUpdateManyWithoutBackupNestedInput
+  shiftConfirmations?: Prisma.ShiftConfirmationUncheckedUpdateManyWithoutUserNestedInput
+  swapRequestsFrom?: Prisma.SwapRequestUncheckedUpdateManyWithoutRequesterNestedInput
+  swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
 }
 
 
@@ -2125,6 +2530,7 @@ export type UserCountOutputType = {
   auditLogs: number
   notificationRules: number
   acknowledgedAlerts: number
+  createdRunbooks: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2139,6 +2545,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   auditLogs?: boolean | UserCountOutputTypeCountAuditLogsArgs
   notificationRules?: boolean | UserCountOutputTypeCountNotificationRulesArgs
   acknowledgedAlerts?: boolean | UserCountOutputTypeCountAcknowledgedAlertsArgs
+  createdRunbooks?: boolean | UserCountOutputTypeCountCreatedRunbooksArgs
 }
 
 /**
@@ -2228,6 +2635,13 @@ export type UserCountOutputTypeCountAcknowledgedAlertsArgs<ExtArgs extends runti
   where?: Prisma.AlertWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountCreatedRunbooksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RunbookWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2235,11 +2649,14 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   fullName?: boolean
   keycloakId?: boolean
   telegramChatId?: boolean
+  telegramLinkToken?: boolean
+  telegramLinkTokenExp?: boolean
   teamsUserId?: boolean
   teamsConversationId?: boolean
   phone?: boolean
   systemRole?: boolean
   timezone?: boolean
+  theme?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2254,6 +2671,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
   notificationRules?: boolean | Prisma.User$notificationRulesArgs<ExtArgs>
   acknowledgedAlerts?: boolean | Prisma.User$acknowledgedAlertsArgs<ExtArgs>
+  createdRunbooks?: boolean | Prisma.User$createdRunbooksArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -2263,11 +2681,14 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   fullName?: boolean
   keycloakId?: boolean
   telegramChatId?: boolean
+  telegramLinkToken?: boolean
+  telegramLinkTokenExp?: boolean
   teamsUserId?: boolean
   teamsConversationId?: boolean
   phone?: boolean
   systemRole?: boolean
   timezone?: boolean
+  theme?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2279,11 +2700,14 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   fullName?: boolean
   keycloakId?: boolean
   telegramChatId?: boolean
+  telegramLinkToken?: boolean
+  telegramLinkTokenExp?: boolean
   teamsUserId?: boolean
   teamsConversationId?: boolean
   phone?: boolean
   systemRole?: boolean
   timezone?: boolean
+  theme?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2295,17 +2719,20 @@ export type UserSelectScalar = {
   fullName?: boolean
   keycloakId?: boolean
   telegramChatId?: boolean
+  telegramLinkToken?: boolean
+  telegramLinkTokenExp?: boolean
   teamsUserId?: boolean
   teamsConversationId?: boolean
   phone?: boolean
   systemRole?: boolean
   timezone?: boolean
+  theme?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "fullName" | "keycloakId" | "telegramChatId" | "teamsUserId" | "teamsConversationId" | "phone" | "systemRole" | "timezone" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "fullName" | "keycloakId" | "telegramChatId" | "telegramLinkToken" | "telegramLinkTokenExp" | "teamsUserId" | "teamsConversationId" | "phone" | "systemRole" | "timezone" | "theme" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
@@ -2318,6 +2745,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
   notificationRules?: boolean | Prisma.User$notificationRulesArgs<ExtArgs>
   acknowledgedAlerts?: boolean | Prisma.User$acknowledgedAlertsArgs<ExtArgs>
+  createdRunbooks?: boolean | Prisma.User$createdRunbooksArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -2337,6 +2765,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
     notificationRules: Prisma.$UserNotificationRulePayload<ExtArgs>[]
     acknowledgedAlerts: Prisma.$AlertPayload<ExtArgs>[]
+    createdRunbooks: Prisma.$RunbookPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2344,11 +2773,14 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     fullName: string
     keycloakId: string | null
     telegramChatId: bigint | null
+    telegramLinkToken: string | null
+    telegramLinkTokenExp: Date | null
     teamsUserId: string | null
     teamsConversationId: string | null
     phone: string | null
     systemRole: $Enums.SystemRole
     timezone: string
+    theme: string
     isActive: boolean
     createdAt: Date
     updatedAt: Date
@@ -2757,6 +3189,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   auditLogs<T extends Prisma.User$auditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notificationRules<T extends Prisma.User$notificationRulesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationRulesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserNotificationRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   acknowledgedAlerts<T extends Prisma.User$acknowledgedAlertsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$acknowledgedAlertsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AlertPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  createdRunbooks<T extends Prisma.User$createdRunbooksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdRunbooksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RunbookPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2791,11 +3224,14 @@ export interface UserFieldRefs {
   readonly fullName: Prisma.FieldRef<"User", 'String'>
   readonly keycloakId: Prisma.FieldRef<"User", 'String'>
   readonly telegramChatId: Prisma.FieldRef<"User", 'BigInt'>
+  readonly telegramLinkToken: Prisma.FieldRef<"User", 'String'>
+  readonly telegramLinkTokenExp: Prisma.FieldRef<"User", 'DateTime'>
   readonly teamsUserId: Prisma.FieldRef<"User", 'String'>
   readonly teamsConversationId: Prisma.FieldRef<"User", 'String'>
   readonly phone: Prisma.FieldRef<"User", 'String'>
   readonly systemRole: Prisma.FieldRef<"User", 'SystemRole'>
   readonly timezone: Prisma.FieldRef<"User", 'String'>
+  readonly theme: Prisma.FieldRef<"User", 'String'>
   readonly isActive: Prisma.FieldRef<"User", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
@@ -3453,6 +3889,30 @@ export type User$acknowledgedAlertsArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.AlertScalarFieldEnum | Prisma.AlertScalarFieldEnum[]
+}
+
+/**
+ * User.createdRunbooks
+ */
+export type User$createdRunbooksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Runbook
+   */
+  select?: Prisma.RunbookSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Runbook
+   */
+  omit?: Prisma.RunbookOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RunbookInclude<ExtArgs> | null
+  where?: Prisma.RunbookWhereInput
+  orderBy?: Prisma.RunbookOrderByWithRelationInput | Prisma.RunbookOrderByWithRelationInput[]
+  cursor?: Prisma.RunbookWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RunbookScalarFieldEnum | Prisma.RunbookScalarFieldEnum[]
 }
 
 /**

@@ -151,6 +151,8 @@ model User {
   fullName            String     @map("full_name")
   keycloakId          String?    @unique @map("keycloak_id")
   telegramChatId      BigInt?    @map("telegram_chat_id")
+  telegramLinkToken   String?    @unique @map("telegram_link_token")
+  telegramLinkTokenExp DateTime? @map("telegram_link_token_exp")
   teamsUserId         String?    @map("teams_user_id")
   teamsConversationId String?    @map("teams_conversation_id")
   phone               String?    @map("phone")

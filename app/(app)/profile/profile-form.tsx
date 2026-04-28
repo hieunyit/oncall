@@ -17,29 +17,82 @@ export function ProfileForm({ user }: { user: UserProfile }) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
-  const [checkingTg, setCheckingTg] = useState(false);
+
+  // Telegram link states
+  const [tgLinking, setTgLinking] = useState(false);
+  const [tgUnlinking, setTgUnlinking] = useState(false);
+  const [tgCheckingStatus, setTgCheckingStatus] = useState(false);
+  const [tgLinked, setTgLinked] = useState(!!user.telegramChatId);
+  const [tgLinkError, setTgLinkError] = useState("");
+
+  // Webhook setup (admin only)
   const [setupWebhook, setSetupWebhook] = useState<"idle" | "loading" | "ok" | "err">("idle");
+
   const [form, setForm] = useState({
     fullName: user.fullName ?? "",
     timezone: user.timezone ?? "Asia/Ho_Chi_Minh",
     phone: user.phone ?? "",
   });
 
-  const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
-  const telegramDeepLink = botUsername
-    ? `https://t.me/${botUsername}?start=${user.id}`
-    : null;
+  // Generate a secure 10-minute token then open the Telegram deep link
+  async function handleConnectTelegram() {
+    setTgLinking(true);
+    setTgLinkError("");
+    try {
+      const res = await fetch("/api/users/me/telegram-link", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        setTgLinkError(data.error ?? "Không thể tạo liên kết Telegram.");
+        return;
+      }
+      if (data.linkUrl) {
+        window.open(data.linkUrl, "_blank", "noopener,noreferrer");
+      } else {
+        setTgLinkError("Cần cấu hình TELEGRAM_BOT_USERNAME trên server.");
+      }
+    } catch {
+      setTgLinkError("Không thể kết nối đến máy chủ.");
+    } finally {
+      setTgLinking(false);
+    }
+  }
 
+  async function handleUnlinkTelegram() {
+    if (!confirm("Bạn có chắc muốn hủy kết nối Telegram không?")) return;
+    setTgUnlinking(true);
+    setTgLinkError("");
+    try {
+      const res = await fetch("/api/users/me/telegram-link", { method: "DELETE" });
+      if (res.ok) {
+        setTgLinked(false);
+        router.refresh();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setTgLinkError(data.error ?? "Không thể hủy kết nối.");
+      }
+    } catch {
+      setTgLinkError("Không thể kết nối đến máy chủ.");
+    } finally {
+      setTgUnlinking(false);
+    }
+  }
+
+  // Poll the API to detect when user finishes linking in Telegram
   async function checkTelegramStatus() {
-    setCheckingTg(true);
+    setTgCheckingStatus(true);
     try {
       const res = await fetch("/api/users/me");
       if (res.ok) {
         const data = await res.json();
-        if (data.telegramChatId) router.refresh();
+        if (data.telegramChatId) {
+          setTgLinked(true);
+          router.refresh();
+        } else {
+          setTgLinkError("Chưa phát hiện liên kết. Hãy mở bot Telegram và nhấn Start.");
+        }
       }
     } finally {
-      setCheckingTg(false);
+      setTgCheckingStatus(false);
     }
   }
 
@@ -129,53 +182,79 @@ export function ProfileForm({ user }: { user: UserProfile }) {
                 <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/>
               </svg>
             </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
                 <p className="text-sm font-medium text-gray-800">Telegram</p>
-                {user.telegramChatId ? (
-                  <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+                {tgLinked ? (
+                  <span className="text-xs text-green-600 font-medium flex items-center gap-1 shrink-0">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-                    Đã kết nối (ID: {user.telegramChatId})
+                    Đã kết nối
                   </span>
                 ) : (
-                  <span className="text-xs text-gray-400">Chưa kết nối</span>
+                  <span className="text-xs text-gray-400 shrink-0">Chưa kết nối</span>
                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-1 mb-2">
-                Nhấn nút bên dưới để mở bot Telegram và liên kết tài khoản tự động.
-              </p>
-              <div className="flex flex-wrap items-center gap-2">
-                {telegramDeepLink ? (
-                  <a
-                    href={telegramDeepLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2CA5E0] text-white text-xs font-medium rounded-lg hover:bg-[#239fd6] transition-colors"
-                  >
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/>
-                    </svg>
-                    {user.telegramChatId ? "Kết nối lại Telegram" : "Kết nối Telegram"}
-                  </a>
-                ) : (
-                  <p className="text-xs text-amber-600 bg-amber-50 px-2.5 py-1.5 rounded">
-                    Cần cấu hình <code className="font-mono">NEXT_PUBLIC_TELEGRAM_BOT_USERNAME</code> trong .env
+
+              {tgLinked ? (
+                <div className="mt-2">
+                  <p className="text-xs text-gray-500 mb-2">
+                    Tài khoản Telegram đã được liên kết. Bạn sẽ nhận thông báo ca trực trực tiếp.
                   </p>
-                )}
-                {!user.telegramChatId && telegramDeepLink && (
-                  <button
-                    type="button"
-                    onClick={checkTelegramStatus}
-                    disabled={checkingTg}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
-                  >
-                    {checkingTg ? "Đang kiểm tra..." : "↻ Kiểm tra trạng thái"}
-                  </button>
-                )}
-              </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={handleConnectTelegram}
+                      disabled={tgLinking}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2CA5E0] text-white text-xs font-medium rounded-lg hover:bg-[#239fd6] transition-colors disabled:opacity-50"
+                    >
+                      {tgLinking ? "Đang tạo liên kết..." : "Kết nối lại"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleUnlinkTelegram}
+                      disabled={tgUnlinking}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-red-600 text-xs font-medium rounded-lg border border-red-200 hover:bg-red-50 transition-colors disabled:opacity-50"
+                    >
+                      {tgUnlinking ? "Đang hủy..." : "Hủy kết nối"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-1">
+                  <p className="text-xs text-gray-500 mb-2">
+                    Nhấn nút bên dưới, hệ thống tạo liên kết an toàn (hiệu lực 10 phút) rồi mở bot Telegram để kết nối tự động.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={handleConnectTelegram}
+                      disabled={tgLinking}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2CA5E0] text-white text-xs font-medium rounded-lg hover:bg-[#239fd6] transition-colors disabled:opacity-50"
+                    >
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/>
+                      </svg>
+                      {tgLinking ? "Đang tạo liên kết..." : "Kết nối Telegram"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={checkTelegramStatus}
+                      disabled={tgCheckingStatus}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                    >
+                      {tgCheckingStatus ? "Đang kiểm tra..." : "↻ Đã kết nối rồi?"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {tgLinkError && (
+                <p className="mt-2 text-xs text-red-600">{tgLinkError}</p>
+              )}
+
               {/* Admin: register Telegram webhook */}
               {user.systemRole === "ADMIN" && (
-                <div className="mt-2 flex items-center gap-2">
+                <div className="mt-2 pt-2 border-t border-blue-100 flex items-center gap-2">
                   <button
                     type="button"
                     onClick={registerWebhook}

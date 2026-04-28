@@ -2,9 +2,10 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { ok, badRequest, notFound, conflict, handleError } from "@/lib/api-response";
-import { ConfirmationStatus } from "@/app/generated/prisma/client";
+import { ChannelType, ConfirmationStatus, DeliveryStatus } from "@/app/generated/prisma/client";
 import { writeAuditLog } from "@/lib/audit";
 import { notifyTeamChannels } from "@/lib/notifications/notify-channel";
+import { editTelegramDeliveries } from "@/lib/notifications/telegram";
 
 const RespondSchema = z.object({
   action: z.enum(["confirm", "decline"]),
@@ -103,6 +104,33 @@ export async function POST(
         appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "",
       },
     }).catch((e) => console.error("notify team channels failed:", e));
+
+    // Edit personal Telegram messages for this shift to remove confirm/decline buttons
+    const fmtVN = (d: Date) => d.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
+    const icon = action === "confirm" ? "✅" : "❌";
+    const label = action === "confirm" ? "Đã xác nhận" : "Đã từ chối";
+    const editedText = [
+      `${icon} <b>${label} ca trực</b>`,
+      ``,
+      `Ca: <b>${confirmation.shift.policy.name}</b>`,
+      `Bắt đầu: ${fmtVN(confirmation.shift.startsAt)}`,
+      `Kết thúc: ${fmtVN(confirmation.shift.endsAt)}`,
+      ``,
+      `Người thực hiện: ${confirmation.shift.assignee.fullName}`,
+    ].join("\n");
+
+    prisma.notificationDelivery
+      .findMany({
+        where: {
+          channelType: ChannelType.TELEGRAM,
+          status: DeliveryStatus.SENT,
+          externalId: { not: null },
+          message: { shiftId: confirmation.shiftId },
+        },
+        select: { externalId: true },
+      })
+      .then((deliveries) => editTelegramDeliveries(deliveries, editedText))
+      .catch(() => {});
 
     return ok(updated);
   } catch (error) {

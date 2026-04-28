@@ -48,7 +48,8 @@ export async function editMessageText(
   chatId: string | number,
   messageId: number,
   text: string,
-  parseMode: "HTML" | "Markdown" = "HTML"
+  parseMode: "HTML" | "Markdown" = "HTML",
+  replyMarkup?: object
 ): Promise<unknown> {
   const res = await fetch(botUrl("editMessageText"), {
     method: "POST",
@@ -58,6 +59,7 @@ export async function editMessageText(
       message_id: messageId,
       text,
       parse_mode: parseMode,
+      ...(replyMarkup !== undefined ? { reply_markup: replyMarkup } : {}),
     }),
   });
   return res.json();
@@ -82,15 +84,37 @@ export function buildInlineKeyboard(templateId: string, variables: Record<string
   return undefined;
 }
 
-export function renderTelegramMessage(templateId: string, vars: Record<string, string>): string {
-  const confirmUrl = `${vars.appUrl}/confirm/${vars.confirmationToken}`;
+export function parseTelegramExternalId(externalId: string): { chatId: string; messageId: number } | null {
+  const pipe = externalId.lastIndexOf("|");
+  if (pipe === -1) return null;
+  const chatId = externalId.slice(0, pipe);
+  const messageId = parseInt(externalId.slice(pipe + 1), 10);
+  if (!chatId || isNaN(messageId)) return null;
+  return { chatId, messageId };
+}
 
+export async function editTelegramDeliveries(
+  deliveries: Array<{ externalId: string | null }>,
+  text: string
+): Promise<void> {
+  const tasks = deliveries
+    .map((d) => (d.externalId ? parseTelegramExternalId(d.externalId) : null))
+    .filter((x): x is { chatId: string; messageId: number } => x !== null);
+
+  await Promise.allSettled(
+    tasks.map(({ chatId, messageId }) =>
+      editMessageText(chatId, messageId, text, "HTML", { inline_keyboard: [] })
+    )
+  );
+}
+
+export function renderTelegramMessage(templateId: string, vars: Record<string, string>): string {
   const fmtVN = (iso: string) =>
     new Date(iso).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
 
   switch (templateId) {
-    case "shift-reminder":
-      return [
+    case "shift-reminder": {
+      const lines = [
         `📅 <b>Nhắc nhở ca trực</b>`,
         ``,
         `Xin chào ${vars.recipientName},`,
@@ -98,9 +122,13 @@ export function renderTelegramMessage(templateId: string, vars: Record<string, s
         `Bạn có ca trực <b>${vars.policyName}</b>:`,
         `• Bắt đầu: ${fmtVN(vars.shiftStart)}`,
         `• Kết thúc: ${fmtVN(vars.shiftEnd)}`,
-        ``,
-        `<a href="${confirmUrl}">✅ Xác nhận ca trực</a>`,
-      ].join("\n");
+      ];
+      if (vars.confirmationToken) {
+        const confirmUrl = `${vars.appUrl}/confirm/${vars.confirmationToken}`;
+        lines.push(``, `<a href="${confirmUrl}">✅ Xác nhận ca trực</a>`);
+      }
+      return lines.join("\n");
+    }
     case "alert-firing":
       return [
         `🔴 <b>ALERT: ${vars.alertTitle}</b>`,
@@ -168,7 +196,7 @@ export async function setTelegramWebhook(webhookUrl: string): Promise<unknown> {
     body: JSON.stringify({
       url: webhookUrl,
       secret_token: secret,
-      allowed_updates: ["message"],
+      allowed_updates: ["message", "callback_query"],
     }),
   });
   return res.json();

@@ -236,7 +236,7 @@ export type SwapRequestGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 export type SwapRequestGroupByOutputType = {
   id: string
   requesterId: string
-  targetUserId: string
+  targetUserId: string | null
   originalShiftId: string
   targetShiftId: string | null
   status: $Enums.SwapStatus
@@ -276,7 +276,7 @@ export type SwapRequestWhereInput = {
   NOT?: Prisma.SwapRequestWhereInput | Prisma.SwapRequestWhereInput[]
   id?: Prisma.UuidFilter<"SwapRequest"> | string
   requesterId?: Prisma.UuidFilter<"SwapRequest"> | string
-  targetUserId?: Prisma.UuidFilter<"SwapRequest"> | string
+  targetUserId?: Prisma.UuidNullableFilter<"SwapRequest"> | string | null
   originalShiftId?: Prisma.UuidFilter<"SwapRequest"> | string
   targetShiftId?: Prisma.UuidNullableFilter<"SwapRequest"> | string | null
   status?: Prisma.EnumSwapStatusFilter<"SwapRequest"> | $Enums.SwapStatus
@@ -289,7 +289,7 @@ export type SwapRequestWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"SwapRequest"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SwapRequest"> | Date | string
   requester?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  targetUser?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  targetUser?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   originalShift?: Prisma.XOR<Prisma.ShiftScalarRelationFilter, Prisma.ShiftWhereInput>
   targetShift?: Prisma.XOR<Prisma.ShiftNullableScalarRelationFilter, Prisma.ShiftWhereInput> | null
 }
@@ -297,7 +297,7 @@ export type SwapRequestWhereInput = {
 export type SwapRequestOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   requesterId?: Prisma.SortOrder
-  targetUserId?: Prisma.SortOrder
+  targetUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   originalShiftId?: Prisma.SortOrder
   targetShiftId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -322,7 +322,7 @@ export type SwapRequestWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.SwapRequestWhereInput[]
   NOT?: Prisma.SwapRequestWhereInput | Prisma.SwapRequestWhereInput[]
   requesterId?: Prisma.UuidFilter<"SwapRequest"> | string
-  targetUserId?: Prisma.UuidFilter<"SwapRequest"> | string
+  targetUserId?: Prisma.UuidNullableFilter<"SwapRequest"> | string | null
   originalShiftId?: Prisma.UuidFilter<"SwapRequest"> | string
   targetShiftId?: Prisma.UuidNullableFilter<"SwapRequest"> | string | null
   status?: Prisma.EnumSwapStatusFilter<"SwapRequest"> | $Enums.SwapStatus
@@ -334,7 +334,7 @@ export type SwapRequestWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"SwapRequest"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SwapRequest"> | Date | string
   requester?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  targetUser?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  targetUser?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   originalShift?: Prisma.XOR<Prisma.ShiftScalarRelationFilter, Prisma.ShiftWhereInput>
   targetShift?: Prisma.XOR<Prisma.ShiftNullableScalarRelationFilter, Prisma.ShiftWhereInput> | null
 }, "id" | "idempotencyKey">
@@ -342,7 +342,7 @@ export type SwapRequestWhereUniqueInput = Prisma.AtLeast<{
 export type SwapRequestOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   requesterId?: Prisma.SortOrder
-  targetUserId?: Prisma.SortOrder
+  targetUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   originalShiftId?: Prisma.SortOrder
   targetShiftId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -367,7 +367,7 @@ export type SwapRequestScalarWhereWithAggregatesInput = {
   NOT?: Prisma.SwapRequestScalarWhereWithAggregatesInput | Prisma.SwapRequestScalarWhereWithAggregatesInput[]
   id?: Prisma.UuidWithAggregatesFilter<"SwapRequest"> | string
   requesterId?: Prisma.UuidWithAggregatesFilter<"SwapRequest"> | string
-  targetUserId?: Prisma.UuidWithAggregatesFilter<"SwapRequest"> | string
+  targetUserId?: Prisma.UuidNullableWithAggregatesFilter<"SwapRequest"> | string | null
   originalShiftId?: Prisma.UuidWithAggregatesFilter<"SwapRequest"> | string
   targetShiftId?: Prisma.UuidNullableWithAggregatesFilter<"SwapRequest"> | string | null
   status?: Prisma.EnumSwapStatusWithAggregatesFilter<"SwapRequest"> | $Enums.SwapStatus
@@ -393,7 +393,7 @@ export type SwapRequestCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   requester: Prisma.UserCreateNestedOneWithoutSwapRequestsFromInput
-  targetUser: Prisma.UserCreateNestedOneWithoutSwapRequestsTargetInput
+  targetUser?: Prisma.UserCreateNestedOneWithoutSwapRequestsTargetInput
   originalShift: Prisma.ShiftCreateNestedOneWithoutSwapRequestsAsOriginalInput
   targetShift?: Prisma.ShiftCreateNestedOneWithoutSwapRequestsAsTargetInput
 }
@@ -401,7 +401,7 @@ export type SwapRequestCreateInput = {
 export type SwapRequestUncheckedCreateInput = {
   id?: string
   requesterId: string
-  targetUserId: string
+  targetUserId?: string | null
   originalShiftId: string
   targetShiftId?: string | null
   status?: $Enums.SwapStatus
@@ -427,7 +427,7 @@ export type SwapRequestUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   requester?: Prisma.UserUpdateOneRequiredWithoutSwapRequestsFromNestedInput
-  targetUser?: Prisma.UserUpdateOneRequiredWithoutSwapRequestsTargetNestedInput
+  targetUser?: Prisma.UserUpdateOneWithoutSwapRequestsTargetNestedInput
   originalShift?: Prisma.ShiftUpdateOneRequiredWithoutSwapRequestsAsOriginalNestedInput
   targetShift?: Prisma.ShiftUpdateOneWithoutSwapRequestsAsTargetNestedInput
 }
@@ -435,7 +435,7 @@ export type SwapRequestUpdateInput = {
 export type SwapRequestUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   requesterId?: Prisma.StringFieldUpdateOperationsInput | string
-  targetUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  targetUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalShiftId?: Prisma.StringFieldUpdateOperationsInput | string
   targetShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSwapStatusFieldUpdateOperationsInput | $Enums.SwapStatus
@@ -452,7 +452,7 @@ export type SwapRequestUncheckedUpdateInput = {
 export type SwapRequestCreateManyInput = {
   id?: string
   requesterId: string
-  targetUserId: string
+  targetUserId?: string | null
   originalShiftId: string
   targetShiftId?: string | null
   status?: $Enums.SwapStatus
@@ -482,7 +482,7 @@ export type SwapRequestUpdateManyMutationInput = {
 export type SwapRequestUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   requesterId?: Prisma.StringFieldUpdateOperationsInput | string
-  targetUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  targetUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalShiftId?: Prisma.StringFieldUpdateOperationsInput | string
   targetShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSwapStatusFieldUpdateOperationsInput | $Enums.SwapStatus
@@ -748,14 +748,14 @@ export type SwapRequestCreateWithoutRequesterInput = {
   version?: number
   createdAt?: Date | string
   updatedAt?: Date | string
-  targetUser: Prisma.UserCreateNestedOneWithoutSwapRequestsTargetInput
+  targetUser?: Prisma.UserCreateNestedOneWithoutSwapRequestsTargetInput
   originalShift: Prisma.ShiftCreateNestedOneWithoutSwapRequestsAsOriginalInput
   targetShift?: Prisma.ShiftCreateNestedOneWithoutSwapRequestsAsTargetInput
 }
 
 export type SwapRequestUncheckedCreateWithoutRequesterInput = {
   id?: string
-  targetUserId: string
+  targetUserId?: string | null
   originalShiftId: string
   targetShiftId?: string | null
   status?: $Enums.SwapStatus
@@ -843,7 +843,7 @@ export type SwapRequestScalarWhereInput = {
   NOT?: Prisma.SwapRequestScalarWhereInput | Prisma.SwapRequestScalarWhereInput[]
   id?: Prisma.UuidFilter<"SwapRequest"> | string
   requesterId?: Prisma.UuidFilter<"SwapRequest"> | string
-  targetUserId?: Prisma.UuidFilter<"SwapRequest"> | string
+  targetUserId?: Prisma.UuidNullableFilter<"SwapRequest"> | string | null
   originalShiftId?: Prisma.UuidFilter<"SwapRequest"> | string
   targetShiftId?: Prisma.UuidNullableFilter<"SwapRequest"> | string | null
   status?: Prisma.EnumSwapStatusFilter<"SwapRequest"> | $Enums.SwapStatus
@@ -885,14 +885,14 @@ export type SwapRequestCreateWithoutOriginalShiftInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   requester: Prisma.UserCreateNestedOneWithoutSwapRequestsFromInput
-  targetUser: Prisma.UserCreateNestedOneWithoutSwapRequestsTargetInput
+  targetUser?: Prisma.UserCreateNestedOneWithoutSwapRequestsTargetInput
   targetShift?: Prisma.ShiftCreateNestedOneWithoutSwapRequestsAsTargetInput
 }
 
 export type SwapRequestUncheckedCreateWithoutOriginalShiftInput = {
   id?: string
   requesterId: string
-  targetUserId: string
+  targetUserId?: string | null
   targetShiftId?: string | null
   status?: $Enums.SwapStatus
   requesterNote?: string | null
@@ -927,14 +927,14 @@ export type SwapRequestCreateWithoutTargetShiftInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   requester: Prisma.UserCreateNestedOneWithoutSwapRequestsFromInput
-  targetUser: Prisma.UserCreateNestedOneWithoutSwapRequestsTargetInput
+  targetUser?: Prisma.UserCreateNestedOneWithoutSwapRequestsTargetInput
   originalShift: Prisma.ShiftCreateNestedOneWithoutSwapRequestsAsOriginalInput
 }
 
 export type SwapRequestUncheckedCreateWithoutTargetShiftInput = {
   id?: string
   requesterId: string
-  targetUserId: string
+  targetUserId?: string | null
   originalShiftId: string
   status?: $Enums.SwapStatus
   requesterNote?: string | null
@@ -991,7 +991,7 @@ export type SwapRequestUpdateManyWithWhereWithoutTargetShiftInput = {
 
 export type SwapRequestCreateManyRequesterInput = {
   id?: string
-  targetUserId: string
+  targetUserId?: string | null
   originalShiftId: string
   targetShiftId?: string | null
   status?: $Enums.SwapStatus
@@ -1032,14 +1032,14 @@ export type SwapRequestUpdateWithoutRequesterInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  targetUser?: Prisma.UserUpdateOneRequiredWithoutSwapRequestsTargetNestedInput
+  targetUser?: Prisma.UserUpdateOneWithoutSwapRequestsTargetNestedInput
   originalShift?: Prisma.ShiftUpdateOneRequiredWithoutSwapRequestsAsOriginalNestedInput
   targetShift?: Prisma.ShiftUpdateOneWithoutSwapRequestsAsTargetNestedInput
 }
 
 export type SwapRequestUncheckedUpdateWithoutRequesterInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  targetUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  targetUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalShiftId?: Prisma.StringFieldUpdateOperationsInput | string
   targetShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSwapStatusFieldUpdateOperationsInput | $Enums.SwapStatus
@@ -1055,7 +1055,7 @@ export type SwapRequestUncheckedUpdateWithoutRequesterInput = {
 
 export type SwapRequestUncheckedUpdateManyWithoutRequesterInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  targetUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  targetUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalShiftId?: Prisma.StringFieldUpdateOperationsInput | string
   targetShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSwapStatusFieldUpdateOperationsInput | $Enums.SwapStatus
@@ -1120,7 +1120,7 @@ export type SwapRequestUncheckedUpdateManyWithoutTargetUserInput = {
 export type SwapRequestCreateManyOriginalShiftInput = {
   id?: string
   requesterId: string
-  targetUserId: string
+  targetUserId?: string | null
   targetShiftId?: string | null
   status?: $Enums.SwapStatus
   requesterNote?: string | null
@@ -1136,7 +1136,7 @@ export type SwapRequestCreateManyOriginalShiftInput = {
 export type SwapRequestCreateManyTargetShiftInput = {
   id?: string
   requesterId: string
-  targetUserId: string
+  targetUserId?: string | null
   originalShiftId: string
   status?: $Enums.SwapStatus
   requesterNote?: string | null
@@ -1161,14 +1161,14 @@ export type SwapRequestUpdateWithoutOriginalShiftInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   requester?: Prisma.UserUpdateOneRequiredWithoutSwapRequestsFromNestedInput
-  targetUser?: Prisma.UserUpdateOneRequiredWithoutSwapRequestsTargetNestedInput
+  targetUser?: Prisma.UserUpdateOneWithoutSwapRequestsTargetNestedInput
   targetShift?: Prisma.ShiftUpdateOneWithoutSwapRequestsAsTargetNestedInput
 }
 
 export type SwapRequestUncheckedUpdateWithoutOriginalShiftInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   requesterId?: Prisma.StringFieldUpdateOperationsInput | string
-  targetUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  targetUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   targetShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSwapStatusFieldUpdateOperationsInput | $Enums.SwapStatus
   requesterNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1184,7 +1184,7 @@ export type SwapRequestUncheckedUpdateWithoutOriginalShiftInput = {
 export type SwapRequestUncheckedUpdateManyWithoutOriginalShiftInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   requesterId?: Prisma.StringFieldUpdateOperationsInput | string
-  targetUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  targetUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   targetShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSwapStatusFieldUpdateOperationsInput | $Enums.SwapStatus
   requesterNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1209,14 +1209,14 @@ export type SwapRequestUpdateWithoutTargetShiftInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   requester?: Prisma.UserUpdateOneRequiredWithoutSwapRequestsFromNestedInput
-  targetUser?: Prisma.UserUpdateOneRequiredWithoutSwapRequestsTargetNestedInput
+  targetUser?: Prisma.UserUpdateOneWithoutSwapRequestsTargetNestedInput
   originalShift?: Prisma.ShiftUpdateOneRequiredWithoutSwapRequestsAsOriginalNestedInput
 }
 
 export type SwapRequestUncheckedUpdateWithoutTargetShiftInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   requesterId?: Prisma.StringFieldUpdateOperationsInput | string
-  targetUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  targetUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalShiftId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSwapStatusFieldUpdateOperationsInput | $Enums.SwapStatus
   requesterNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1232,7 +1232,7 @@ export type SwapRequestUncheckedUpdateWithoutTargetShiftInput = {
 export type SwapRequestUncheckedUpdateManyWithoutTargetShiftInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   requesterId?: Prisma.StringFieldUpdateOperationsInput | string
-  targetUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  targetUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalShiftId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSwapStatusFieldUpdateOperationsInput | $Enums.SwapStatus
   requesterNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1263,7 +1263,7 @@ export type SwapRequestSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   createdAt?: boolean
   updatedAt?: boolean
   requester?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  targetUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  targetUser?: boolean | Prisma.SwapRequest$targetUserArgs<ExtArgs>
   originalShift?: boolean | Prisma.ShiftDefaultArgs<ExtArgs>
   targetShift?: boolean | Prisma.SwapRequest$targetShiftArgs<ExtArgs>
 }, ExtArgs["result"]["swapRequest"]>
@@ -1284,7 +1284,7 @@ export type SwapRequestSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   createdAt?: boolean
   updatedAt?: boolean
   requester?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  targetUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  targetUser?: boolean | Prisma.SwapRequest$targetUserArgs<ExtArgs>
   originalShift?: boolean | Prisma.ShiftDefaultArgs<ExtArgs>
   targetShift?: boolean | Prisma.SwapRequest$targetShiftArgs<ExtArgs>
 }, ExtArgs["result"]["swapRequest"]>
@@ -1305,7 +1305,7 @@ export type SwapRequestSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   createdAt?: boolean
   updatedAt?: boolean
   requester?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  targetUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  targetUser?: boolean | Prisma.SwapRequest$targetUserArgs<ExtArgs>
   originalShift?: boolean | Prisma.ShiftDefaultArgs<ExtArgs>
   targetShift?: boolean | Prisma.SwapRequest$targetShiftArgs<ExtArgs>
 }, ExtArgs["result"]["swapRequest"]>
@@ -1330,19 +1330,19 @@ export type SwapRequestSelectScalar = {
 export type SwapRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "requesterId" | "targetUserId" | "originalShiftId" | "targetShiftId" | "status" | "requesterNote" | "targetNote" | "managerNote" | "expiresAt" | "idempotencyKey" | "version" | "createdAt" | "updatedAt", ExtArgs["result"]["swapRequest"]>
 export type SwapRequestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   requester?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  targetUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  targetUser?: boolean | Prisma.SwapRequest$targetUserArgs<ExtArgs>
   originalShift?: boolean | Prisma.ShiftDefaultArgs<ExtArgs>
   targetShift?: boolean | Prisma.SwapRequest$targetShiftArgs<ExtArgs>
 }
 export type SwapRequestIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   requester?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  targetUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  targetUser?: boolean | Prisma.SwapRequest$targetUserArgs<ExtArgs>
   originalShift?: boolean | Prisma.ShiftDefaultArgs<ExtArgs>
   targetShift?: boolean | Prisma.SwapRequest$targetShiftArgs<ExtArgs>
 }
 export type SwapRequestIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   requester?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  targetUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  targetUser?: boolean | Prisma.SwapRequest$targetUserArgs<ExtArgs>
   originalShift?: boolean | Prisma.ShiftDefaultArgs<ExtArgs>
   targetShift?: boolean | Prisma.SwapRequest$targetShiftArgs<ExtArgs>
 }
@@ -1351,14 +1351,14 @@ export type $SwapRequestPayload<ExtArgs extends runtime.Types.Extensions.Interna
   name: "SwapRequest"
   objects: {
     requester: Prisma.$UserPayload<ExtArgs>
-    targetUser: Prisma.$UserPayload<ExtArgs>
+    targetUser: Prisma.$UserPayload<ExtArgs> | null
     originalShift: Prisma.$ShiftPayload<ExtArgs>
     targetShift: Prisma.$ShiftPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     requesterId: string
-    targetUserId: string
+    targetUserId: string | null
     originalShiftId: string
     targetShiftId: string | null
     status: $Enums.SwapStatus
@@ -1765,7 +1765,7 @@ readonly fields: SwapRequestFieldRefs;
 export interface Prisma__SwapRequestClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   requester<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  targetUser<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  targetUser<T extends Prisma.SwapRequest$targetUserArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SwapRequest$targetUserArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   originalShift<T extends Prisma.ShiftDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ShiftDefaultArgs<ExtArgs>>): Prisma.Prisma__ShiftClient<runtime.Types.Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   targetShift<T extends Prisma.SwapRequest$targetShiftArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SwapRequest$targetShiftArgs<ExtArgs>>): Prisma.Prisma__ShiftClient<runtime.Types.Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
@@ -2209,6 +2209,25 @@ export type SwapRequestDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * Limit how many SwapRequests to delete.
    */
   limit?: number
+}
+
+/**
+ * SwapRequest.targetUser
+ */
+export type SwapRequest$targetUserArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
 }
 
 /**

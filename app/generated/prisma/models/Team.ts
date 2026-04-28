@@ -195,6 +195,7 @@ export type TeamWhereInput = {
   notificationChannels?: Prisma.TeamNotificationChannelListRelationFilter
   escalationPolicies?: Prisma.EscalationPolicyListRelationFilter
   alertIntegrations?: Prisma.AlertIntegrationListRelationFilter
+  runbooks?: Prisma.RunbookListRelationFilter
 }
 
 export type TeamOrderByWithRelationInput = {
@@ -209,6 +210,7 @@ export type TeamOrderByWithRelationInput = {
   notificationChannels?: Prisma.TeamNotificationChannelOrderByRelationAggregateInput
   escalationPolicies?: Prisma.EscalationPolicyOrderByRelationAggregateInput
   alertIntegrations?: Prisma.AlertIntegrationOrderByRelationAggregateInput
+  runbooks?: Prisma.RunbookOrderByRelationAggregateInput
 }
 
 export type TeamWhereUniqueInput = Prisma.AtLeast<{
@@ -226,6 +228,7 @@ export type TeamWhereUniqueInput = Prisma.AtLeast<{
   notificationChannels?: Prisma.TeamNotificationChannelListRelationFilter
   escalationPolicies?: Prisma.EscalationPolicyListRelationFilter
   alertIntegrations?: Prisma.AlertIntegrationListRelationFilter
+  runbooks?: Prisma.RunbookListRelationFilter
 }, "id" | "name">
 
 export type TeamOrderByWithAggregationInput = {
@@ -264,6 +267,7 @@ export type TeamCreateInput = {
   notificationChannels?: Prisma.TeamNotificationChannelCreateNestedManyWithoutTeamInput
   escalationPolicies?: Prisma.EscalationPolicyCreateNestedManyWithoutTeamInput
   alertIntegrations?: Prisma.AlertIntegrationCreateNestedManyWithoutTeamInput
+  runbooks?: Prisma.RunbookCreateNestedManyWithoutTeamInput
 }
 
 export type TeamUncheckedCreateInput = {
@@ -278,6 +282,7 @@ export type TeamUncheckedCreateInput = {
   notificationChannels?: Prisma.TeamNotificationChannelUncheckedCreateNestedManyWithoutTeamInput
   escalationPolicies?: Prisma.EscalationPolicyUncheckedCreateNestedManyWithoutTeamInput
   alertIntegrations?: Prisma.AlertIntegrationUncheckedCreateNestedManyWithoutTeamInput
+  runbooks?: Prisma.RunbookUncheckedCreateNestedManyWithoutTeamInput
 }
 
 export type TeamUpdateInput = {
@@ -292,6 +297,7 @@ export type TeamUpdateInput = {
   notificationChannels?: Prisma.TeamNotificationChannelUpdateManyWithoutTeamNestedInput
   escalationPolicies?: Prisma.EscalationPolicyUpdateManyWithoutTeamNestedInput
   alertIntegrations?: Prisma.AlertIntegrationUpdateManyWithoutTeamNestedInput
+  runbooks?: Prisma.RunbookUpdateManyWithoutTeamNestedInput
 }
 
 export type TeamUncheckedUpdateInput = {
@@ -306,6 +312,7 @@ export type TeamUncheckedUpdateInput = {
   notificationChannels?: Prisma.TeamNotificationChannelUncheckedUpdateManyWithoutTeamNestedInput
   escalationPolicies?: Prisma.EscalationPolicyUncheckedUpdateManyWithoutTeamNestedInput
   alertIntegrations?: Prisma.AlertIntegrationUncheckedUpdateManyWithoutTeamNestedInput
+  runbooks?: Prisma.RunbookUncheckedUpdateManyWithoutTeamNestedInput
 }
 
 export type TeamCreateManyInput = {
@@ -437,6 +444,20 @@ export type TeamUpdateOneRequiredWithoutAlertIntegrationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.TeamUpdateToOneWithWhereWithoutAlertIntegrationsInput, Prisma.TeamUpdateWithoutAlertIntegrationsInput>, Prisma.TeamUncheckedUpdateWithoutAlertIntegrationsInput>
 }
 
+export type TeamCreateNestedOneWithoutRunbooksInput = {
+  create?: Prisma.XOR<Prisma.TeamCreateWithoutRunbooksInput, Prisma.TeamUncheckedCreateWithoutRunbooksInput>
+  connectOrCreate?: Prisma.TeamCreateOrConnectWithoutRunbooksInput
+  connect?: Prisma.TeamWhereUniqueInput
+}
+
+export type TeamUpdateOneRequiredWithoutRunbooksNestedInput = {
+  create?: Prisma.XOR<Prisma.TeamCreateWithoutRunbooksInput, Prisma.TeamUncheckedCreateWithoutRunbooksInput>
+  connectOrCreate?: Prisma.TeamCreateOrConnectWithoutRunbooksInput
+  upsert?: Prisma.TeamUpsertWithoutRunbooksInput
+  connect?: Prisma.TeamWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TeamUpdateToOneWithWhereWithoutRunbooksInput, Prisma.TeamUpdateWithoutRunbooksInput>, Prisma.TeamUncheckedUpdateWithoutRunbooksInput>
+}
+
 export type TeamCreateWithoutMembersInput = {
   id?: string
   name: string
@@ -448,6 +469,7 @@ export type TeamCreateWithoutMembersInput = {
   notificationChannels?: Prisma.TeamNotificationChannelCreateNestedManyWithoutTeamInput
   escalationPolicies?: Prisma.EscalationPolicyCreateNestedManyWithoutTeamInput
   alertIntegrations?: Prisma.AlertIntegrationCreateNestedManyWithoutTeamInput
+  runbooks?: Prisma.RunbookCreateNestedManyWithoutTeamInput
 }
 
 export type TeamUncheckedCreateWithoutMembersInput = {
@@ -461,6 +483,7 @@ export type TeamUncheckedCreateWithoutMembersInput = {
   notificationChannels?: Prisma.TeamNotificationChannelUncheckedCreateNestedManyWithoutTeamInput
   escalationPolicies?: Prisma.EscalationPolicyUncheckedCreateNestedManyWithoutTeamInput
   alertIntegrations?: Prisma.AlertIntegrationUncheckedCreateNestedManyWithoutTeamInput
+  runbooks?: Prisma.RunbookUncheckedCreateNestedManyWithoutTeamInput
 }
 
 export type TeamCreateOrConnectWithoutMembersInput = {
@@ -490,6 +513,7 @@ export type TeamUpdateWithoutMembersInput = {
   notificationChannels?: Prisma.TeamNotificationChannelUpdateManyWithoutTeamNestedInput
   escalationPolicies?: Prisma.EscalationPolicyUpdateManyWithoutTeamNestedInput
   alertIntegrations?: Prisma.AlertIntegrationUpdateManyWithoutTeamNestedInput
+  runbooks?: Prisma.RunbookUpdateManyWithoutTeamNestedInput
 }
 
 export type TeamUncheckedUpdateWithoutMembersInput = {
@@ -503,6 +527,7 @@ export type TeamUncheckedUpdateWithoutMembersInput = {
   notificationChannels?: Prisma.TeamNotificationChannelUncheckedUpdateManyWithoutTeamNestedInput
   escalationPolicies?: Prisma.EscalationPolicyUncheckedUpdateManyWithoutTeamNestedInput
   alertIntegrations?: Prisma.AlertIntegrationUncheckedUpdateManyWithoutTeamNestedInput
+  runbooks?: Prisma.RunbookUncheckedUpdateManyWithoutTeamNestedInput
 }
 
 export type TeamCreateWithoutRotationPoliciesInput = {
@@ -516,6 +541,7 @@ export type TeamCreateWithoutRotationPoliciesInput = {
   notificationChannels?: Prisma.TeamNotificationChannelCreateNestedManyWithoutTeamInput
   escalationPolicies?: Prisma.EscalationPolicyCreateNestedManyWithoutTeamInput
   alertIntegrations?: Prisma.AlertIntegrationCreateNestedManyWithoutTeamInput
+  runbooks?: Prisma.RunbookCreateNestedManyWithoutTeamInput
 }
 
 export type TeamUncheckedCreateWithoutRotationPoliciesInput = {
@@ -529,6 +555,7 @@ export type TeamUncheckedCreateWithoutRotationPoliciesInput = {
   notificationChannels?: Prisma.TeamNotificationChannelUncheckedCreateNestedManyWithoutTeamInput
   escalationPolicies?: Prisma.EscalationPolicyUncheckedCreateNestedManyWithoutTeamInput
   alertIntegrations?: Prisma.AlertIntegrationUncheckedCreateNestedManyWithoutTeamInput
+  runbooks?: Prisma.RunbookUncheckedCreateNestedManyWithoutTeamInput
 }
 
 export type TeamCreateOrConnectWithoutRotationPoliciesInput = {
@@ -558,6 +585,7 @@ export type TeamUpdateWithoutRotationPoliciesInput = {
   notificationChannels?: Prisma.TeamNotificationChannelUpdateManyWithoutTeamNestedInput
   escalationPolicies?: Prisma.EscalationPolicyUpdateManyWithoutTeamNestedInput
   alertIntegrations?: Prisma.AlertIntegrationUpdateManyWithoutTeamNestedInput
+  runbooks?: Prisma.RunbookUpdateManyWithoutTeamNestedInput
 }
 
 export type TeamUncheckedUpdateWithoutRotationPoliciesInput = {
@@ -571,6 +599,7 @@ export type TeamUncheckedUpdateWithoutRotationPoliciesInput = {
   notificationChannels?: Prisma.TeamNotificationChannelUncheckedUpdateManyWithoutTeamNestedInput
   escalationPolicies?: Prisma.EscalationPolicyUncheckedUpdateManyWithoutTeamNestedInput
   alertIntegrations?: Prisma.AlertIntegrationUncheckedUpdateManyWithoutTeamNestedInput
+  runbooks?: Prisma.RunbookUncheckedUpdateManyWithoutTeamNestedInput
 }
 
 export type TeamCreateWithoutNotificationChannelsInput = {
@@ -584,6 +613,7 @@ export type TeamCreateWithoutNotificationChannelsInput = {
   rotationPolicies?: Prisma.RotationPolicyCreateNestedManyWithoutTeamInput
   escalationPolicies?: Prisma.EscalationPolicyCreateNestedManyWithoutTeamInput
   alertIntegrations?: Prisma.AlertIntegrationCreateNestedManyWithoutTeamInput
+  runbooks?: Prisma.RunbookCreateNestedManyWithoutTeamInput
 }
 
 export type TeamUncheckedCreateWithoutNotificationChannelsInput = {
@@ -597,6 +627,7 @@ export type TeamUncheckedCreateWithoutNotificationChannelsInput = {
   rotationPolicies?: Prisma.RotationPolicyUncheckedCreateNestedManyWithoutTeamInput
   escalationPolicies?: Prisma.EscalationPolicyUncheckedCreateNestedManyWithoutTeamInput
   alertIntegrations?: Prisma.AlertIntegrationUncheckedCreateNestedManyWithoutTeamInput
+  runbooks?: Prisma.RunbookUncheckedCreateNestedManyWithoutTeamInput
 }
 
 export type TeamCreateOrConnectWithoutNotificationChannelsInput = {
@@ -626,6 +657,7 @@ export type TeamUpdateWithoutNotificationChannelsInput = {
   rotationPolicies?: Prisma.RotationPolicyUpdateManyWithoutTeamNestedInput
   escalationPolicies?: Prisma.EscalationPolicyUpdateManyWithoutTeamNestedInput
   alertIntegrations?: Prisma.AlertIntegrationUpdateManyWithoutTeamNestedInput
+  runbooks?: Prisma.RunbookUpdateManyWithoutTeamNestedInput
 }
 
 export type TeamUncheckedUpdateWithoutNotificationChannelsInput = {
@@ -639,6 +671,7 @@ export type TeamUncheckedUpdateWithoutNotificationChannelsInput = {
   rotationPolicies?: Prisma.RotationPolicyUncheckedUpdateManyWithoutTeamNestedInput
   escalationPolicies?: Prisma.EscalationPolicyUncheckedUpdateManyWithoutTeamNestedInput
   alertIntegrations?: Prisma.AlertIntegrationUncheckedUpdateManyWithoutTeamNestedInput
+  runbooks?: Prisma.RunbookUncheckedUpdateManyWithoutTeamNestedInput
 }
 
 export type TeamCreateWithoutEscalationPoliciesInput = {
@@ -652,6 +685,7 @@ export type TeamCreateWithoutEscalationPoliciesInput = {
   rotationPolicies?: Prisma.RotationPolicyCreateNestedManyWithoutTeamInput
   notificationChannels?: Prisma.TeamNotificationChannelCreateNestedManyWithoutTeamInput
   alertIntegrations?: Prisma.AlertIntegrationCreateNestedManyWithoutTeamInput
+  runbooks?: Prisma.RunbookCreateNestedManyWithoutTeamInput
 }
 
 export type TeamUncheckedCreateWithoutEscalationPoliciesInput = {
@@ -665,6 +699,7 @@ export type TeamUncheckedCreateWithoutEscalationPoliciesInput = {
   rotationPolicies?: Prisma.RotationPolicyUncheckedCreateNestedManyWithoutTeamInput
   notificationChannels?: Prisma.TeamNotificationChannelUncheckedCreateNestedManyWithoutTeamInput
   alertIntegrations?: Prisma.AlertIntegrationUncheckedCreateNestedManyWithoutTeamInput
+  runbooks?: Prisma.RunbookUncheckedCreateNestedManyWithoutTeamInput
 }
 
 export type TeamCreateOrConnectWithoutEscalationPoliciesInput = {
@@ -694,6 +729,7 @@ export type TeamUpdateWithoutEscalationPoliciesInput = {
   rotationPolicies?: Prisma.RotationPolicyUpdateManyWithoutTeamNestedInput
   notificationChannels?: Prisma.TeamNotificationChannelUpdateManyWithoutTeamNestedInput
   alertIntegrations?: Prisma.AlertIntegrationUpdateManyWithoutTeamNestedInput
+  runbooks?: Prisma.RunbookUpdateManyWithoutTeamNestedInput
 }
 
 export type TeamUncheckedUpdateWithoutEscalationPoliciesInput = {
@@ -707,6 +743,7 @@ export type TeamUncheckedUpdateWithoutEscalationPoliciesInput = {
   rotationPolicies?: Prisma.RotationPolicyUncheckedUpdateManyWithoutTeamNestedInput
   notificationChannels?: Prisma.TeamNotificationChannelUncheckedUpdateManyWithoutTeamNestedInput
   alertIntegrations?: Prisma.AlertIntegrationUncheckedUpdateManyWithoutTeamNestedInput
+  runbooks?: Prisma.RunbookUncheckedUpdateManyWithoutTeamNestedInput
 }
 
 export type TeamCreateWithoutAlertIntegrationsInput = {
@@ -720,6 +757,7 @@ export type TeamCreateWithoutAlertIntegrationsInput = {
   rotationPolicies?: Prisma.RotationPolicyCreateNestedManyWithoutTeamInput
   notificationChannels?: Prisma.TeamNotificationChannelCreateNestedManyWithoutTeamInput
   escalationPolicies?: Prisma.EscalationPolicyCreateNestedManyWithoutTeamInput
+  runbooks?: Prisma.RunbookCreateNestedManyWithoutTeamInput
 }
 
 export type TeamUncheckedCreateWithoutAlertIntegrationsInput = {
@@ -733,6 +771,7 @@ export type TeamUncheckedCreateWithoutAlertIntegrationsInput = {
   rotationPolicies?: Prisma.RotationPolicyUncheckedCreateNestedManyWithoutTeamInput
   notificationChannels?: Prisma.TeamNotificationChannelUncheckedCreateNestedManyWithoutTeamInput
   escalationPolicies?: Prisma.EscalationPolicyUncheckedCreateNestedManyWithoutTeamInput
+  runbooks?: Prisma.RunbookUncheckedCreateNestedManyWithoutTeamInput
 }
 
 export type TeamCreateOrConnectWithoutAlertIntegrationsInput = {
@@ -762,6 +801,7 @@ export type TeamUpdateWithoutAlertIntegrationsInput = {
   rotationPolicies?: Prisma.RotationPolicyUpdateManyWithoutTeamNestedInput
   notificationChannels?: Prisma.TeamNotificationChannelUpdateManyWithoutTeamNestedInput
   escalationPolicies?: Prisma.EscalationPolicyUpdateManyWithoutTeamNestedInput
+  runbooks?: Prisma.RunbookUpdateManyWithoutTeamNestedInput
 }
 
 export type TeamUncheckedUpdateWithoutAlertIntegrationsInput = {
@@ -775,6 +815,79 @@ export type TeamUncheckedUpdateWithoutAlertIntegrationsInput = {
   rotationPolicies?: Prisma.RotationPolicyUncheckedUpdateManyWithoutTeamNestedInput
   notificationChannels?: Prisma.TeamNotificationChannelUncheckedUpdateManyWithoutTeamNestedInput
   escalationPolicies?: Prisma.EscalationPolicyUncheckedUpdateManyWithoutTeamNestedInput
+  runbooks?: Prisma.RunbookUncheckedUpdateManyWithoutTeamNestedInput
+}
+
+export type TeamCreateWithoutRunbooksInput = {
+  id?: string
+  name: string
+  description?: string | null
+  slackChannel?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  members?: Prisma.TeamMemberCreateNestedManyWithoutTeamInput
+  rotationPolicies?: Prisma.RotationPolicyCreateNestedManyWithoutTeamInput
+  notificationChannels?: Prisma.TeamNotificationChannelCreateNestedManyWithoutTeamInput
+  escalationPolicies?: Prisma.EscalationPolicyCreateNestedManyWithoutTeamInput
+  alertIntegrations?: Prisma.AlertIntegrationCreateNestedManyWithoutTeamInput
+}
+
+export type TeamUncheckedCreateWithoutRunbooksInput = {
+  id?: string
+  name: string
+  description?: string | null
+  slackChannel?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  members?: Prisma.TeamMemberUncheckedCreateNestedManyWithoutTeamInput
+  rotationPolicies?: Prisma.RotationPolicyUncheckedCreateNestedManyWithoutTeamInput
+  notificationChannels?: Prisma.TeamNotificationChannelUncheckedCreateNestedManyWithoutTeamInput
+  escalationPolicies?: Prisma.EscalationPolicyUncheckedCreateNestedManyWithoutTeamInput
+  alertIntegrations?: Prisma.AlertIntegrationUncheckedCreateNestedManyWithoutTeamInput
+}
+
+export type TeamCreateOrConnectWithoutRunbooksInput = {
+  where: Prisma.TeamWhereUniqueInput
+  create: Prisma.XOR<Prisma.TeamCreateWithoutRunbooksInput, Prisma.TeamUncheckedCreateWithoutRunbooksInput>
+}
+
+export type TeamUpsertWithoutRunbooksInput = {
+  update: Prisma.XOR<Prisma.TeamUpdateWithoutRunbooksInput, Prisma.TeamUncheckedUpdateWithoutRunbooksInput>
+  create: Prisma.XOR<Prisma.TeamCreateWithoutRunbooksInput, Prisma.TeamUncheckedCreateWithoutRunbooksInput>
+  where?: Prisma.TeamWhereInput
+}
+
+export type TeamUpdateToOneWithWhereWithoutRunbooksInput = {
+  where?: Prisma.TeamWhereInput
+  data: Prisma.XOR<Prisma.TeamUpdateWithoutRunbooksInput, Prisma.TeamUncheckedUpdateWithoutRunbooksInput>
+}
+
+export type TeamUpdateWithoutRunbooksInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  slackChannel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.TeamMemberUpdateManyWithoutTeamNestedInput
+  rotationPolicies?: Prisma.RotationPolicyUpdateManyWithoutTeamNestedInput
+  notificationChannels?: Prisma.TeamNotificationChannelUpdateManyWithoutTeamNestedInput
+  escalationPolicies?: Prisma.EscalationPolicyUpdateManyWithoutTeamNestedInput
+  alertIntegrations?: Prisma.AlertIntegrationUpdateManyWithoutTeamNestedInput
+}
+
+export type TeamUncheckedUpdateWithoutRunbooksInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  slackChannel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.TeamMemberUncheckedUpdateManyWithoutTeamNestedInput
+  rotationPolicies?: Prisma.RotationPolicyUncheckedUpdateManyWithoutTeamNestedInput
+  notificationChannels?: Prisma.TeamNotificationChannelUncheckedUpdateManyWithoutTeamNestedInput
+  escalationPolicies?: Prisma.EscalationPolicyUncheckedUpdateManyWithoutTeamNestedInput
+  alertIntegrations?: Prisma.AlertIntegrationUncheckedUpdateManyWithoutTeamNestedInput
 }
 
 
@@ -788,6 +901,7 @@ export type TeamCountOutputType = {
   notificationChannels: number
   escalationPolicies: number
   alertIntegrations: number
+  runbooks: number
 }
 
 export type TeamCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -796,6 +910,7 @@ export type TeamCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   notificationChannels?: boolean | TeamCountOutputTypeCountNotificationChannelsArgs
   escalationPolicies?: boolean | TeamCountOutputTypeCountEscalationPoliciesArgs
   alertIntegrations?: boolean | TeamCountOutputTypeCountAlertIntegrationsArgs
+  runbooks?: boolean | TeamCountOutputTypeCountRunbooksArgs
 }
 
 /**
@@ -843,6 +958,13 @@ export type TeamCountOutputTypeCountAlertIntegrationsArgs<ExtArgs extends runtim
   where?: Prisma.AlertIntegrationWhereInput
 }
 
+/**
+ * TeamCountOutputType without action
+ */
+export type TeamCountOutputTypeCountRunbooksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RunbookWhereInput
+}
+
 
 export type TeamSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -856,6 +978,7 @@ export type TeamSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   notificationChannels?: boolean | Prisma.Team$notificationChannelsArgs<ExtArgs>
   escalationPolicies?: boolean | Prisma.Team$escalationPoliciesArgs<ExtArgs>
   alertIntegrations?: boolean | Prisma.Team$alertIntegrationsArgs<ExtArgs>
+  runbooks?: boolean | Prisma.Team$runbooksArgs<ExtArgs>
   _count?: boolean | Prisma.TeamCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["team"]>
 
@@ -893,6 +1016,7 @@ export type TeamInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   notificationChannels?: boolean | Prisma.Team$notificationChannelsArgs<ExtArgs>
   escalationPolicies?: boolean | Prisma.Team$escalationPoliciesArgs<ExtArgs>
   alertIntegrations?: boolean | Prisma.Team$alertIntegrationsArgs<ExtArgs>
+  runbooks?: boolean | Prisma.Team$runbooksArgs<ExtArgs>
   _count?: boolean | Prisma.TeamCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TeamIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -906,6 +1030,7 @@ export type $TeamPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     notificationChannels: Prisma.$TeamNotificationChannelPayload<ExtArgs>[]
     escalationPolicies: Prisma.$EscalationPolicyPayload<ExtArgs>[]
     alertIntegrations: Prisma.$AlertIntegrationPayload<ExtArgs>[]
+    runbooks: Prisma.$RunbookPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1313,6 +1438,7 @@ export interface Prisma__TeamClient<T, Null = never, ExtArgs extends runtime.Typ
   notificationChannels<T extends Prisma.Team$notificationChannelsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Team$notificationChannelsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeamNotificationChannelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   escalationPolicies<T extends Prisma.Team$escalationPoliciesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Team$escalationPoliciesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EscalationPolicyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   alertIntegrations<T extends Prisma.Team$alertIntegrationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Team$alertIntegrationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AlertIntegrationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  runbooks<T extends Prisma.Team$runbooksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Team$runbooksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RunbookPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1858,6 +1984,30 @@ export type Team$alertIntegrationsArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.AlertIntegrationScalarFieldEnum | Prisma.AlertIntegrationScalarFieldEnum[]
+}
+
+/**
+ * Team.runbooks
+ */
+export type Team$runbooksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Runbook
+   */
+  select?: Prisma.RunbookSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Runbook
+   */
+  omit?: Prisma.RunbookOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RunbookInclude<ExtArgs> | null
+  where?: Prisma.RunbookWhereInput
+  orderBy?: Prisma.RunbookOrderByWithRelationInput | Prisma.RunbookOrderByWithRelationInput[]
+  cursor?: Prisma.RunbookWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RunbookScalarFieldEnum | Prisma.RunbookScalarFieldEnum[]
 }
 
 /**

@@ -28,11 +28,13 @@ export function startTelegramWorker() {
 
         if (!result.ok) throw new Error(result.description ?? "Telegram API error");
 
+        const msgId = result.result?.message_id;
         await prisma.notificationDelivery.update({
           where: { id: deliveryId },
           data: {
             status: DeliveryStatus.SENT,
-            externalId: result.result?.message_id?.toString() ?? null,
+            // Format: "chatId|messageId" — needed to edit/remove keyboard later
+            externalId: msgId != null ? `${chatId}|${msgId}` : null,
           },
         });
       } catch (err) {

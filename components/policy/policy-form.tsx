@@ -74,6 +74,12 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Post-save reschedule prompt (edit mode only)
+  const [showReschedulePrompt, setShowReschedulePrompt] = useState(false);
+  const [rescheduling, setRescheduling] = useState(false);
+  const [rescheduleResult, setRescheduleResult] = useState<{ removedShifts: number; newShifts: number } | null>(null);
+  const [rescheduleError, setRescheduleError] = useState<string | null>(null);
+
   function set(field: string, value: string | number) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
@@ -155,8 +161,34 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
     if (isEdit) {
       router.refresh();
       setLoading(false);
+      // Offer to regenerate the schedule with the new policy settings
+      setShowReschedulePrompt(true);
+      setRescheduleResult(null);
+      setRescheduleError(null);
     } else {
       router.push(`/policies/${data.data.id}`);
+    }
+  }
+
+  async function handleRescheduleNow() {
+    if (!initialData?.id) return;
+    setRescheduling(true);
+    setRescheduleError(null);
+    try {
+      const res = await fetch(`/api/policies/${initialData.id}/reschedule-from-now`, {
+        method: "POST",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setRescheduleError(data.error ?? "Không thể tạo lại lịch trực.");
+      } else {
+        setRescheduleResult({ removedShifts: data.removedShifts, newShifts: data.newShifts });
+        router.refresh();
+      }
+    } catch {
+      setRescheduleError("Không thể kết nối đến máy chủ.");
+    } finally {
+      setRescheduling(false);
     }
   }
 
@@ -164,6 +196,54 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
     <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>
+      )}
+
+      {/* Post-save: offer to regenerate the schedule */}
+      {showReschedulePrompt && isEdit && !rescheduleResult && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <p className="text-sm font-medium text-amber-900">Chính sách đã được cập nhật.</p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              Lịch trực hiện tại chưa phản ánh thay đổi. Bạn có muốn tạo lại các ca tương lai từ hôm nay không?
+            </p>
+            {rescheduleError && (
+              <p className="text-xs text-red-600 mt-1">{rescheduleError}</p>
+            )}
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={handleRescheduleNow}
+              disabled={rescheduling}
+              className="px-3 py-1.5 text-xs font-medium bg-amber-600 hover:bg-amber-700 text-white rounded-lg disabled:opacity-50 transition-colors"
+            >
+              {rescheduling ? "Đang tạo lại..." : "Tạo lại lịch"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowReschedulePrompt(false)}
+              className="px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 rounded-lg transition-colors"
+            >
+              Bỏ qua
+            </button>
+          </div>
+        </div>
+      )}
+
+      {rescheduleResult && (
+        <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 flex items-center justify-between gap-4">
+          <p className="text-sm text-green-800">
+            ✓ Đã xóa <strong>{rescheduleResult.removedShifts}</strong> ca cũ và tạo{" "}
+            <strong>{rescheduleResult.newShifts}</strong> ca mới theo chính sách hiện tại.
+          </p>
+          <button
+            type="button"
+            onClick={() => setRescheduleResult(null)}
+            className="text-xs text-green-700 hover:text-green-900 shrink-0"
+          >
+            ✕
+          </button>
+        </div>
       )}
 
       <Field label="Nhóm">

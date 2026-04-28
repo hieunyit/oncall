@@ -146,3 +146,8 @@ export type Alert = Prisma.AlertModel
  * 
  */
 export type ShiftTask = Prisma.ShiftTaskModel
+/**
+ * Model Runbook
+ * 
+ */
+export type Runbook = Prisma.RunbookModel

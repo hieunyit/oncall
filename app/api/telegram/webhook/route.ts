@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendTelegramMessage, answerCallbackQuery, editMessageText } from "@/lib/notifications/telegram";
-import { ConfirmationStatus } from "@/app/generated/prisma/client";
+import {
+  sendTelegramMessage,
+  answerCallbackQuery,
+  editMessageText,
+  editTelegramDeliveries,
+} from "@/lib/notifications/telegram";
+import { ChannelType, ConfirmationStatus, DeliveryStatus } from "@/app/generated/prisma/client";
 
 interface TelegramUpdate {
   update_id: number;
@@ -93,8 +98,23 @@ export async function POST(req: NextRequest) {
         `Người thực hiện: ${from.first_name ?? ""}`,
       ].join("\n");
 
-      await editMessageText(chatId, msgId, updatedText);
+      // Edit the clicked message (remove keyboard, show new status)
+      await editMessageText(chatId, msgId, updatedText, "HTML", { inline_keyboard: [] });
       await answerCallbackQuery(cbId, `${icon} ${label} thành công!`);
+
+      // Edit all OTHER personal messages for this shift (other reminder messages sent to same chat)
+      const otherDeliveries = await prisma.notificationDelivery.findMany({
+        where: {
+          channelType: ChannelType.TELEGRAM,
+          status: DeliveryStatus.SENT,
+          externalId: { startsWith: `${chatId}|`, not: `${chatId}|${msgId}` },
+          message: { shiftId: confirmation.shiftId },
+        },
+        select: { externalId: true },
+      });
+      if (otherDeliveries.length > 0) {
+        await editTelegramDeliveries(otherDeliveries, updatedText).catch(() => {});
+      }
 
       // Notify team channels (fire-and-forget)
       import("@/lib/notifications/notify-channel").then(({ notifyTeamChannels }) =>
@@ -126,7 +146,6 @@ export async function POST(req: NextRequest) {
         return new NextResponse(null, { status: 200 });
       }
 
-      // Find the user by their Telegram chatId
       const telegramUser = await prisma.user.findFirst({
         where: { telegramChatId: BigInt(chatId) },
         select: { id: true, fullName: true },
@@ -149,7 +168,7 @@ export async function POST(req: NextRequest) {
         `Nhận bởi: <b>${ackLabel}</b>`,
       ].join("\n");
 
-      await editMessageText(chatId, msgId, updatedText);
+      await editMessageText(chatId, msgId, updatedText, "HTML", { inline_keyboard: [] });
       await answerCallbackQuery(cbId, `👍 Đã nhận bởi ${ackLabel}`);
       return new NextResponse(null, { status: 200 });
     }
@@ -172,28 +191,39 @@ export async function POST(req: NextRequest) {
     const linkToken = parts[1];
 
     if (linkToken) {
-      const user = await prisma.user.findFirst({ where: { id: linkToken } });
+      // Look up user by telegramLinkToken (secure, time-limited)
+      const user = await prisma.user.findFirst({
+        where: {
+          telegramLinkToken: linkToken,
+          telegramLinkTokenExp: { gt: new Date() },
+        },
+      });
 
       if (user) {
         await prisma.user.update({
           where: { id: user.id },
-          data: { telegramChatId: BigInt(chatId) },
+          data: {
+            telegramChatId: BigInt(chatId),
+            telegramLinkToken: null,
+            telegramLinkTokenExp: null,
+          },
         });
         await sendTelegramMessage(
           chatId.toString(),
-          `✅ Tài khoản <b>${user.fullName}</b> đã được liên kết thành công!\n\nBạn sẽ nhận thông báo ca trực tại đây.`,
+          `✅ Tài khoản <b>${user.fullName}</b> đã được liên kết thành công!\n\nBạn sẽ nhận thông báo ca trực tại đây.\n\n<b>Các lệnh hỗ trợ:</b>\n/oncall — Xem ca trực đang diễn ra\n/status — Trạng thái ca trực của bạn`,
           "HTML"
         );
       } else {
         await sendTelegramMessage(
           chatId.toString(),
-          `❌ Liên kết không hợp lệ hoặc đã hết hạn. Vui lòng thử lại từ ứng dụng.`
+          `❌ Liên kết không hợp lệ hoặc đã hết hạn (10 phút).\n\nVui lòng vào ứng dụng và tạo liên kết mới.`
         );
       }
     } else {
       await sendTelegramMessage(
         chatId.toString(),
-        `👋 Xin chào! Tôi là bot On-Call Manager.\n\nĐể liên kết tài khoản, hãy truy cập ứng dụng và nhấn "Kết nối Telegram".`
+        `👋 Xin chào! Tôi là bot <b>On-Call Manager</b>.\n\nĐể nhận thông báo ca trực, hãy vào ứng dụng → Hồ sơ → Kết nối Telegram.`,
+        "HTML"
       );
     }
   }
