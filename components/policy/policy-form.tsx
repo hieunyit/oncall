@@ -37,7 +37,7 @@ interface PolicyFormProps {
   };
 }
 
-const MINUTES = [0, 15, 30, 45];
+const MINUTES = Array.from({ length: 60 }, (_, m) => m);
 
 export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], initialData }: PolicyFormProps) {
   const router = useRouter();

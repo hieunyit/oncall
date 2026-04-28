@@ -111,7 +111,7 @@ export async function POST(
       fromDate,
       batch.rangeEnd,
       startingIndex
-    );
+    ).filter((s) => s.startsAt >= fromDate);
 
     // Find shifts to remove: PUBLISHED and start >= fromDate
     const shiftsToRemove = await prisma.shift.findMany({

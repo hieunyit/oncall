@@ -115,7 +115,7 @@ export async function POST(
       fromDate,
       batch.rangeEnd,
       startingIndex
-    );
+    ).filter((s) => s.startsAt >= fromDate);
 
     // Execute in transaction
     await prisma.$transaction(async (tx) => {

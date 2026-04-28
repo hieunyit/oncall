@@ -1,6 +1,7 @@
 "use client";
 
-import { addDays, format, isSameDay, isSameMonth, startOfMonth, startOfWeek, endOfMonth, endOfWeek } from "date-fns";
+import { useState } from "react";
+import { addDays, format, isSameDay, isSameMonth, startOfDay, startOfMonth, startOfWeek, endOfMonth, endOfWeek } from "date-fns";
 import { getUserColor } from "./week-timeline";
 
 interface ShiftBlock {
@@ -45,6 +46,7 @@ export function MonthCalendar({
   onOverride,
 }: MonthCalendarProps) {
   const today = new Date();
+  const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
 
   const gridStart = startOfWeek(startOfMonth(monthStart), { weekStartsOn: 1 });
   const gridEnd = endOfWeek(endOfMonth(monthStart), { weekStartsOn: 1 });
@@ -61,8 +63,19 @@ export function MonthCalendar({
     weeks.push(days.slice(i, i + 7));
   }
 
+  function toggleExpanded(dayKey: string) {
+    setExpandedDays((prev) => {
+      const next = new Set(prev);
+      if (next.has(dayKey)) next.delete(dayKey);
+      else next.add(dayKey);
+      return next;
+    });
+  }
+
   function getShiftsForDay(day: Date) {
-    return shifts.filter((s) => isSameDay(s.startsAt, day));
+    const dayStart = startOfDay(day);
+    const dayEnd = addDays(dayStart, 1);
+    return shifts.filter((s) => s.startsAt < dayEnd && s.endsAt > dayStart);
   }
 
   function hasCrossPolicyConflict(shift: ShiftBlock, dayShifts: ShiftBlock[]): boolean {
@@ -104,35 +117,26 @@ export function MonthCalendar({
             const inMonth = isSameMonth(day, monthStart);
             const isWeekend = di >= 5;
             const dayShifts = getShiftsForDay(day);
-
-            // Coverage gap: in-month, non-weekend day with no shifts at all
-            const isCoverageGap = inMonth && !isToday && dayShifts.length === 0;
+            const dayKey = day.toISOString();
+            const isExpanded = expandedDays.has(dayKey);
+            const visibleShifts = isExpanded ? dayShifts : dayShifts.slice(0, 4);
 
             return (
               <div
-                key={day.toISOString()}
+                key={dayKey}
                 className={`min-h-[96px] p-1.5 border-r last:border-r-0 border-gray-100 transition-colors ${
-                  isWeekend ? "bg-blue-50/40" : isCoverageGap ? "bg-red-50/60" : ""
+                  isWeekend ? "bg-blue-50/40" : ""
                 } ${!inMonth ? "opacity-40" : ""}`}
               >
                 {/* Date number */}
-                <div className="flex justify-between items-start mb-1">
-                  <div className="w-4">
-                    {isCoverageGap && (
-                      <svg className="w-3 h-3 text-red-300 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                      </svg>
-                    )}
-                  </div>
+                <div className="flex justify-end items-start mb-1">
                   <span
                     className={`text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full ${
                       isToday
                         ? "bg-blue-600 text-white"
                         : isWeekend
                           ? "text-blue-400"
-                          : isCoverageGap
-                            ? "text-red-400"
-                            : "text-gray-500"
+                          : "text-gray-500"
                     }`}
                   >
                     {format(day, "d")}
@@ -141,7 +145,7 @@ export function MonthCalendar({
 
                 {/* Shift chips */}
                 <div className="space-y-0.5">
-                  {dayShifts.slice(0, 4).map((shift) => {
+                  {visibleShifts.map((shift) => {
                     const color = shift.isOverride
                       ? { bg: "#fef3c7", border: "#d97706", text: "#78350f", solid: "#f59e0b" }
                       : getUserColor(shift.assigneeId);
@@ -204,10 +208,23 @@ export function MonthCalendar({
                       </div>
                     );
                   })}
-                  {dayShifts.length > 4 && (
-                    <div className="text-[10px] text-gray-400 pl-1">
+                  {!isExpanded && dayShifts.length > 4 && (
+                    <button
+                      type="button"
+                      onClick={() => toggleExpanded(dayKey)}
+                      className="text-[10px] text-indigo-500 hover:text-indigo-700 pl-1 cursor-pointer w-full text-left"
+                    >
                       +{dayShifts.length - 4} ca nữa
-                    </div>
+                    </button>
+                  )}
+                  {isExpanded && dayShifts.length > 4 && (
+                    <button
+                      type="button"
+                      onClick={() => toggleExpanded(dayKey)}
+                      className="text-[10px] text-indigo-400 hover:text-indigo-600 pl-1 cursor-pointer w-full text-left"
+                    >
+                      Thu gọn
+                    </button>
                   )}
                 </div>
               </div>

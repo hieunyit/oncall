@@ -6,6 +6,7 @@ import { PolicyForm } from "@/components/policy/policy-form";
 import { PublishBatchForm } from "../../teams/[id]/publish-batch-form";
 import { BatchList } from "./batch-list";
 import { DeletePolicyButton } from "./delete-policy-button";
+import { RescheduleButton } from "./reschedule-button";
 
 export default async function PolicyDetailPage({
   params,
@@ -144,7 +145,7 @@ export default async function PolicyDetailPage({
 
       {/* Generate shifts */}
       {isManager && (
-        <section className="bg-white rounded-xl border border-gray-200 p-5">
+        <section className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div>
               <h2 className="font-semibold text-gray-900">Sinh ca trực</h2>
@@ -153,6 +154,12 @@ export default async function PolicyDetailPage({
               </p>
             </div>
             <PublishBatchForm policyId={policy.id} policyName={policy.name} />
+          </div>
+          <div className="border-t border-gray-100 pt-3">
+            <p className="text-xs text-gray-500 mb-2">
+              Sau khi thêm/bớt thành viên hoặc chỉnh sửa chính sách, nhấn nút bên dưới để tạo lại các ca tương lai theo danh sách hiện tại.
+            </p>
+            <RescheduleButton policyId={policy.id} />
           </div>
         </section>
       )}
