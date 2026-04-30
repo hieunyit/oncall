@@ -28,6 +28,7 @@ interface WeekTimelineProps {
   currentUserId: string;
   highlightMe: boolean;
   selectedPersonId?: string | null;
+  onDayClick?: (day: Date, shifts: ShiftBlock[]) => void;
   onShiftClick?: (shift: ShiftBlock) => void;
 }
 
@@ -71,6 +72,7 @@ export function WeekTimeline({
   currentUserId,
   highlightMe,
   selectedPersonId,
+  onDayClick,
   onShiftClick,
 }: WeekTimelineProps) {
   const weekEnd = addDays(weekStart, numDays);
@@ -153,11 +155,15 @@ export function WeekTimeline({
             {days.map((day, i) => {
               const isToday = isSameDay(day, now);
               const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+              const dayShifts = visible.filter(
+                (s) => isSameDay(s.startsAt, day) || (s.startsAt <= day && s.endsAt > day)
+              );
               return (
                 <div
                   key={i}
+                  onClick={() => onDayClick?.(day, dayShifts)}
                   style={{ width: `${100 / numDays}%` }}
-                  className={`py-2 text-center border-r last:border-r-0 border-gray-100 ${isWeekend ? "bg-blue-50" : ""}`}
+                  className={`py-2 text-center border-r last:border-r-0 border-gray-100 ${isWeekend ? "bg-blue-50" : ""} ${onDayClick ? "cursor-pointer hover:bg-indigo-50/50" : ""}`}
                 >
                   <div className="flex flex-col items-center gap-0.5">
                     <span className={`text-[10px] uppercase tracking-wide ${isWeekend ? "text-blue-400" : "text-gray-400"}`}>

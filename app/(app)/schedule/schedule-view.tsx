@@ -91,6 +91,7 @@ export function ScheduleView({
   });
   const [overrideShift, setOverrideShift] = useState<ShiftBlock | null>(null);
   const [selectedShift, setSelectedShift] = useState<ShiftBlock | null>(null);
+  const [selectedDay, setSelectedDay] = useState<{ date: Date; shifts: ShiftBlock[] } | null>(null);
 
   const numDays = view === "2week" ? 14 : 7;
 
@@ -125,6 +126,12 @@ export function ScheduleView({
   const onCallNow = shifts.some((s) => s.isMe && s.startsAt <= now && s.endsAt > now);
   const upcomingCount = shifts.filter((s) => s.isMe && s.startsAt >= now && s.startsAt <= weekFromNow).length;
   const pendingCount = shifts.filter((s) => s.isMe && s.confirmationStatus === "PENDING").length;
+  const openDayDetails = useCallback((day: Date, dayShifts: ShiftBlock[]) => {
+    const sorted = [...dayShifts].sort(
+      (a, b) => a.startsAt.getTime() - b.startsAt.getTime() || a.endsAt.getTime() - b.endsAt.getTime()
+    );
+    setSelectedDay({ date: day, shifts: sorted });
+  }, []);
 
   const weekEnd = addDays(weekStart, numDays - 1);
   const weekLabel = `${format(weekStart, "dd/MM")} – ${format(weekEnd, "dd/MM/yyyy")}`;
@@ -266,6 +273,7 @@ export function ScheduleView({
           highlightMe={highlightMe}
           selectedPersonId={selectedPersonId}
           isManager={isManager}
+          onDayClick={openDayDetails}
           onShiftClick={(shift) => setSelectedShift(shift)}
           onOverride={isManager ? (shift) => setOverrideShift(shift) : undefined}
         />
@@ -277,6 +285,7 @@ export function ScheduleView({
           currentUserId={currentUserId}
           highlightMe={highlightMe}
           selectedPersonId={selectedPersonId}
+          onDayClick={openDayDetails}
           onShiftClick={(shift) => setSelectedShift(shift)}
         />
       )}
@@ -306,6 +315,19 @@ export function ScheduleView({
         />
       )}
 
+      {selectedDay && (
+        <DayDetailModal
+          date={selectedDay.date}
+          shifts={selectedDay.shifts}
+          currentUserId={currentUserId}
+          onClose={() => setSelectedDay(null)}
+          onSelectShift={(shift) => {
+            setSelectedDay(null);
+            setSelectedShift(shift);
+          }}
+        />
+      )}
+
       {selectedShift && (
         <ShiftDetailModal
           shift={selectedShift}
@@ -321,6 +343,115 @@ export function ScheduleView({
         />
       )}
     </>
+  );
+}
+
+function DayDetailModal({
+  date,
+  shifts,
+  currentUserId,
+  onClose,
+  onSelectShift,
+}: {
+  date: Date;
+  shifts: ShiftBlock[];
+  currentUserId: string;
+  onClose: () => void;
+  onSelectShift: (shift: ShiftBlock) => void;
+}) {
+  const sortedShifts = useMemo(
+    () =>
+      [...shifts].sort(
+        (a, b) => a.startsAt.getTime() - b.startsAt.getTime() || a.endsAt.getTime() - b.endsAt.getTime()
+      ),
+    [shifts]
+  );
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/45 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-3xl rounded-2xl border border-gray-200 bg-white shadow-2xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-5 py-4 border-b border-gray-100 flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Lịch trực trong ngày</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              {format(date, "EEEE, dd/MM/yyyy", { locale: vi })}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-sm text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg px-3 py-1.5 bg-white"
+          >
+            Đóng
+          </button>
+        </div>
+
+        <div className="px-5 py-4 space-y-3 max-h-[70vh] overflow-y-auto">
+          <div className="text-sm text-gray-600">
+            Tổng số ca: <span className="font-semibold text-gray-900">{sortedShifts.length}</span>
+          </div>
+
+          {sortedShifts.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-sm text-gray-500">
+              Ngày này không có ca trực.
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {sortedShifts.map((shift) => {
+                const confirmMeta = shift.confirmationStatus
+                  ? CONFIRMATION_STATUS[shift.confirmationStatus]
+                  : null;
+                return (
+                  <button
+                    key={shift.id}
+                    type="button"
+                    onClick={() => onSelectShift(shift)}
+                    className="w-full text-left rounded-xl border border-gray-200 bg-white hover:bg-indigo-50/40 transition-colors px-3 py-3"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 space-y-1">
+                        <p className="text-sm font-semibold text-gray-900 truncate">
+                          {shift.policyName}
+                        </p>
+                        <p className="text-sm text-gray-700 truncate">
+                          {shift.assigneeName}
+                          {shift.assigneeId === currentUserId ? " (Bạn)" : ""}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {format(shift.startsAt, "HH:mm dd/MM/yyyy")} - {format(shift.endsAt, "HH:mm dd/MM/yyyy")}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+                        {shift.source === "SWAP" && (
+                          <span className="text-[11px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                            Đổi ca
+                          </span>
+                        )}
+                        {shift.isOverride && (
+                          <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                            Override
+                          </span>
+                        )}
+                        {confirmMeta && (
+                          <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${confirmMeta.className}`}>
+                            {confirmMeta.label}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 

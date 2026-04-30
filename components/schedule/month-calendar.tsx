@@ -30,6 +30,7 @@ interface MonthCalendarProps {
   highlightMe?: boolean;
   selectedPersonId?: string | null;
   isManager?: boolean;
+  onDayClick?: (day: Date, shifts: ShiftBlock[]) => void;
   onShiftClick?: (shift: ShiftBlock) => void;
   onOverride?: (shift: ShiftBlock) => void;
 }
@@ -42,6 +43,7 @@ export function MonthCalendar({
   currentUserId,
   highlightMe,
   selectedPersonId,
+  onDayClick,
   onShiftClick,
   onOverride,
 }: MonthCalendarProps) {
@@ -124,9 +126,10 @@ export function MonthCalendar({
             return (
               <div
                 key={dayKey}
+                onClick={() => onDayClick?.(day, dayShifts)}
                 className={`min-h-[96px] p-1.5 border-r last:border-r-0 border-gray-100 transition-colors ${
                   isWeekend ? "bg-blue-50/40" : ""
-                } ${!inMonth ? "opacity-40" : ""}`}
+                } ${!inMonth ? "opacity-40" : ""} ${onDayClick ? "cursor-pointer hover:bg-indigo-50/30" : ""}`}
               >
                 {/* Date number */}
                 <div className="flex justify-end items-start mb-1">
@@ -170,10 +173,10 @@ export function MonthCalendar({
                     return (
                       <div
                         key={shift.id}
-                        onClick={() => onShiftClick?.(shift)}
+                        onClick={(e) => { e.stopPropagation(); onShiftClick?.(shift); }}
                         onContextMenu={
                           onOverride
-                            ? (e) => { e.preventDefault(); onOverride(shift); }
+                            ? (e) => { e.preventDefault(); e.stopPropagation(); onOverride(shift); }
                             : undefined
                         }
                         style={{
@@ -211,7 +214,7 @@ export function MonthCalendar({
                   {!isExpanded && dayShifts.length > 4 && (
                     <button
                       type="button"
-                      onClick={() => toggleExpanded(dayKey)}
+                      onClick={(e) => { e.stopPropagation(); toggleExpanded(dayKey); }}
                       className="text-[10px] text-indigo-500 hover:text-indigo-700 pl-1 cursor-pointer w-full text-left"
                     >
                       +{dayShifts.length - 4} ca nữa
@@ -220,7 +223,7 @@ export function MonthCalendar({
                   {isExpanded && dayShifts.length > 4 && (
                     <button
                       type="button"
-                      onClick={() => toggleExpanded(dayKey)}
+                      onClick={(e) => { e.stopPropagation(); toggleExpanded(dayKey); }}
                       className="text-[10px] text-indigo-400 hover:text-indigo-600 pl-1 cursor-pointer w-full text-left"
                     >
                       Thu gọn
