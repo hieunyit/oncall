@@ -74,6 +74,8 @@ const EVENT_LABELS: Record<string, string> = {
   SWAP_APPROVED: "Duyệt đổi ca",
   ALERT_FIRING: "Cảnh báo",
   ESCALATION: "Escalation",
+  SCHEDULE_ASSIGNED: "Phân ca mới",
+  TEAM_MEMBER_ADDED: "Thêm vào nhóm",
 };
 
 function toSafeStatus(value?: string): DeliveryStatus | undefined {

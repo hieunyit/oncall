@@ -42,7 +42,8 @@ export async function POST() {
     }
 
     const pulled = await getTelegramUpdates({
-      limit: 100,
+      offset: -20,
+      limit: 20,
       timeout: 0,
       allowedUpdates: ["message", "callback_query"],
     });
@@ -54,12 +55,19 @@ export async function POST() {
     }
 
     const updates = Array.isArray(pulled.result) ? (pulled.result as TelegramUpdate[]) : [];
+    const linkUpdates = updates.filter((update) => {
+      const text = update.message?.text?.trim().toLowerCase();
+      return !!text && (text.startsWith("/start") || text.startsWith("/link"));
+    });
     let maxUpdateId: number | null = null;
 
     for (const update of updates) {
       if (typeof update.update_id === "number") {
         maxUpdateId = maxUpdateId === null ? update.update_id : Math.max(maxUpdateId, update.update_id);
       }
+    }
+
+    for (const update of linkUpdates) {
       await processTelegramUpdate(update);
     }
 
@@ -76,6 +84,7 @@ export async function POST() {
     return ok({
       mode: "polling",
       pulled: updates.length,
+      processed: linkUpdates.length,
       maxUpdateId,
       acknowledged,
     });

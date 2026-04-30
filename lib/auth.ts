@@ -20,8 +20,60 @@ const sessionUpdateAgeSeconds = parsePositiveInt(
   sessionMaxAgeSeconds
 );
 
+type AuthAdapter = ReturnType<typeof PrismaAdapter>;
+
+function sanitizeBigInts<T>(value: T): T {
+  if (typeof value === "bigint") {
+    return value.toString() as T;
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => sanitizeBigInts(item)) as T;
+  }
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
+      out[key] = sanitizeBigInts(nested);
+    }
+    return out as T;
+  }
+  return value;
+}
+
+function makeBigIntSafeAdapter(adapter: AuthAdapter): AuthAdapter {
+  return {
+    ...adapter,
+    createUser: adapter.createUser
+      ? async (user) => sanitizeBigInts(await adapter.createUser!(user))
+      : undefined,
+    getUser: adapter.getUser
+      ? async (id) => sanitizeBigInts(await adapter.getUser!(id))
+      : undefined,
+    getUserByEmail: adapter.getUserByEmail
+      ? async (email) => sanitizeBigInts(await adapter.getUserByEmail!(email))
+      : undefined,
+    getUserByAccount: adapter.getUserByAccount
+      ? async (account) => sanitizeBigInts(await adapter.getUserByAccount!(account))
+      : undefined,
+    updateUser: adapter.updateUser
+      ? async (user) => sanitizeBigInts(await adapter.updateUser!(user))
+      : undefined,
+    getSessionAndUser: adapter.getSessionAndUser
+      ? async (sessionToken) => {
+          const row = await adapter.getSessionAndUser!(sessionToken);
+          if (!row) return null;
+          return {
+            ...row,
+            user: sanitizeBigInts(row.user),
+          };
+        }
+      : undefined,
+  };
+}
+
+const adapter = makeBigIntSafeAdapter(PrismaAdapter(prisma));
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  adapter,
   providers: [
     KeycloakProvider({
       clientId: process.env.KEYCLOAK_CLIENT_ID!,

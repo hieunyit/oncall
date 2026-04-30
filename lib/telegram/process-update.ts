@@ -209,6 +209,20 @@ export async function processTelegramUpdate(update: TelegramUpdate): Promise<voi
           "HTML"
         );
       } else {
+        const existingLinkedUser = await prisma.user.findFirst({
+          where: { telegramChatId: BigInt(chatId) },
+          select: { fullName: true },
+        });
+
+        if (existingLinkedUser) {
+          await sendTelegramMessage(
+            chatId.toString(),
+            `ℹ️ Chat này đang liên kết với tài khoản <b>${existingLinkedUser.fullName}</b>.\n\nNếu bạn muốn đổi sang tài khoản khác, hãy vào ứng dụng → Hồ sơ → Hủy kết nối Telegram, rồi tạo mã mới và gửi lại /link.`,
+            "HTML"
+          );
+          return;
+        }
+
         await sendTelegramMessage(
           chatId.toString(),
           `❌ Mã liên kết không hợp lệ hoặc đã hết hạn (10 phút).\n\nVui lòng vào ứng dụng → Hồ sơ → Kết nối Telegram để tạo mã mới.\n\nSau đó gửi lại theo cú pháp:\n<code>/link &lt;ma_lien_ket&gt;</code>`,

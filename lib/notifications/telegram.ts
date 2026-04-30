@@ -56,6 +56,34 @@ function botUrl(method: string) {
   return `${TELEGRAM_API}/bot${token}/${method}`;
 }
 
+async function parseTelegramJson<T>(res: Response): Promise<TelegramApiResult<T>> {
+  const raw = await res.text();
+  if (!raw) {
+    return {
+      ok: false,
+      error_code: res.status,
+      description: `Telegram API returned empty response (HTTP ${res.status})`,
+    };
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as TelegramApiResult<T>;
+    if (typeof parsed.ok === "boolean") return parsed;
+    return {
+      ok: false,
+      error_code: res.status,
+      description: `Telegram API returned malformed payload (HTTP ${res.status})`,
+    };
+  } catch (error) {
+    const snippet = raw.slice(0, 200).replace(/\s+/g, " ");
+    return {
+      ok: false,
+      error_code: res.status,
+      description: `Telegram API JSON parse error (HTTP ${res.status}): ${(error as Error).message}. Body: ${snippet}`,
+    };
+  }
+}
+
 export async function sendTelegramMessage(
   chatId: string,
   text: string,
@@ -72,7 +100,7 @@ export async function sendTelegramMessage(
       ...(replyMarkup ? { reply_markup: replyMarkup } : {}),
     }),
   });
-  return res.json();
+  return parseTelegramJson<{ message_id: number }>(res);
 }
 
 export async function answerCallbackQuery(
@@ -85,7 +113,7 @@ export async function answerCallbackQuery(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ callback_query_id: callbackQueryId, text, show_alert: showAlert }),
   });
-  return res.json();
+  return parseTelegramJson(res);
 }
 
 export async function editMessageText(
@@ -106,7 +134,7 @@ export async function editMessageText(
       ...(replyMarkup !== undefined ? { reply_markup: replyMarkup } : {}),
     }),
   });
-  return res.json();
+  return parseTelegramJson(res);
 }
 
 export function buildInlineKeyboard(templateId: string, variables: Record<string, string>): object | undefined {
@@ -243,7 +271,7 @@ export async function setTelegramWebhook(webhookUrl: string): Promise<TelegramAp
       allowed_updates: ["message", "callback_query"],
     }),
   });
-  return res.json();
+  return parseTelegramJson<true>(res);
 }
 
 export async function getTelegramWebhookInfo(): Promise<TelegramApiResult<TelegramWebhookInfo>> {
@@ -253,7 +281,7 @@ export async function getTelegramWebhookInfo(): Promise<TelegramApiResult<Telegr
   const res = await fetch(`${TELEGRAM_API}/bot${token}/getWebhookInfo`, {
     method: "GET",
   });
-  return res.json();
+  return parseTelegramJson<TelegramWebhookInfo>(res);
 }
 
 export async function deleteTelegramWebhook(
@@ -264,7 +292,7 @@ export async function deleteTelegramWebhook(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ drop_pending_updates: dropPendingUpdates }),
   });
-  return res.json();
+  return parseTelegramJson<true>(res);
 }
 
 export async function getTelegramUpdates(params?: {
@@ -284,5 +312,5 @@ export async function getTelegramUpdates(params?: {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  return res.json();
+  return parseTelegramJson<TelegramUpdate[]>(res);
 }

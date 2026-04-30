@@ -9,21 +9,36 @@ interface Props {
   currentRole: string;
 }
 
+type DeleteMemberResponse = {
+  data?: {
+    removed?: boolean;
+    rescheduleSummary?: {
+      totalPolicies: number;
+      ok: number;
+      skipped: number;
+      failed: number;
+      queueDegraded: number;
+      failedPolicies: Array<{ policyId: string; error: string }>;
+    };
+  };
+};
+
 export function TeamMemberActions({ teamId, userId, currentRole }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function callApi(method: string, url: string, body?: object) {
+  async function callApi<T>(method: string, url: string, body?: object): Promise<T | undefined> {
     const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
       body: body ? JSON.stringify(body) : undefined,
     });
+    const payload = (await res.json().catch(() => ({}))) as T & { error?: string };
     if (!res.ok) {
-      const d = await res.json().catch(() => ({}));
-      throw new Error(d.error ?? "Có lỗi xảy ra");
+      throw new Error(payload.error ?? "Có lỗi xảy ra");
     }
+    return payload;
   }
 
   async function toggleRole() {
@@ -45,7 +60,21 @@ export function TeamMemberActions({ teamId, userId, currentRole }: Props) {
     setLoading(true);
     setError(null);
     try {
-      await callApi("DELETE", `/api/teams/${teamId}/members?userId=${userId}`);
+      const payload = await callApi<DeleteMemberResponse>(
+        "DELETE",
+        `/api/teams/${teamId}/members?userId=${userId}`
+      );
+      const summary = payload?.data?.rescheduleSummary;
+      if (summary?.failed && summary.failed > 0) {
+        const first = summary.failedPolicies?.[0]?.error;
+        setError(
+          `Đã xóa thành viên nhưng có ${summary.failed}/${summary.totalPolicies} chính sách chưa cập nhật lịch${first ? `: ${first}` : "."}`
+        );
+      } else if (summary?.queueDegraded && summary.queueDegraded > 0) {
+        setError(
+          `Đã xóa thành viên và cập nhật lịch, nhưng ${summary.queueDegraded}/${summary.totalPolicies} chính sách chưa lên lịch nhắc ca qua queue.`
+        );
+      }
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Lỗi");

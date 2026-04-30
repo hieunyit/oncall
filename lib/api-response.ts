@@ -1,8 +1,25 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 
+function stringifyJsonSafe(value: unknown): string {
+  const body = JSON.stringify(value, (_key, val) => {
+    if (typeof val === "bigint") return val.toString();
+    return val;
+  });
+  return body ?? "null";
+}
+
+function jsonResponse(value: unknown, status: number) {
+  return new NextResponse(stringifyJsonSafe(value), {
+    status,
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+    },
+  });
+}
+
 export function ok<T>(data: T, status = 200) {
-  return NextResponse.json({ data }, { status });
+  return jsonResponse({ data }, status);
 }
 
 export function created<T>(data: T) {
@@ -14,31 +31,31 @@ export function noContent() {
 }
 
 export function badRequest(message: string, details?: unknown) {
-  return NextResponse.json({ error: message, details }, { status: 400 });
+  return jsonResponse({ error: message, details }, 400);
 }
 
 export function unauthorized(message = "Unauthorized") {
-  return NextResponse.json({ error: message }, { status: 401 });
+  return jsonResponse({ error: message }, 401);
 }
 
 export function forbidden(message = "Forbidden") {
-  return NextResponse.json({ error: message }, { status: 403 });
+  return jsonResponse({ error: message }, 403);
 }
 
 export function notFound(message = "Not found") {
-  return NextResponse.json({ error: message }, { status: 404 });
+  return jsonResponse({ error: message }, 404);
 }
 
 export function conflict(message: string, code?: string) {
-  return NextResponse.json({ error: message, code }, { status: 409 });
+  return jsonResponse({ error: message, code }, 409);
 }
 
 export function unprocessable(message: string, details?: unknown) {
-  return NextResponse.json({ error: message, details }, { status: 422 });
+  return jsonResponse({ error: message, details }, 422);
 }
 
 export function serverError(message = "Internal server error") {
-  return NextResponse.json({ error: message }, { status: 500 });
+  return jsonResponse({ error: message }, 500);
 }
 
 export function handleZodError(error: ZodError) {

@@ -34,4 +34,4 @@ FROM deps-all AS workers-runner
 ENV NODE_ENV=production
 COPY . .
 RUN npx prisma generate
-CMD ["node", "--require", "tsx/esm", "workers/index.ts"]
+CMD ["npx", "tsx", "workers/index.ts"]

@@ -78,14 +78,14 @@ export function startTelegramUpdatePoller(): Closable {
 
   void (async () => {
     try {
-      const result = await deleteTelegramWebhook(false);
+      const result = await deleteTelegramWebhook(true);
       if (!result.ok) {
         console.warn(
           "[telegram-poller] failed to disable webhook, polling may not receive updates:",
           result.description ?? "Unknown error"
         );
       } else {
-        console.log("[telegram-poller] webhook disabled; polling mode enabled.");
+        console.log("[telegram-poller] webhook disabled; polling mode enabled (dropped stale updates).");
       }
     } catch (error) {
       console.error("[telegram-poller] failed to disable webhook:", error);

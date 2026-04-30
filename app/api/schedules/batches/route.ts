@@ -15,6 +15,7 @@ import { generateShifts, computeConfirmationDueAt, TimeSlot, OccupiedMap } from 
 import { writeAuditLog } from "@/lib/audit";
 import { scheduleAllRemindersForBatchSafe } from "@/lib/queue/scheduler";
 import { notifyTeamChannels } from "@/lib/notifications/notify-channel";
+import { notifyAssigneesScheduleUpdated } from "@/lib/notifications/notify-assignees";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { addWeeks } from "date-fns";
 
@@ -260,9 +261,21 @@ export async function POST(req: NextRequest) {
       },
     }).catch((e) => console.error("notify team channels failed:", e));
 
+    // Personal Telegram notice for assignees, independent from queue workers.
+    const assigneeNotifications = await notifyAssigneesScheduleUpdated({
+      policyName: policy.name,
+      shifts: generatedShifts.map((s) => ({
+        assigneeId: s.assigneeId,
+        startsAt: s.startsAt,
+        endsAt: s.endsAt,
+      })),
+      reason: "published",
+    });
+
     return created({
       ...batch,
       remindersScheduled,
+      assigneeNotifications,
     });
   } catch (error) {
     return handleError(error);

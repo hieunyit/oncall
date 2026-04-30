@@ -16,6 +16,15 @@ interface Props {
 }
 
 const RESCHEDULE_SKIP_CODES = new Set(["NO_PUBLISHED_BATCH", "BATCH_EXPIRED", "POLICY_INACTIVE"]);
+type RescheduleOutcome = "ok" | "skipped" | "queue_degraded" | "error";
+type AddMemberPayload = {
+  data?: {
+    telegramNotice?: {
+      status?: "sent" | "failed" | "skipped_no_user" | "skipped_no_telegram";
+      error?: string;
+    };
+  };
+};
 
 export function AddMemberForm({ teamId, availableUsers, activePolicyIds }: Props) {
   const router = useRouter();
@@ -25,18 +34,25 @@ export function AddMemberForm({ teamId, availableUsers, activePolicyIds }: Props
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  async function reschedulePolicy(policyId: string): Promise<"ok" | "skipped" | "error"> {
+  async function reschedulePolicy(policyId: string): Promise<RescheduleOutcome> {
     try {
       const res = await fetch(`/api/policies/${policyId}/reschedule-from-now`, {
         method: "POST",
       });
-      const payload = (await res.json().catch(() => ({}))) as { code?: string };
+      const payload = (await res.json().catch(() => ({}))) as {
+        code?: string;
+        data?: { remindersScheduled?: boolean };
+        remindersScheduled?: boolean;
+      };
       if (!res.ok) {
         if (typeof payload.code === "string" && RESCHEDULE_SKIP_CODES.has(payload.code)) {
           return "skipped";
         }
         return "error";
       }
+      const remindersScheduled =
+        payload.data?.remindersScheduled ?? payload.remindersScheduled ?? true;
+      if (!remindersScheduled) return "queue_degraded";
       return "ok";
     } catch {
       return "error";
@@ -55,10 +71,12 @@ export function AddMemberForm({ teamId, availableUsers, activePolicyIds }: Props
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, role }),
       });
+      const createdPayload = (await res.json().catch(() => ({}))) as AddMemberPayload & {
+        error?: string;
+      };
 
       if (!res.ok) {
-        const payload = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(payload.error ?? "Không thể thêm thành viên");
+        setError(createdPayload.error ?? "Không thể thêm thành viên");
         return;
       }
 
@@ -67,12 +85,30 @@ export function AddMemberForm({ teamId, availableUsers, activePolicyIds }: Props
           ? await Promise.all(activePolicyIds.map((policyId) => reschedulePolicy(policyId)))
           : [];
       const failedCount = outcomes.filter((outcome) => outcome === "error").length;
+      const queueDegradedCount = outcomes.filter((outcome) => outcome === "queue_degraded").length;
+      const teamNotice = createdPayload.data?.telegramNotice;
+      const notices: string[] = [];
 
       setUserId("");
       if (failedCount > 0) {
-        setNotice(
+        notices.push(
           `Đã thêm thành viên, nhưng ${failedCount}/${activePolicyIds.length} chính sách chưa cập nhật được lịch. Vui lòng bấm "Cập nhật từ ngày..." trong từng chính sách.`
         );
+      } else if (queueDegradedCount > 0) {
+        notices.push(
+          `Đã thêm thành viên và cập nhật lịch, nhưng ${queueDegradedCount}/${activePolicyIds.length} chính sách chưa lên lịch nhắc ca qua queue. Hệ thống vẫn gửi thông báo phân ca Telegram ngay, nhưng bạn nên kiểm tra Redis/worker để nhắc ca tự động hoạt động ổn định.`
+        );
+      }
+      if (teamNotice?.status === "skipped_no_telegram") {
+        notices.push("Thành viên mới chưa liên kết Telegram nên chưa thể nhận thông báo cá nhân.");
+      } else if (teamNotice?.status === "failed") {
+        notices.push(
+          `Thông báo Telegram khi thêm thành viên bị lỗi${teamNotice.error ? `: ${teamNotice.error}` : "."}`
+        );
+      }
+
+      if (notices.length > 0) {
+        setNotice(notices.join(" "));
       }
 
       router.refresh();

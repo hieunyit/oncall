@@ -7,6 +7,7 @@ import { ok, unauthorized, badRequest, notFound, conflict, handleError } from "@
 import { BatchStatus, ShiftStatus, ShiftSource, SwapStatus, TeamRole } from "@/app/generated/prisma/client";
 import { generateShifts, computeConfirmationDueAt, TimeSlot } from "@/lib/rotation/engine";
 import { scheduleAllRemindersForBatchSafe } from "@/lib/queue/scheduler";
+import { notifyAssigneesScheduleUpdated } from "@/lib/notifications/notify-assignees";
 import { writeAuditLog } from "@/lib/audit";
 
 const Schema = z.object({
@@ -227,12 +228,23 @@ export async function POST(
       ipAddress: req.headers.get("x-forwarded-for") ?? undefined,
     });
 
+    const assigneeNotifications = await notifyAssigneesScheduleUpdated({
+      policyName: policy.name,
+      shifts: createdShifts.map((s) => ({
+        assigneeId: s.assigneeId,
+        startsAt: s.startsAt,
+        endsAt: s.endsAt,
+      })),
+      reason: "rescheduled",
+    });
+
     return ok({
       batchId,
       fromDate: cutoff.toISOString(),
       removedShifts: removeIds.length,
       newShifts: newShifts.length,
       remindersScheduled,
+      assigneeNotifications,
     });
   } catch (error) {
     return handleError(error);
