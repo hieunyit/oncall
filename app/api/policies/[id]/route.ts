@@ -146,8 +146,17 @@ export async function DELETE(
     const shiftsToRemove = await prisma.shift.findMany({
       where: {
         policyId: id,
-        startsAt: { gte: now },
-        status: { in: [ShiftStatus.DRAFT, ShiftStatus.PUBLISHED, ShiftStatus.CANCELLED] },
+        // Remove all unfinished shifts that are ongoing/future so dashboard and schedule
+        // don't keep showing on-call entries after policy deletion.
+        endsAt: { gte: now },
+        status: {
+          in: [
+            ShiftStatus.DRAFT,
+            ShiftStatus.PUBLISHED,
+            ShiftStatus.ACTIVE,
+            ShiftStatus.CANCELLED,
+          ],
+        },
       },
       select: { id: true },
     });
@@ -215,7 +224,7 @@ export async function DELETE(
       actorId: actor.id,
       entityType: "RotationPolicy",
       entityId: id,
-      action: "DEACTIVATE",
+      action: "DELETE",
       oldValue: policy,
       newValue: {
         isActive: false,

@@ -48,6 +48,7 @@ export default async function DashboardPage() {
         startsAt: { lte: dayEnd },
         endsAt: { gte: dayStart },
         status: { in: [ShiftStatus.ACTIVE, ShiftStatus.PUBLISHED] },
+        policy: { isActive: true },
       },
     }),
     prisma.shiftConfirmation.count({
@@ -55,6 +56,7 @@ export default async function DashboardPage() {
         userId: currentUser.id,
         status: ConfirmationStatus.PENDING,
         dueAt: { gte: today },
+        shift: { policy: { isActive: true } },
       },
     }),
     prisma.swapRequest.count({
@@ -77,6 +79,7 @@ export default async function DashboardPage() {
         assigneeId: currentUser.id,
         startsAt: { gte: today },
         status: { in: [ShiftStatus.PUBLISHED, ShiftStatus.ACTIVE] },
+        policy: { isActive: true },
       },
       include: {
         policy: { select: { name: true } },
@@ -91,6 +94,7 @@ export default async function DashboardPage() {
         endsAt: { gte: today },
         status: { in: [ShiftStatus.PUBLISHED, ShiftStatus.ACTIVE] },
         overrideForShiftId: null,
+        policy: { isActive: true },
       },
       include: {
         assignee: { select: { id: true, fullName: true, email: true } },

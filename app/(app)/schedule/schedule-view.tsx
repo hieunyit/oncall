@@ -377,7 +377,7 @@ function ShiftDetailModal({
       .then((r) => r.json())
       .then((d) => { setTasks(d.data ?? []); setTasksLoaded(true); })
       .catch(() => {
-        setTaskError("Khong the tai checklist.");
+        setTaskError("Không thể tải checklist.");
         setTasksLoaded(true);
       });
   }, [shift.id]);
@@ -441,7 +441,7 @@ function ShiftDetailModal({
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
-      setTaskError(getApiError(json, "Khong the them muc checklist."));
+      setTaskError(getApiError(json, "Không thể thêm mục checklist."));
       setAddingTask(false);
       return;
     }
@@ -467,7 +467,7 @@ function ShiftDetailModal({
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
-      setTaskError(getApiError(json, "Khong the cap nhat checklist."));
+      setTaskError(getApiError(json, "Không thể cập nhật checklist."));
       return;
     }
 
@@ -532,7 +532,7 @@ function ShiftDetailModal({
     );
 
     if (failed > 0) {
-      setTaskError(`Khong the cap nhat ${failed}/${targetTasks.length} muc.`);
+      setTaskError(`Không thể cập nhật ${failed}/${targetTasks.length} mục.`);
     }
     setBulkUpdating(false);
   }
@@ -559,7 +559,7 @@ function ShiftDetailModal({
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
-      setTaskError(getApiError(json, "Khong the cap nhat tieu de checklist."));
+      setTaskError(getApiError(json, "Không thể cập nhật tiêu đề checklist."));
       return;
     }
     const updated = (json as { data?: (typeof tasks)[number] }).data;
@@ -579,7 +579,7 @@ function ShiftDetailModal({
       if (editingTaskId === taskId) cancelEditingTask();
     } else {
       const json = await res.json().catch(() => ({}));
-      setTaskError(getApiError(json, "Khong the xoa muc checklist."));
+      setTaskError(getApiError(json, "Không thể xóa mục checklist."));
     }
     setDeletingTaskId(null);
   }
@@ -840,7 +840,7 @@ function ShiftDetailModal({
               <div>
                 <h3 className="text-sm font-semibold text-gray-900">Checklist theo ca</h3>
                 <p className="text-[11px] text-gray-500 mt-0.5">
-                  Han checklist: {format(shift.endsAt, "HH:mm dd/MM/yyyy")}
+                  Hạn checklist: {format(shift.endsAt, "HH:mm dd/MM/yyyy")}
                 </p>
               </div>
               <div className="flex items-center gap-1.5 flex-wrap justify-end">
@@ -891,7 +891,7 @@ function ShiftDetailModal({
             )}
 
             {!tasksLoaded ? (
-              <p className="text-xs text-gray-500">Dang tai checklist...</p>
+              <p className="text-xs text-gray-500">Đang tải checklist...</p>
             ) : (
               <>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -940,7 +940,7 @@ function ShiftDetailModal({
 
                 {visibleTasks.length === 0 ? (
                   <p className="text-xs text-gray-500">
-                    {taskTab === "open" ? "Khong con muc dang mo." : "Chua co muc nao hoan thanh."}
+                    {taskTab === "open" ? "Không còn mục đang mở." : "Chưa có mục nào hoàn thành."}
                   </p>
                 ) : (
                   <div className="space-y-1.5">
@@ -965,7 +965,7 @@ function ShiftDetailModal({
                               onChange={() => handleToggleTask(task.id, task.isCompleted)}
                               disabled={!canEditChecklist || bulkUpdating}
                               className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
-                              title={canEditChecklist ? undefined : "Chi co nguoi truc moi duoc tick checklist"}
+                              title={canEditChecklist ? undefined : "Chỉ có người trực mới được tick checklist"}
                             />
 
                             <div className="flex-1 min-w-0">
@@ -1046,7 +1046,7 @@ function ShiftDetailModal({
                   <div className="flex items-center gap-2 pt-1">
                     <input
                       type="text"
-                      placeholder="Them muc checklist moi..."
+                      placeholder="Thêm mục checklist mới..."
                       value={newTaskTitle}
                       onChange={(e) => setNewTaskTitle(e.target.value)}
                       onKeyDown={handleTaskInputKeyDown}
@@ -1063,7 +1063,7 @@ function ShiftDetailModal({
                     </button>
                   </div>
                 ) : (
-                  <p className="text-xs text-gray-500">Chi nguoi truc hoac quan ly moi duoc sua checklist.</p>
+                  <p className="text-xs text-gray-500">Chỉ người trực hoặc quản lý mới được sửa checklist.</p>
                 )}
               </>
             )}
