@@ -38,7 +38,7 @@ CREATE TYPE "BatchStatus" AS ENUM ('PUBLISHED', 'ROLLED_BACK', 'PARTIAL');
 -- CreateTable accounts (Auth.js)
 CREATE TABLE "accounts" (
     "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "userId" UUID NOT NULL,
     "type" TEXT NOT NULL,
     "provider" TEXT NOT NULL,
     "providerAccountId" TEXT NOT NULL,
@@ -56,7 +56,7 @@ CREATE TABLE "accounts" (
 CREATE TABLE "sessions" (
     "id" TEXT NOT NULL,
     "sessionToken" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "userId" UUID NOT NULL,
     "expires" TIMESTAMPTZ NOT NULL,
     CONSTRAINT "sessions_pkey" PRIMARY KEY ("id")
 );
