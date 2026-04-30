@@ -138,11 +138,17 @@ export async function editMessageText(
 }
 
 export function buildInlineKeyboard(templateId: string, variables: Record<string, string>): object | undefined {
-  if (templateId === "shift-reminder" && variables.confirmationToken) {
+  if (templateId === "shift-reminder" && (variables.confirmationId || variables.confirmationToken)) {
+    const confirmData = variables.confirmationId
+      ? `confirm-id:${variables.confirmationId}`
+      : `confirm:${variables.confirmationToken}`;
+    const declineData = variables.confirmationId
+      ? `decline-id:${variables.confirmationId}`
+      : `decline:${variables.confirmationToken}`;
     return {
       inline_keyboard: [[
-        { text: "✅ Xác nhận ca trực", callback_data: `confirm:${variables.confirmationToken}` },
-        { text: "❌ Từ chối", callback_data: `decline:${variables.confirmationToken}` },
+        { text: "✅ Xác nhận ca trực", callback_data: confirmData },
+        { text: "❌ Từ chối", callback_data: declineData },
       ]],
     };
   }

@@ -226,10 +226,11 @@ export async function POST(
 
     const assigneeNotifications = await notifyAssigneesScheduleUpdated({
       policyName: policy.name,
-      shifts: createdShifts.map((s) => ({
-        assigneeId: s.assigneeId,
-        startsAt: s.startsAt,
-        endsAt: s.endsAt,
+      shifts: confirmations.map((c) => ({
+        assigneeId: c.userId,
+        startsAt: c.shift.startsAt,
+        endsAt: c.shift.endsAt,
+        confirmationId: c.id,
       })),
       reason: "rescheduled",
     });

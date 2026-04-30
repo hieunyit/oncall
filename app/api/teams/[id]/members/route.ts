@@ -6,6 +6,7 @@ import {
   ok,
   created,
   unauthorized,
+  forbidden,
   notFound,
   conflict,
   handleError,
@@ -249,12 +250,18 @@ export async function DELETE(
     if (!actor) return unauthorized();
 
     const { id } = await params;
-    const result = await requireTeamRole(id, TeamRole.MANAGER);
-    if (isNextResponse(result)) return result;
-
     const { searchParams } = req.nextUrl;
     const userId = searchParams.get("userId");
     if (!userId) return notFound("userId query param required");
+    const isSelfDelete = actor.id === userId;
+
+    if (actor.systemRole !== "ADMIN") {
+      const roleCheck = await requireTeamRole(id, TeamRole.MANAGER);
+      if (isNextResponse(roleCheck)) return roleCheck;
+      if (isSelfDelete) {
+        return forbidden("Manager cannot remove themselves from team");
+      }
+    }
 
     const member = await prisma.teamMember.findUnique({
       where: { teamId_userId: { teamId: id, userId } },

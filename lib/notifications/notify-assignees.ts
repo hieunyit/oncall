@@ -6,6 +6,7 @@ type ShiftLite = {
   assigneeId: string;
   startsAt: Date;
   endsAt: Date;
+  confirmationId?: string;
 };
 
 export type NotifyAssigneesSummary = {
@@ -56,8 +57,36 @@ function buildScheduleAssignedText(input: {
   if (input.appUrl) {
     lines.push(``, `<a href="${input.appUrl}/schedule">Xem lịch trực chi tiết</a>`);
   }
+  if (input.shifts.some((s) => !!s.confirmationId)) {
+    lines.push(``, `Bạn có thể bấm nút bên dưới để xác nhận ca trực ngay trên Telegram.`);
+  }
 
   return lines.join("\n");
+}
+
+function buildScheduleAssignedKeyboard(input: {
+  shifts: ShiftLite[];
+  appUrl: string;
+}): object | undefined {
+  const confirmable = input.shifts.filter((s) => !!s.confirmationId).slice(0, 3);
+  const rows: Array<Array<{ text: string; callback_data?: string; url?: string }>> = [];
+
+  for (let i = 0; i < confirmable.length; i += 1) {
+    const shift = confirmable[i];
+    rows.push([
+      {
+        text: `✅ Xác nhận ca ${i + 1}`,
+        callback_data: `confirm-id:${shift.confirmationId}`,
+      },
+    ]);
+  }
+
+  if (input.appUrl) {
+    rows.push([{ text: "📅 Mở lịch trực", url: `${input.appUrl}/schedule` }]);
+  }
+
+  if (rows.length === 0) return undefined;
+  return { inline_keyboard: rows };
 }
 
 export async function notifyAssigneesScheduleUpdated(input: {
@@ -146,6 +175,10 @@ export async function notifyAssigneesScheduleUpdated(input: {
       appUrl,
       reason: input.reason,
     });
+    const keyboard = buildScheduleAssignedKeyboard({
+      shifts: userShifts.slice(0, 3),
+      appUrl,
+    });
 
     const message = await prisma.notificationMessage.create({
       data: {
@@ -170,7 +203,12 @@ export async function notifyAssigneesScheduleUpdated(input: {
     });
 
     try {
-      const result = await sendTelegramMessage(user.telegramChatId.toString(), text, "HTML");
+      const result = await sendTelegramMessage(
+        user.telegramChatId.toString(),
+        text,
+        "HTML",
+        keyboard
+      );
       if (!result.ok) {
         failed += 1;
         await prisma.notificationDelivery.update({

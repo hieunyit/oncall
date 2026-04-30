@@ -60,13 +60,20 @@ export async function processTelegramUpdate(update: TelegramUpdate): Promise<voi
     const chatId = message.chat.id;
     const msgId = message.message_id;
 
-    // confirm:{token} or decline:{token}
-    if (data.startsWith("confirm:") || data.startsWith("decline:")) {
-      const token = data.slice(data.indexOf(":") + 1);
-      const action = data.startsWith("confirm:") ? "confirm" : "decline";
+    // confirm-id:{id} / decline-id:{id} (preferred)
+    // confirm:{token} / decline:{token} (backward-compatible)
+    if (
+      data.startsWith("confirm-id:") ||
+      data.startsWith("decline-id:") ||
+      data.startsWith("confirm:") ||
+      data.startsWith("decline:")
+    ) {
+      const action = data.startsWith("confirm") ? "confirm" : "decline";
+      const byId = data.startsWith("confirm-id:") || data.startsWith("decline-id:");
+      const ref = data.slice(data.indexOf(":") + 1);
 
       const confirmation = await prisma.shiftConfirmation.findUnique({
-        where: { token },
+        where: byId ? { id: ref } : { token: ref },
         include: {
           shift: {
             include: {
@@ -84,7 +91,7 @@ export async function processTelegramUpdate(update: TelegramUpdate): Promise<voi
 
       if (new Date() > confirmation.dueAt) {
         await prisma.shiftConfirmation.update({
-          where: { token },
+          where: { id: confirmation.id },
           data: { status: ConfirmationStatus.EXPIRED },
         });
         await answerCallbackQuery(cbId, "Xác nhận đã hết hạn.", true);
@@ -94,7 +101,7 @@ export async function processTelegramUpdate(update: TelegramUpdate): Promise<voi
       const newStatus =
         action === "confirm" ? ConfirmationStatus.CONFIRMED : ConfirmationStatus.DECLINED;
       await prisma.shiftConfirmation.update({
-        where: { token },
+        where: { id: confirmation.id },
         data: { status: newStatus, respondedAt: new Date() },
       });
 

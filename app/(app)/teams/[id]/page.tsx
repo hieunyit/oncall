@@ -131,11 +131,16 @@ export default async function TeamDetailPage({
                 >
                   {member.role === "MANAGER" ? "Quản lý" : "Thành viên"}
                 </span>
-                {isManager && member.userId !== currentUser.id && (
+                {isManager && (
                   <TeamMemberActions
                     teamId={id}
                     userId={member.userId}
                     currentRole={member.role}
+                    canManage={isManager}
+                    canDelete={
+                      currentUser.systemRole === "ADMIN" ||
+                      (myMembership?.role === "MANAGER" && member.userId !== currentUser.id)
+                    }
                   />
                 )}
               </div>

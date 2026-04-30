@@ -264,10 +264,11 @@ export async function POST(req: NextRequest) {
     // Personal Telegram notice for assignees, independent from queue workers.
     const assigneeNotifications = await notifyAssigneesScheduleUpdated({
       policyName: policy.name,
-      shifts: generatedShifts.map((s) => ({
-        assigneeId: s.assigneeId,
-        startsAt: s.startsAt,
-        endsAt: s.endsAt,
+      shifts: confirmations.map((c) => ({
+        assigneeId: c.userId,
+        startsAt: c.shift.startsAt,
+        endsAt: c.shift.endsAt,
+        confirmationId: c.id,
       })),
       reason: "published",
     });

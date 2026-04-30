@@ -56,6 +56,7 @@ export function startReminderWorker() {
         shiftStart: shift.startsAt.toISOString(),
         shiftEnd: shift.endsAt.toISOString(),
         policyName: shift.policy.name,
+        confirmationId: confirmation.id,
         confirmationToken: confirmation.token,
         appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "",
       };
