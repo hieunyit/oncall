@@ -290,12 +290,12 @@ export default async function ReportsPage({ searchParams }: PageProps) {
       return day !== 0 && day !== 6;
     }
   );
-  const coverageGaps = allWeekdays.filter(
-    (date) => !coveredDays.has(format(date, "yyyy-MM-dd"))
-  );
+  const coveredWeekdayCount = allWeekdays.filter((date) =>
+    coveredDays.has(format(date, "yyyy-MM-dd"))
+  ).length;
   const coverageRate =
     allWeekdays.length > 0
-      ? Math.round(((allWeekdays.length - coverageGaps.length) / allWeekdays.length) * 100)
+      ? Math.round((coveredWeekdayCount / allWeekdays.length) * 100)
       : 100;
 
   const healthMetrics = [
@@ -384,8 +384,8 @@ export default async function ReportsPage({ searchParams }: PageProps) {
         <SummaryCard
           label="Độ phủ ngày trực"
           value={`${coverageRate}%`}
-          helper={`${coverageGaps.length} ngày thiếu trực`}
-          tone={coverageGaps.length === 0 ? "green" : "rose"}
+          helper={`${coveredWeekdayCount}/${allWeekdays.length} ngày có lịch`}
+          tone={coverageRate >= 95 ? "green" : coverageRate >= 80 ? "amber" : "rose"}
         />
         <SummaryCard
           label="MTTR xác nhận alert"
@@ -400,24 +400,6 @@ export default async function ReportsPage({ searchParams }: PageProps) {
           tone={balanceGap <= 1 ? "green" : balanceGap <= 2 ? "amber" : "rose"}
         />
       </div>
-
-      {coverageGaps.length > 0 && (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4">
-          <p className="text-sm font-semibold text-rose-800">
-            Ngày thiếu trực ({coverageGaps.length})
-          </p>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {coverageGaps.map((date) => (
-              <span
-                key={date.toISOString()}
-                className="rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-medium text-rose-700"
-              >
-                {format(date, "EEE dd/MM", { locale: vi })}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
         <Panel title="Phân bổ ca theo người" subtitle={`${shiftsByPerson.length} thành viên`}>
