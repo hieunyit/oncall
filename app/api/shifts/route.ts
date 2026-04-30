@@ -2,8 +2,8 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/rbac";
-import { ok, unauthorized, handleError } from "@/lib/api-response";
-import { ShiftStatus } from "@/app/generated/prisma/client";
+import { ok, unauthorized, forbidden, handleError } from "@/lib/api-response";
+import { ShiftStatus, SystemRole } from "@/app/generated/prisma/client";
 
 const ListQuerySchema = z.object({
   policyId: z.string().uuid().optional(),
@@ -23,6 +23,20 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = req.nextUrl;
     const query = ListQuerySchema.parse(Object.fromEntries(searchParams));
+    const isAdmin = actor.systemRole === SystemRole.ADMIN;
+
+    const myTeamIds = isAdmin
+      ? []
+      : (
+          await prisma.teamMember.findMany({
+            where: { userId: actor.id },
+            select: { teamId: true },
+          })
+        ).map((m) => m.teamId);
+
+    if (query.teamId && !isAdmin && !myTeamIds.includes(query.teamId)) {
+      return forbidden();
+    }
 
     const where = {
       ...(query.policyId && { policyId: query.policyId }),
@@ -31,6 +45,7 @@ export async function GET(req: NextRequest) {
       ...(query.from && { startsAt: { gte: new Date(query.from) } }),
       ...(query.to && { endsAt: { lte: new Date(query.to) } }),
       ...(query.teamId && { policy: { teamId: query.teamId } }),
+      ...(!isAdmin && !query.teamId && { policy: { teamId: { in: myTeamIds } } }),
     };
 
     const [shifts, total] = await Promise.all([

@@ -47,6 +47,9 @@ export async function POST(
     if (batch.status !== BatchStatus.PUBLISHED) {
       return conflict("Only PUBLISHED batches can be rescheduled", "BATCH_NOT_PUBLISHED");
     }
+    if (!batch.policy.isActive) {
+      return conflict("Policy is inactive.", "POLICY_INACTIVE");
+    }
 
     const result = await requireTeamRole(batch.policy.teamId, TeamRole.MANAGER);
     if (isNextResponse(result)) return result;

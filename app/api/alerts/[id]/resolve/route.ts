@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/rbac";
+import { getSessionUser, requireTeamRole, isNextResponse } from "@/lib/rbac";
 import { ok, unauthorized, notFound, handleError } from "@/lib/api-response";
+import { TeamRole } from "@/app/generated/prisma/client";
 
 export async function POST(
   _req: NextRequest,
@@ -12,8 +13,15 @@ export async function POST(
     if (!actor) return unauthorized();
 
     const { id } = await params;
-    const alert = await prisma.alert.findUnique({ where: { id } });
+    const alert = await prisma.alert.findUnique({
+      where: { id },
+      include: { integration: { select: { teamId: true } } },
+    });
     if (!alert) return notFound("Alert not found");
+
+    const roleCheck = await requireTeamRole(alert.integration.teamId, TeamRole.MEMBER);
+    if (isNextResponse(roleCheck)) return roleCheck;
+
     if (alert.status === "RESOLVED") return ok(alert);
 
     const updated = await prisma.alert.update({

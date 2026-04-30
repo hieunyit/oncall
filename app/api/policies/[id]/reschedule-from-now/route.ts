@@ -36,6 +36,9 @@ export async function POST(
       },
     });
     if (!policy) return notFound("Policy not found");
+    if (!policy.isActive) {
+      return conflict("Policy is inactive.", "POLICY_INACTIVE");
+    }
 
     const roleCheck = await requireTeamRole(policy.teamId, TeamRole.MANAGER);
     if (isNextResponse(roleCheck)) return roleCheck;

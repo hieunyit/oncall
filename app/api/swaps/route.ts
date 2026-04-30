@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/rbac";
 import { ok, created, unauthorized, badRequest, handleError } from "@/lib/api-response";
-import { SwapStatus } from "@/app/generated/prisma/client";
+import { SwapStatus, ShiftStatus } from "@/app/generated/prisma/client";
 import { writeAuditLog } from "@/lib/audit";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { addDays } from "date-fns";
@@ -102,9 +102,46 @@ export async function POST(req: NextRequest) {
     // Verify original shift belongs to actor
     const originalShift = await prisma.shift.findUnique({
       where: { id: data.originalShiftId },
+      include: { policy: { select: { teamId: true } } },
     });
     if (!originalShift || originalShift.assigneeId !== actor.id) {
       return badRequest("Original shift not found or not assigned to you");
+    }
+    const swappableStatuses: ShiftStatus[] = [ShiftStatus.PUBLISHED, ShiftStatus.ACTIVE];
+    if (!swappableStatuses.includes(originalShift.status)) {
+      return badRequest("Original shift is not swappable");
+    }
+
+    if (data.targetShiftId && !data.targetUserId) {
+      return badRequest("targetShiftId requires targetUserId");
+    }
+
+    if (data.targetUserId) {
+      const membership = await prisma.teamMember.findFirst({
+        where: { teamId: originalShift.policy.teamId, userId: data.targetUserId },
+        select: { id: true },
+      });
+      if (!membership) {
+        return badRequest("Target user must be a member of the same team");
+      }
+    }
+
+    if (data.targetShiftId) {
+      const targetShift = await prisma.shift.findUnique({
+        where: { id: data.targetShiftId },
+        include: { policy: { select: { teamId: true } } },
+      });
+      if (!targetShift) return badRequest("Target shift not found");
+      if (targetShift.id === originalShift.id) return badRequest("Target shift must be different from original shift");
+      if (targetShift.assigneeId !== data.targetUserId) {
+        return badRequest("Target shift must belong to target user");
+      }
+      if (targetShift.policy.teamId !== originalShift.policy.teamId) {
+        return badRequest("Target shift must be in the same team");
+      }
+      if (!swappableStatuses.includes(targetShift.status)) {
+        return badRequest("Target shift is not swappable");
+      }
     }
 
     // Idempotency

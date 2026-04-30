@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/api/auth", "/api/telegram/webhook", "/confirm"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/api/auth",
+  "/api/telegram/webhook",
+  "/api/webhook",
+  "/api/confirmations",
+  "/confirm",
+];
 
 const SESSION_COOKIES = [
   "authjs.session-token",

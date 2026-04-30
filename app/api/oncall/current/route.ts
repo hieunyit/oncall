@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/rbac";
 import { ok, unauthorized, handleError } from "@/lib/api-response";
-import { ShiftStatus } from "@/app/generated/prisma/client";
+import { ShiftStatus, SystemRole } from "@/app/generated/prisma/client";
 
 export async function GET() {
   try {
@@ -9,6 +9,15 @@ export async function GET() {
     if (!actor) return unauthorized();
 
     const now = new Date();
+    const isAdmin = actor.systemRole === SystemRole.ADMIN;
+    const myTeamIds = isAdmin
+      ? []
+      : (
+          await prisma.teamMember.findMany({
+            where: { userId: actor.id },
+            select: { teamId: true },
+          })
+        ).map((m) => m.teamId);
 
     const activeShifts = await prisma.shift.findMany({
       where: {
@@ -16,6 +25,7 @@ export async function GET() {
         endsAt: { gte: now },
         status: { in: [ShiftStatus.PUBLISHED, ShiftStatus.ACTIVE] },
         overrideForShiftId: null,
+        ...(!isAdmin && { policy: { teamId: { in: myTeamIds } } }),
       },
       include: {
         assignee: { select: { id: true, fullName: true, email: true, telegramChatId: true } },

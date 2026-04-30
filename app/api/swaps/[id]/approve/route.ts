@@ -21,7 +21,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const idempotencyKey = req.headers.get("Idempotency-Key");
+  const SWAP_STATE_CHANGED = "SWAP_STATE_CHANGED";
 
   try {
     const actor = await getSessionUser();
@@ -103,6 +103,18 @@ export async function POST(
 
     // Execute the swap atomically
     await prisma.$transaction(async (tx) => {
+      const approved = await tx.swapRequest.updateMany({
+        where: { id, status: SwapStatus.ACCEPTED_BY_TARGET },
+        data: {
+          status: SwapStatus.APPROVED,
+          managerNote: note,
+          version: { increment: 1 },
+        },
+      });
+      if (approved.count === 0) {
+        throw new Error(SWAP_STATE_CHANGED);
+      }
+
       // Reassign original shift to target user
       await tx.shift.update({
         where: { id: swap.originalShiftId },
@@ -135,15 +147,6 @@ export async function POST(
           data: { userId: swap.requesterId },
         });
       }
-
-      await tx.swapRequest.update({
-        where: { id },
-        data: {
-          status: SwapStatus.APPROVED,
-          managerNote: note,
-          version: { increment: 1 },
-        },
-      });
     });
 
     await writeAuditLog({
@@ -172,6 +175,9 @@ export async function POST(
 
     return ok({ swapId: id, status: SwapStatus.APPROVED });
   } catch (error) {
+    if (error instanceof Error && error.message === "SWAP_STATE_CHANGED") {
+      return conflict("Swap was changed by another request. Reload and retry.", "INVALID_STATE");
+    }
     return handleError(error);
   }
 }

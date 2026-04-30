@@ -74,7 +74,6 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Post-save reschedule prompt (edit mode only)
   const [showReschedulePrompt, setShowReschedulePrompt] = useState(false);
   const [rescheduling, setRescheduling] = useState(false);
   const [rescheduleResult, setRescheduleResult] = useState<{ removedShifts: number; newShifts: number } | null>(null);
@@ -161,16 +160,15 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
     if (isEdit) {
       router.refresh();
       setLoading(false);
-      // Offer to regenerate the schedule with the new policy settings
-      setShowReschedulePrompt(true);
       setRescheduleResult(null);
       setRescheduleError(null);
+      await handleRescheduleNow({ silentIfNoBatch: true });
     } else {
       router.push(`/policies/${data.data.id}`);
     }
   }
 
-  async function handleRescheduleNow() {
+  async function handleRescheduleNow(options?: { silentIfNoBatch?: boolean }) {
     if (!initialData?.id) return;
     setRescheduling(true);
     setRescheduleError(null);
@@ -180,6 +178,10 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
+        const code = typeof json.code === "string" ? json.code : undefined;
+        if (options?.silentIfNoBatch && (code === "NO_PUBLISHED_BATCH" || code === "BATCH_EXPIRED")) {
+          return;
+        }
         setRescheduleError(json.error ?? "Không thể tạo lại lịch trực.");
       } else {
         const d = json.data ?? json;
@@ -214,7 +216,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
-              onClick={handleRescheduleNow}
+              onClick={() => void handleRescheduleNow()}
               disabled={rescheduling}
               className="px-3 py-1.5 text-xs font-medium bg-amber-600 hover:bg-amber-700 text-white rounded-lg disabled:opacity-50 transition-colors"
             >
@@ -244,6 +246,12 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
           >
             ✕
           </button>
+        </div>
+      )}
+
+      {rescheduleError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+          <p className="text-sm text-red-700">{rescheduleError}</p>
         </div>
       )}
 

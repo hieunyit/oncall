@@ -40,10 +40,15 @@ export async function POST(
       if (swap.status !== SwapStatus.REQUESTED) {
         return conflict(`Cannot cancel a swap in state ${swap.status}`, "INVALID_STATE");
       }
-      const updated = await prisma.swapRequest.update({
-        where: { id },
+      const updatedCount = await prisma.swapRequest.updateMany({
+        where: { id, requesterId: actor.id, status: SwapStatus.REQUESTED },
         data: { status: SwapStatus.CANCELLED, version: { increment: 1 } },
       });
+      if (updatedCount.count === 0) {
+        return conflict("Swap was changed by another request. Reload and retry.", "INVALID_STATE");
+      }
+      const updated = await prisma.swapRequest.findUnique({ where: { id } });
+      if (!updated) return notFound("Swap request not found");
       await writeAuditLog({
         actorId: actor.id, entityType: "SwapRequest", entityId: id,
         action: "CANCEL", oldValue: { status: swap.status }, newValue: { status: SwapStatus.CANCELLED },
@@ -59,17 +64,35 @@ export async function POST(
       return conflict(`Swap is already ${swap.status}`, "INVALID_STATE");
     }
 
-    if (new Date() > swap.expiresAt) {
-      await prisma.swapRequest.update({ where: { id }, data: { status: SwapStatus.EXPIRED } });
+    const now = new Date();
+    if (now > swap.expiresAt) {
+      await prisma.swapRequest.updateMany({
+        where: { id, status: SwapStatus.REQUESTED },
+        data: { status: SwapStatus.EXPIRED },
+      });
       return conflict("Swap request has expired", "EXPIRED");
     }
 
     const newStatus = action === "accept" ? SwapStatus.ACCEPTED_BY_TARGET : SwapStatus.REJECTED;
 
-    const updated = await prisma.swapRequest.update({
-      where: { id },
+    const updatedCount = await prisma.swapRequest.updateMany({
+      where: {
+        id,
+        targetUserId: actor.id,
+        status: SwapStatus.REQUESTED,
+        expiresAt: { gt: now },
+      },
       data: { status: newStatus, targetNote: note, version: { increment: 1 } },
     });
+    if (updatedCount.count === 0) {
+      const latest = await prisma.swapRequest.findUnique({ where: { id }, select: { status: true, expiresAt: true } });
+      if (latest && latest.expiresAt <= now) {
+        return conflict("Swap request has expired", "EXPIRED");
+      }
+      return conflict("Swap was changed by another request. Reload and retry.", "INVALID_STATE");
+    }
+    const updated = await prisma.swapRequest.findUnique({ where: { id } });
+    if (!updated) return notFound("Swap request not found");
 
     await writeAuditLog({
       actorId: actor.id, entityType: "SwapRequest", entityId: id,

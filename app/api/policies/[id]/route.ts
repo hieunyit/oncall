@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser, requireTeamRole, isNextResponse } from "@/lib/rbac";
 import { ok, noContent, unauthorized, notFound, handleError } from "@/lib/api-response";
-import { CadenceKind, ShiftStatus, TeamRole } from "@/app/generated/prisma/client";
+import { BatchStatus, CadenceKind, ShiftStatus, SwapStatus, TeamRole } from "@/app/generated/prisma/client";
 import { writeAuditLog } from "@/lib/audit";
 
 const TimeSlotSchema = z.object({
@@ -143,21 +143,73 @@ export async function DELETE(
     if (isNextResponse(result)) return result;
 
     const now = new Date();
-    await prisma.$transaction([
-      prisma.rotationPolicy.update({
+    const shiftsToRemove = await prisma.shift.findMany({
+      where: {
+        policyId: id,
+        startsAt: { gte: now },
+        status: { in: [ShiftStatus.DRAFT, ShiftStatus.PUBLISHED, ShiftStatus.CANCELLED] },
+      },
+      select: { id: true },
+    });
+    const removeIds = shiftsToRemove.map((s) => s.id);
+
+    let removedBatchCount = 0;
+    await prisma.$transaction(async (tx) => {
+      await tx.rotationPolicy.update({
         where: { id },
         data: { isActive: false },
-      }),
-      // Cancel all future PUBLISHED shifts so they don't ghost the calendar
-      prisma.shift.updateMany({
-        where: {
-          policyId: id,
-          startsAt: { gte: now },
-          status: ShiftStatus.PUBLISHED,
-        },
-        data: { status: ShiftStatus.CANCELLED },
-      }),
-    ]);
+      });
+
+      if (removeIds.length > 0) {
+        await tx.swapRequest.updateMany({
+          where: {
+            status: { in: [SwapStatus.REQUESTED, SwapStatus.ACCEPTED_BY_TARGET] },
+            OR: [
+              { originalShiftId: { in: removeIds } },
+              { targetShiftId: { in: removeIds } },
+            ],
+          },
+          data: { status: SwapStatus.CANCELLED, version: { increment: 1 } },
+        });
+
+        await tx.shiftConfirmation.deleteMany({ where: { shiftId: { in: removeIds } } });
+        await tx.shiftTask.deleteMany({ where: { shiftId: { in: removeIds } } });
+        await tx.shift.deleteMany({ where: { id: { in: removeIds } } });
+      }
+
+      const partiallyRemainingBatchIds = (
+        await tx.scheduleBatch.findMany({
+          where: {
+            policyId: id,
+            status: BatchStatus.PUBLISHED,
+            shifts: { some: { status: { in: [ShiftStatus.ACTIVE, ShiftStatus.COMPLETED] } } },
+          },
+          select: { id: true },
+        })
+      ).map((b) => b.id);
+
+      if (partiallyRemainingBatchIds.length > 0) {
+        await tx.scheduleBatch.updateMany({
+          where: { id: { in: partiallyRemainingBatchIds } },
+          data: { status: BatchStatus.PARTIAL },
+        });
+      }
+
+      const emptyBatchIds = (
+        await tx.scheduleBatch.findMany({
+          where: {
+            policyId: id,
+            shifts: { none: {} },
+          },
+          select: { id: true },
+        })
+      ).map((b) => b.id);
+
+      if (emptyBatchIds.length > 0) {
+        const deleted = await tx.scheduleBatch.deleteMany({ where: { id: { in: emptyBatchIds } } });
+        removedBatchCount = deleted.count;
+      }
+    });
 
     await writeAuditLog({
       actorId: actor.id,
@@ -165,6 +217,11 @@ export async function DELETE(
       entityId: id,
       action: "DEACTIVATE",
       oldValue: policy,
+      newValue: {
+        isActive: false,
+        removedShifts: removeIds.length,
+        removedBatches: removedBatchCount,
+      },
       ipAddress: req.headers.get("x-forwarded-for") ?? undefined,
     });
 

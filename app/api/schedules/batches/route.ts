@@ -66,6 +66,9 @@ export async function POST(req: NextRequest) {
     });
 
     if (!policy) return notFound("Policy not found");
+    if (!policy.isActive) {
+      return conflict("Policy is inactive. Reactivate or create a new policy.", "POLICY_INACTIVE");
+    }
 
     const result = await requireTeamRole(policy.teamId, TeamRole.MANAGER);
     if (isNextResponse(result)) return result;

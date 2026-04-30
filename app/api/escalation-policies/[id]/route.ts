@@ -42,6 +42,9 @@ export async function GET(
     });
     if (!policy) return notFound("Escalation policy not found");
 
+    const roleCheck = await requireTeamRole(policy.teamId, TeamRole.MEMBER);
+    if (isNextResponse(roleCheck)) return roleCheck;
+
     return ok(policy);
   } catch (error) {
     return handleError(error);

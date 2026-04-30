@@ -37,14 +37,19 @@ export async function POST(
     const body = await req.json().catch(() => ({}));
     const { note } = RejectSchema.parse(body);
 
-    const updated = await prisma.swapRequest.update({
-      where: { id },
+    const updatedCount = await prisma.swapRequest.updateMany({
+      where: { id, status: { in: [SwapStatus.REQUESTED, SwapStatus.ACCEPTED_BY_TARGET] } },
       data: {
         status: SwapStatus.REJECTED,
         managerNote: note,
         version: { increment: 1 },
       },
     });
+    if (updatedCount.count === 0) {
+      return conflict("Swap was changed by another request. Reload and retry.", "INVALID_STATE");
+    }
+    const updated = await prisma.swapRequest.findUnique({ where: { id } });
+    if (!updated) return notFound("Swap request not found");
 
     await writeAuditLog({
       actorId: actor.id,

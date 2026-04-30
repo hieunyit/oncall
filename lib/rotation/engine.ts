@@ -56,10 +56,16 @@ function pickParticipant(
   idx: number,
   slot: { startsAt: Date; endsAt: Date },
   currentPolicyId: string | undefined,
-  occupied: OccupiedMap
+  occupied: OccupiedMap,
+  options?: {
+    excludeUserIds?: Set<string>;
+  }
 ): ParticipantSlot {
+  const excluded = options?.excludeUserIds;
+
   for (let i = 0; i < participants.length; i++) {
     const p = participants[(idx + i) % participants.length];
+    if (excluded?.has(p.userId)) continue;
     if (!currentPolicyId) return p; // no conflict checking if policyId unknown
     const conflicts = (occupied.get(p.userId) ?? []).some(
       (o) => o.policyId !== currentPolicyId && overlaps(o, slot)
@@ -67,6 +73,12 @@ function pickParticipant(
     if (!conflicts) return p;
   }
   // all busy → fall back to round-robin
+  for (let i = 0; i < participants.length; i++) {
+    const p = participants[(idx + i) % participants.length];
+    if (excluded?.has(p.userId)) continue;
+    return p;
+  }
+
   return participants[idx % participants.length];
 }
 
@@ -122,13 +134,22 @@ export function generateShifts(
     // idx here is the base index for the current day; slot i within the day gets
     // person (idx + i) % N, ensuring fair rotation across shift types.
     let dayBaseIdx = startingIndex % participants.length;
+    let previousLateAssigneeId: string | null = null;
 
     for (const day of days) {
       const dow = day.getUTCDay(); // 0=Sun … 6=Sat; use UTC to avoid server-tz shift
-      const slotsForDay = policy.timeSlots.filter(
-        (s) => !s.daysOfWeek || s.daysOfWeek.length === 0 || s.daysOfWeek.includes(dow)
-      );
+      const slotsForDay = policy.timeSlots
+        .filter((s) => !s.daysOfWeek || s.daysOfWeek.length === 0 || s.daysOfWeek.includes(dow))
+        .sort((a, b) => {
+          const aStart = a.startHour * 60 + a.startMinute;
+          const bStart = b.startHour * 60 + b.startMinute;
+          if (aStart !== bStart) return aStart - bStart;
+          const aEnd = a.endHour * 60 + a.endMinute;
+          const bEnd = b.endHour * 60 + b.endMinute;
+          return aEnd - bEnd;
+        });
       if (slotsForDay.length === 0) continue;
+      const lateSlotIndex = slotsForDay.length >= 2 ? slotsForDay.length - 1 : -1;
 
       for (let slotI = 0; slotI < slotsForDay.length; slotI++) {
         const slot = slotsForDay[slotI];
@@ -144,8 +165,27 @@ export function generateShifts(
         if (isAfter(startsAt, rangeEnd)) break;
 
         const slotIdx = (dayBaseIdx + slotI) % participants.length;
-        const participant = pickParticipant(participants, slotIdx, { startsAt, endsAt }, policyId, occupied);
+        const excludeUserIds = new Set<string>();
+        if (
+          lateSlotIndex >= 0 &&
+          slotI === lateSlotIndex &&
+          previousLateAssigneeId &&
+          participants.length > 1
+        ) {
+          excludeUserIds.add(previousLateAssigneeId);
+        }
+        const participant = pickParticipant(
+          participants,
+          slotIdx,
+          { startsAt, endsAt },
+          policyId,
+          occupied,
+          { excludeUserIds: excludeUserIds.size > 0 ? excludeUserIds : undefined }
+        );
         shifts.push({ assigneeId: participant.userId, backupId: participant.backupId, startsAt, endsAt });
+        if (slotI === lateSlotIndex) {
+          previousLateAssigneeId = participant.userId;
+        }
       }
 
       dayBaseIdx = (dayBaseIdx + 1) % participants.length;

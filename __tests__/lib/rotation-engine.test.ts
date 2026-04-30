@@ -102,6 +102,76 @@ describe("generateShifts", () => {
     const expectedEndsAt = new Date(start.getTime() + (168 * 3600 + 30 * 60) * 1000);
     expect(shifts[0].endsAt).toEqual(expectedEndsAt);
   });
+
+  it("rotates late slot evenly for 3 people / 3 slots and avoids consecutive late shifts", () => {
+    const policyWithSlots = {
+      ...basePolicy,
+      cadence: CadenceKind.DAILY,
+      shiftDurationHours: 24,
+      timezone: "Asia/Ho_Chi_Minh",
+      timeSlots: [
+        { label: "Night", startHour: 22, startMinute: 0, endHour: 23, endMinute: 59 },
+        { label: "Morning", startHour: 6, startMinute: 0, endHour: 14, endMinute: 0 },
+        { label: "Afternoon", startHour: 14, startMinute: 0, endHour: 22, endMinute: 0 },
+      ],
+    };
+    const start = new Date("2026-01-01T00:00:00Z");
+    const end = new Date("2026-01-07T00:00:00Z"); // 6 days
+
+    const shifts = generateShifts(policyWithSlots, participants, start, end);
+    expect(shifts).toHaveLength(18);
+
+    const byDay = new Map<string, typeof shifts>();
+    for (const shift of shifts) {
+      const key = shift.startsAt.toISOString().slice(0, 10);
+      byDay.set(key, [...(byDay.get(key) ?? []), shift]);
+    }
+
+    const lateAssignees = [...byDay.values()]
+      .map((items) => items.sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime())[items.length - 1].assigneeId);
+
+    for (let i = 1; i < lateAssignees.length; i++) {
+      expect(lateAssignees[i]).not.toBe(lateAssignees[i - 1]);
+    }
+
+    const counts = new Map<string, number>();
+    for (const userId of lateAssignees) {
+      counts.set(userId, (counts.get(userId) ?? 0) + 1);
+    }
+    const countValues = [...counts.values()];
+    expect(Math.max(...countValues) - Math.min(...countValues)).toBeLessThanOrEqual(1);
+  });
+
+  it("avoids assigning the same user to late slot on consecutive days for 2+ slots/day", () => {
+    const policyWithSlots = {
+      ...basePolicy,
+      cadence: CadenceKind.DAILY,
+      shiftDurationHours: 24,
+      timezone: "Asia/Ho_Chi_Minh",
+      timeSlots: [
+        { label: "Late", startHour: 16, startMinute: 0, endHour: 23, endMinute: 0 },
+        { label: "Early", startHour: 8, startMinute: 0, endHour: 16, endMinute: 0 },
+      ],
+    };
+    const start = new Date("2026-01-01T00:00:00Z");
+    const end = new Date("2026-01-06T00:00:00Z"); // 5 days
+
+    const shifts = generateShifts(policyWithSlots, participants, start, end);
+    expect(shifts).toHaveLength(10);
+
+    const byDay = new Map<string, typeof shifts>();
+    for (const shift of shifts) {
+      const key = shift.startsAt.toISOString().slice(0, 10);
+      byDay.set(key, [...(byDay.get(key) ?? []), shift]);
+    }
+
+    const lateAssignees = [...byDay.values()]
+      .map((items) => items.sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime())[items.length - 1].assigneeId);
+
+    for (let i = 1; i < lateAssignees.length; i++) {
+      expect(lateAssignees[i]).not.toBe(lateAssignees[i - 1]);
+    }
+  });
 });
 
 describe("computeConfirmationDueAt", () => {

@@ -16,7 +16,7 @@ export function DeletePolicyButton({ policyId, policyName }: { policyId: string;
       router.refresh();
     } else {
       const d = await res.json().catch(() => ({}));
-      alert(d.error ?? "Không thể vô hiệu hóa chính sách");
+      alert(d.error ?? "Không thể khóa chính sách");
       setLoading(false);
       setConfirm(false);
     }
@@ -25,7 +25,7 @@ export function DeletePolicyButton({ policyId, policyName }: { policyId: string;
   if (confirm) {
     return (
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-sm text-gray-600">Vô hiệu hóa &quot;{policyName}&quot;?</span>
+        <span className="text-sm text-gray-600">Khóa chính sách &quot;{policyName}&quot; và xóa lịch trực tương lai?</span>
         <button
           onClick={handleDelete}
           disabled={loading}
@@ -48,7 +48,7 @@ export function DeletePolicyButton({ policyId, policyName }: { policyId: string;
       onClick={() => setConfirm(true)}
       className="px-3 py-1.5 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
     >
-      Vô hiệu hóa
+      Khóa chính sách
     </button>
   );
 }

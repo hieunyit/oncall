@@ -2,8 +2,8 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser, requireTeamRole, isNextResponse } from "@/lib/rbac";
-import { ok, created, badRequest, unauthorized, handleError } from "@/lib/api-response";
-import { IntegrationType, TeamRole } from "@/app/generated/prisma/client";
+import { ok, created, badRequest, unauthorized, forbidden, handleError } from "@/lib/api-response";
+import { IntegrationType, TeamRole, SystemRole } from "@/app/generated/prisma/client";
 
 const CreateSchema = z.object({
   teamId: z.string().uuid(),
@@ -17,9 +17,27 @@ export async function GET(req: NextRequest) {
     if (!actor) return unauthorized();
 
     const teamId = req.nextUrl.searchParams.get("teamId");
+    const isAdmin = actor.systemRole === SystemRole.ADMIN;
+
+    const myTeamIds = isAdmin
+      ? []
+      : (
+          await prisma.teamMember.findMany({
+            where: { userId: actor.id },
+            select: { teamId: true },
+          })
+        ).map((m) => m.teamId);
+
+    if (teamId && !isAdmin && !myTeamIds.includes(teamId)) {
+      return forbidden();
+    }
 
     const integrations = await prisma.alertIntegration.findMany({
-      where: teamId ? { teamId } : undefined,
+      where: teamId
+        ? { teamId }
+        : isAdmin
+          ? undefined
+          : { teamId: { in: myTeamIds } },
       include: {
         team: { select: { id: true, name: true } },
         _count: { select: { alerts: true } },

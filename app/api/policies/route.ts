@@ -2,8 +2,8 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser, requireTeamRole, isNextResponse } from "@/lib/rbac";
-import { ok, created, unauthorized, handleError } from "@/lib/api-response";
-import { CadenceKind, TeamRole } from "@/app/generated/prisma/client";
+import { ok, created, unauthorized, forbidden, handleError } from "@/lib/api-response";
+import { CadenceKind, TeamRole, SystemRole } from "@/app/generated/prisma/client";
 import { writeAuditLog } from "@/lib/audit";
 
 const TimeSlotSchema = z.object({
@@ -38,10 +38,26 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = req.nextUrl;
     const teamId = searchParams.get("teamId");
+    const isAdmin = actor.systemRole === SystemRole.ADMIN;
+
+    const myTeamIds = isAdmin
+      ? []
+      : (
+          await prisma.teamMember.findMany({
+            where: { userId: actor.id },
+            select: { teamId: true },
+          })
+        ).map((m) => m.teamId);
+
+    if (teamId && !isAdmin && !myTeamIds.includes(teamId)) {
+      return forbidden();
+    }
 
     const where = teamId
       ? { teamId, isActive: true }
-      : { isActive: true };
+      : isAdmin
+        ? { isActive: true }
+        : { teamId: { in: myTeamIds }, isActive: true };
 
     const policies = await prisma.rotationPolicy.findMany({
       where,

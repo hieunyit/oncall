@@ -33,6 +33,10 @@ export async function GET(
     });
 
     if (!shift) return notFound("Shift not found");
+
+    const roleCheck = await requireTeamRole(shift.policy.teamId, TeamRole.MEMBER);
+    if (isNextResponse(roleCheck)) return roleCheck;
+
     return ok(shift);
   } catch (error) {
     return handleError(error);
