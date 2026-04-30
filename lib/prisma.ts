@@ -1,6 +1,17 @@
 import { PrismaClient } from "@/app/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
+// Ensure server-side JSON serialization never crashes on Prisma BigInt fields.
+if (typeof (BigInt.prototype as { toJSON?: () => string }).toJSON !== "function") {
+  Object.defineProperty(BigInt.prototype, "toJSON", {
+    value() {
+      return this.toString();
+    },
+    writable: true,
+    configurable: true,
+  });
+}
+
 function createPrismaClient() {
   const adapter = new PrismaPg({
     connectionString: process.env.DATABASE_URL,

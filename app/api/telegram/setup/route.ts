@@ -57,11 +57,21 @@ function readTelegramToken() {
 }
 
 async function parseSetupMode(req: Request): Promise<TelegramSetupMode> {
+  const contentType = req.headers.get("content-type")?.toLowerCase() ?? "";
+  if (!contentType.includes("application/json")) {
+    return "polling";
+  }
+
+  const raw = await req.text();
+  if (!raw.trim()) {
+    return "polling";
+  }
+
   try {
-    const body = (await req.json()) as { mode?: string } | null;
+    const body = JSON.parse(raw) as { mode?: string } | null;
     if (body?.mode === "webhook") return "webhook";
   } catch {
-    // Ignore JSON parse errors and fallback to polling mode.
+    // Ignore malformed JSON and fallback to polling mode.
   }
   return "polling";
 }
