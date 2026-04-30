@@ -20,7 +20,12 @@ export default async function TeamsPage() {
         ? {}
         : { members: { some: { userId: currentUser.id } } },
     include: {
-      _count: { select: { members: true, rotationPolicies: true } },
+      _count: {
+        select: {
+          members: true,
+          rotationPolicies: { where: { isActive: true } },
+        },
+      },
       members: {
         where: { userId: currentUser.id },
         select: { role: true },
