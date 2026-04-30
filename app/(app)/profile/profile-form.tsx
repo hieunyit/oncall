@@ -29,8 +29,10 @@ export function ProfileForm({ user }: { user: UserProfile }) {
   const [tgLinkExpiresAt, setTgLinkExpiresAt] = useState<string | null>(null);
   const [tgCopyingCommand, setTgCopyingCommand] = useState(false);
 
-  // Webhook setup (admin only)
+  // Telegram transport mode (admin only)
   const [setupWebhook, setSetupWebhook] = useState<"idle" | "loading" | "ok" | "err">("idle");
+  const [setupWebhookAction, setSetupWebhookAction] = useState<"polling" | "check">("polling");
+  const [setupWebhookMessage, setSetupWebhookMessage] = useState("");
 
   const [form, setForm] = useState({
     fullName: user.fullName ?? "",
@@ -96,7 +98,15 @@ export function ProfileForm({ user }: { user: UserProfile }) {
   // Poll the API to detect when user finishes linking in Telegram
   async function checkTelegramStatus() {
     setTgCheckingStatus(true);
+    setTgLinkError("");
     try {
+      const syncRes = await fetch("/api/telegram/sync", { method: "POST" });
+      if (!syncRes.ok) {
+        const syncJson = await syncRes.json().catch(() => ({}));
+        setTgLinkError(syncJson.error ?? "Không thể đồng bộ Telegram update.");
+        return;
+      }
+
       const res = await fetch("/api/users/me");
       if (res.ok) {
         const json = await res.json();
@@ -109,8 +119,10 @@ export function ProfileForm({ user }: { user: UserProfile }) {
           setTgLinkExpiresAt(null);
           router.refresh();
         } else {
-          setTgLinkError("Chưa phát hiện liên kết. Hãy mở bot Telegram và nhấn Start.");
+          setTgLinkError("Chưa phát hiện liên kết. Hãy nhắn /link <mã> rồi bấm kiểm tra lại.");
         }
+      } else {
+        setTgLinkError("Không tải được trạng thái người dùng.");
       }
     } finally {
       setTgCheckingStatus(false);
@@ -118,12 +130,77 @@ export function ProfileForm({ user }: { user: UserProfile }) {
   }
 
   async function registerWebhook() {
+    setSetupWebhookAction("polling");
     setSetupWebhook("loading");
+    setSetupWebhookMessage("");
     try {
-      const res = await fetch("/api/telegram/setup", { method: "POST" });
-      setSetupWebhook(res.ok ? "ok" : "err");
+      const res = await fetch("/api/telegram/setup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "polling" }),
+      });
+      const json = await res.json().catch(() => ({}));
+      const data = json.data ?? {};
+
+      if (!res.ok) {
+        const msg = json.error ?? "Bật polling Telegram thất bại.";
+        const details = json.details?.telegram?.description
+          ? ` (${json.details.telegram.description})`
+          : "";
+        setSetupWebhook("err");
+        setSetupWebhookMessage(`${msg}${details}`);
+        return;
+      }
+
+      const info = data.webhookInfo?.result ?? data.webhookInfo ?? null;
+      const lastError = info?.last_error_message as string | undefined;
+      const pending = info?.pending_update_count as number | undefined;
+      const mode = (data.mode ?? "polling") as string;
+
+      setSetupWebhook("ok");
+      setSetupWebhookMessage(
+        lastError
+          ? `Đã chuyển ${mode}; Telegram báo lỗi gần nhất: ${lastError}`
+          : `Đã chuyển ${mode}${typeof pending === "number" ? ` · pending updates: ${pending}` : ""}`
+      );
     } catch {
       setSetupWebhook("err");
+      setSetupWebhookMessage("Không thể kết nối đến máy chủ khi bật polling Telegram.");
+    }
+  }
+
+  async function checkWebhookStatus() {
+    setSetupWebhookAction("check");
+    setSetupWebhook("loading");
+    setSetupWebhookMessage("");
+    try {
+      const res = await fetch("/api/telegram/setup", { method: "GET" });
+      const json = await res.json().catch(() => ({}));
+      const mode = (json.data?.mode ?? "polling") as string;
+      const payload = (json.data?.webhookInfo?.result ?? json.data?.webhookInfo ?? null) as
+        | { url?: string; pending_update_count?: number; last_error_message?: string }
+        | null;
+
+      if (!res.ok) {
+        setSetupWebhook("err");
+        setSetupWebhookMessage(json.error ?? "Không lấy được trạng thái Telegram.");
+        return;
+      }
+
+      const url = payload?.url ? `Webhook URL: ${payload.url}` : "Webhook URL: (trống)";
+      const pending =
+        typeof payload?.pending_update_count === "number"
+          ? `Pending: ${payload.pending_update_count}`
+          : "";
+      const lastError = payload?.last_error_message
+        ? `Lỗi gần nhất: ${payload.last_error_message}`
+        : "Không có lỗi gần nhất từ Telegram.";
+
+      setSetupWebhook("ok");
+      setSetupWebhookMessage([`Mode: ${mode}`, url, pending, lastError].filter(Boolean).join(" · "));
+    } catch {
+      setSetupWebhook("err");
+      setSetupWebhookMessage("Không thể kết nối đến máy chủ khi kiểm tra Telegram.");
     }
   }
 
@@ -323,7 +400,7 @@ export function ProfileForm({ user }: { user: UserProfile }) {
                 <p className="mt-2 text-xs text-red-600">{tgLinkError}</p>
               )}
 
-              {/* Admin: register Telegram webhook */}
+              {/* Admin: switch/check Telegram mode */}
               {user.systemRole === "ADMIN" && (
                 <div className="mt-2 pt-2 border-t border-blue-100 flex items-center gap-2">
                   <button
@@ -332,11 +409,28 @@ export function ProfileForm({ user }: { user: UserProfile }) {
                     disabled={setupWebhook === "loading"}
                     className="text-xs text-gray-500 underline hover:text-gray-700 disabled:opacity-50"
                   >
-                    {setupWebhook === "loading" ? "Đang đăng ký..." : "Đăng ký Telegram Webhook"}
+                    {setupWebhook === "loading" && setupWebhookAction === "polling"
+                      ? "Đang bật polling..."
+                      : "Dùng getUpdates (polling)"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={checkWebhookStatus}
+                    disabled={setupWebhook === "loading"}
+                    className="text-xs text-gray-500 underline hover:text-gray-700 disabled:opacity-50"
+                  >
+                    {setupWebhook === "loading" && setupWebhookAction === "check"
+                      ? "Đang kiểm tra..."
+                      : "Kiểm tra mode Telegram"}
                   </button>
                   {setupWebhook === "ok" && <span className="text-xs text-green-600">✓ Thành công</span>}
                   {setupWebhook === "err" && <span className="text-xs text-red-600">✗ Lỗi</span>}
                 </div>
+              )}
+              {setupWebhookMessage && (
+                <p className={`mt-1 text-xs ${setupWebhook === "err" ? "text-red-600" : "text-emerald-600"}`}>
+                  {setupWebhookMessage}
+                </p>
               )}
             </div>
           </div>

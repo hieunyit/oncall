@@ -6,6 +6,50 @@ export interface TelegramSendResult {
   description?: string;
 }
 
+export interface TelegramApiResult<T = unknown> {
+  ok: boolean;
+  result?: T;
+  description?: string;
+  error_code?: number;
+}
+
+export interface TelegramWebhookInfo {
+  url: string;
+  has_custom_certificate: boolean;
+  pending_update_count: number;
+  ip_address?: string;
+  last_error_date?: number;
+  last_error_message?: string;
+  max_connections?: number;
+  allowed_updates?: string[];
+}
+
+export interface TelegramUserRef {
+  id: number;
+  username?: string;
+  first_name?: string;
+}
+
+export interface TelegramMessageRef {
+  message_id: number;
+  from?: TelegramUserRef;
+  chat: { id: number; type: string };
+  text?: string;
+}
+
+export interface TelegramCallbackQueryRef {
+  id: string;
+  from: TelegramUserRef;
+  message?: { message_id: number; chat: { id: number } };
+  data?: string;
+}
+
+export interface TelegramUpdate {
+  update_id: number;
+  message?: TelegramMessageRef;
+  callback_query?: TelegramCallbackQueryRef;
+}
+
 function botUrl(method: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) throw new Error("TELEGRAM_BOT_TOKEN not set");
@@ -185,7 +229,7 @@ export function renderTelegramMessage(templateId: string, vars: Record<string, s
   }
 }
 
-export async function setTelegramWebhook(webhookUrl: string): Promise<unknown> {
+export async function setTelegramWebhook(webhookUrl: string): Promise<TelegramApiResult<true>> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) throw new Error("TELEGRAM_BOT_TOKEN not set");
 
@@ -198,6 +242,47 @@ export async function setTelegramWebhook(webhookUrl: string): Promise<unknown> {
       ...(secret ? { secret_token: secret } : {}),
       allowed_updates: ["message", "callback_query"],
     }),
+  });
+  return res.json();
+}
+
+export async function getTelegramWebhookInfo(): Promise<TelegramApiResult<TelegramWebhookInfo>> {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token) throw new Error("TELEGRAM_BOT_TOKEN not set");
+
+  const res = await fetch(`${TELEGRAM_API}/bot${token}/getWebhookInfo`, {
+    method: "GET",
+  });
+  return res.json();
+}
+
+export async function deleteTelegramWebhook(
+  dropPendingUpdates = false
+): Promise<TelegramApiResult<true>> {
+  const res = await fetch(botUrl("deleteWebhook"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ drop_pending_updates: dropPendingUpdates }),
+  });
+  return res.json();
+}
+
+export async function getTelegramUpdates(params?: {
+  offset?: number;
+  limit?: number;
+  timeout?: number;
+  allowedUpdates?: string[];
+}): Promise<TelegramApiResult<TelegramUpdate[]>> {
+  const body: Record<string, unknown> = {};
+  if (typeof params?.offset === "number") body.offset = params.offset;
+  if (typeof params?.limit === "number") body.limit = params.limit;
+  if (typeof params?.timeout === "number") body.timeout = params.timeout;
+  if (params?.allowedUpdates) body.allowed_updates = params.allowedUpdates;
+
+  const res = await fetch(botUrl("getUpdates"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
   });
   return res.json();
 }
