@@ -24,6 +24,46 @@ interface TelegramUpdate {
   };
 }
 
+function parseCommandPayload(text: string): { command: string; payload: string | null } | null {
+  const [rawCommand, rawPayload] = text.trim().split(/\s+/, 2);
+  if (!rawCommand?.startsWith("/")) return null;
+  const command = rawCommand.slice(1).split("@")[0]?.toLowerCase();
+  if (!command) return null;
+  return { command, payload: rawPayload?.trim() || null };
+}
+
+async function linkTelegramByToken(chatId: number, linkToken: string) {
+  const user = await prisma.user.findFirst({
+    where: {
+      telegramLinkToken: linkToken,
+      telegramLinkTokenExp: { gt: new Date() },
+    },
+    select: { id: true, fullName: true },
+  });
+
+  if (!user) return null;
+
+  await prisma.$transaction([
+    prisma.user.updateMany({
+      where: {
+        telegramChatId: BigInt(chatId),
+        id: { not: user.id },
+      },
+      data: { telegramChatId: null },
+    }),
+    prisma.user.update({
+      where: { id: user.id },
+      data: {
+        telegramChatId: BigInt(chatId),
+        telegramLinkToken: null,
+        telegramLinkTokenExp: null,
+      },
+    }),
+  ]);
+
+  return user;
+}
+
 export async function POST(req: NextRequest) {
   const secret = req.headers.get("x-telegram-bot-api-secret-token");
   const expectedSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
@@ -187,49 +227,47 @@ export async function POST(req: NextRequest) {
   const chatId = message.chat.id;
   const text = message.text.trim();
 
-  if (text.startsWith("/start")) {
-    const parts = text.split(" ");
-    const linkToken = parts[1];
+  const parsedCommand = parseCommandPayload(text);
 
-    if (linkToken) {
-      // Look up user by telegramLinkToken (secure, time-limited)
-      const user = await prisma.user.findFirst({
-        where: {
-          telegramLinkToken: linkToken,
-          telegramLinkTokenExp: { gt: new Date() },
-        },
-      });
-
-      if (user) {
-        await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            telegramChatId: BigInt(chatId),
-            telegramLinkToken: null,
-            telegramLinkTokenExp: null,
-          },
-        });
+  if (parsedCommand && (parsedCommand.command === "start" || parsedCommand.command === "link")) {
+    if (parsedCommand.payload) {
+      const linkedUser = await linkTelegramByToken(chatId, parsedCommand.payload);
+      if (linkedUser) {
         await sendTelegramMessage(
           chatId.toString(),
-          `✅ Tài khoản <b>${user.fullName}</b> đã được liên kết thành công!\n\nBạn sẽ nhận thông báo ca trực tại đây.\n\n<b>Các lệnh hỗ trợ:</b>\n/oncall — Xem ca trực đang diễn ra\n/status — Trạng thái ca trực của bạn`,
+          `✅ Tài khoản <b>${linkedUser.fullName}</b> đã được liên kết thành công!\n\nBạn sẽ nhận thông báo ca trực tại đây.\n\n<b>Các lệnh hỗ trợ:</b>\n/oncall — Xem ca trực đang diễn ra\n/status — Trạng thái ca trực của bạn`,
           "HTML"
         );
       } else {
         await sendTelegramMessage(
           chatId.toString(),
-          `❌ Liên kết không hợp lệ hoặc đã hết hạn (10 phút).\n\nVui lòng vào ứng dụng và tạo liên kết mới.`
+          `❌ Mã liên kết không hợp lệ hoặc đã hết hạn (10 phút).\n\nVui lòng vào ứng dụng → Hồ sơ → Kết nối Telegram để tạo mã mới.\n\nSau đó gửi lại theo cú pháp:\n<code>/link &lt;ma_lien_ket&gt;</code>`,
+          "HTML"
         );
       }
     } else {
-      await sendTelegramMessage(
-        chatId.toString(),
-        `👋 Xin chào! Tôi là bot <b>On-Call Manager</b>.\n\nĐể nhận thông báo ca trực, hãy vào ứng dụng → Hồ sơ → Kết nối Telegram.`,
-        "HTML"
-      );
+      const linkedUser = await prisma.user.findFirst({
+        where: { telegramChatId: BigInt(chatId) },
+        select: { fullName: true },
+      });
+
+      if (linkedUser) {
+        await sendTelegramMessage(
+          chatId.toString(),
+          `✅ Chat này đã liên kết với tài khoản <b>${linkedUser.fullName}</b>.\n\nBạn có thể dùng:\n/oncall — Xem ca trực đang diễn ra\n/status — Trạng thái ca trực hiện tại`,
+          "HTML"
+        );
+      } else {
+        await sendTelegramMessage(
+          chatId.toString(),
+          `👋 Xin chào! Để liên kết Telegram, hãy vào ứng dụng → Hồ sơ → Kết nối Telegram.\n\nNếu Telegram chỉ gửi lệnh <code>/start</code> mà không kèm mã, bạn hãy copy mã trong ứng dụng và gửi:\n<code>/link &lt;ma_lien_ket&gt;</code>`,
+          "HTML"
+        );
+      }
     }
   }
 
-  if (text === "/oncall" || text === "/status") {
+  if (parsedCommand && (parsedCommand.command === "oncall" || parsedCommand.command === "status")) {
     const now = new Date();
     const activeShifts = await prisma.shift.findMany({
       where: {

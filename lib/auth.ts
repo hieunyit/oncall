@@ -3,6 +3,23 @@ import KeycloakProvider from "next-auth/providers/keycloak";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 
+function parsePositiveInt(value: string | undefined, fallback: number) {
+  const parsed = Number.parseInt(value ?? "", 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return parsed;
+}
+
+// Limit login session lifetime (defaults: 12h hard-expiry, no sliding extension)
+const sessionMaxAgeHours = parsePositiveInt(
+  process.env.AUTH_SESSION_MAX_AGE_HOURS,
+  12
+);
+const sessionMaxAgeSeconds = sessionMaxAgeHours * 60 * 60;
+const sessionUpdateAgeSeconds = parsePositiveInt(
+  process.env.AUTH_SESSION_UPDATE_AGE_SECONDS,
+  sessionMaxAgeSeconds
+);
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
@@ -15,7 +32,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       allowDangerousEmailAccountLinking: true,
     }),
   ],
-  session: { strategy: "database" },
+  session: {
+    strategy: "database",
+    maxAge: sessionMaxAgeSeconds,
+    updateAge: sessionUpdateAgeSeconds,
+  },
   callbacks: {
     async session({ session, user }) {
       if (session.user) {

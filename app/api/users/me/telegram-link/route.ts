@@ -21,8 +21,10 @@ export async function POST() {
 
     const botUsername = process.env.TELEGRAM_BOT_USERNAME;
     const linkUrl = botUsername ? `https://t.me/${botUsername}?start=${token}` : null;
+    const startCommand = `/start ${token}`;
+    const linkCommand = `/link ${token}`;
 
-    return ok({ linkUrl, token, exp });
+    return ok({ linkUrl, token, exp, botUsername: botUsername ?? null, startCommand, linkCommand });
   } catch (error) {
     return handleError(error);
   }

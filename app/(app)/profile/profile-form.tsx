@@ -24,6 +24,10 @@ export function ProfileForm({ user }: { user: UserProfile }) {
   const [tgCheckingStatus, setTgCheckingStatus] = useState(false);
   const [tgLinked, setTgLinked] = useState(!!user.telegramChatId);
   const [tgLinkError, setTgLinkError] = useState("");
+  const [tgLinkUrl, setTgLinkUrl] = useState<string | null>(null);
+  const [tgLinkCommand, setTgLinkCommand] = useState<string | null>(null);
+  const [tgLinkExpiresAt, setTgLinkExpiresAt] = useState<string | null>(null);
+  const [tgCopyingCommand, setTgCopyingCommand] = useState(false);
 
   // Webhook setup (admin only)
   const [setupWebhook, setSetupWebhook] = useState<"idle" | "loading" | "ok" | "err">("idle");
@@ -45,11 +49,19 @@ export function ProfileForm({ user }: { user: UserProfile }) {
         setTgLinkError(json.error ?? "Không thể tạo liên kết Telegram.");
         return;
       }
-      const linkUrl = (json.data ?? json).linkUrl;
+      const data = json.data ?? json;
+      const linkUrl = data.linkUrl as string | null | undefined;
+      const linkCommand = (data.linkCommand ?? data.startCommand ?? null) as string | null;
+      const exp = (data.exp ?? null) as string | null;
+
+      setTgLinkUrl(linkUrl ?? null);
+      setTgLinkCommand(linkCommand);
+      setTgLinkExpiresAt(exp);
+
       if (linkUrl) {
         window.open(linkUrl, "_blank", "noopener,noreferrer");
       } else {
-        setTgLinkError("Cần cấu hình TELEGRAM_BOT_USERNAME trên server.");
+        setTgLinkError("Thiếu TELEGRAM_BOT_USERNAME. Hãy copy lệnh liên kết bên dưới và gửi trong Telegram.");
       }
     } catch {
       setTgLinkError("Không thể kết nối đến máy chủ.");
@@ -66,6 +78,9 @@ export function ProfileForm({ user }: { user: UserProfile }) {
       const res = await fetch("/api/users/me/telegram-link", { method: "DELETE" });
       if (res.ok) {
         setTgLinked(false);
+        setTgLinkUrl(null);
+        setTgLinkCommand(null);
+        setTgLinkExpiresAt(null);
         router.refresh();
       } else {
         const data = await res.json().catch(() => ({}));
@@ -88,6 +103,10 @@ export function ProfileForm({ user }: { user: UserProfile }) {
         const d = json.data ?? json;
         if (d.telegramChatId) {
           setTgLinked(true);
+          setTgLinkError("");
+          setTgLinkUrl(null);
+          setTgLinkCommand(null);
+          setTgLinkExpiresAt(null);
           router.refresh();
         } else {
           setTgLinkError("Chưa phát hiện liên kết. Hãy mở bot Telegram và nhấn Start.");
@@ -105,6 +124,18 @@ export function ProfileForm({ user }: { user: UserProfile }) {
       setSetupWebhook(res.ok ? "ok" : "err");
     } catch {
       setSetupWebhook("err");
+    }
+  }
+
+  async function copyLinkCommand() {
+    if (!tgLinkCommand) return;
+    setTgCopyingCommand(true);
+    try {
+      await navigator.clipboard.writeText(tgLinkCommand);
+    } catch {
+      setTgLinkError("Không thể sao chép tự động. Hãy sao chép thủ công lệnh bên dưới.");
+    } finally {
+      setTgCopyingCommand(false);
     }
   }
 
@@ -247,6 +278,44 @@ export function ProfileForm({ user }: { user: UserProfile }) {
                       {tgCheckingStatus ? "Đang kiểm tra..." : "↻ Đã kết nối rồi?"}
                     </button>
                   </div>
+
+                  {(tgLinkCommand || tgLinkUrl) && (
+                    <div className="mt-3 p-2.5 rounded-lg border border-blue-200 bg-white">
+                      <p className="text-[11px] text-gray-600">
+                        Nếu Telegram chỉ gửi <code>/start</code> không kèm mã, gửi lệnh sau trong bot:
+                      </p>
+                      {tgLinkCommand && (
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          <code className="px-2 py-1 rounded bg-slate-900 text-slate-100 text-[11px] break-all">
+                            {tgLinkCommand}
+                          </code>
+                          <button
+                            type="button"
+                            onClick={copyLinkCommand}
+                            disabled={tgCopyingCommand}
+                            className="px-2 py-1 text-[11px] font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50"
+                          >
+                            {tgCopyingCommand ? "Đang sao chép..." : "Sao chép lệnh"}
+                          </button>
+                        </div>
+                      )}
+                      {tgLinkUrl && (
+                        <a
+                          href={tgLinkUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-flex text-[11px] text-blue-700 hover:text-blue-800 underline"
+                        >
+                          Mở bot bằng liên kết an toàn
+                        </a>
+                      )}
+                      {tgLinkExpiresAt && (
+                        <p className="mt-1 text-[11px] text-amber-700">
+                          Mã hết hạn lúc {new Date(tgLinkExpiresAt).toLocaleString("vi-VN")}.
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
