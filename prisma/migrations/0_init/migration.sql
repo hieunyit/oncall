@@ -2,6 +2,9 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
+
 -- CreateEnum
 CREATE TYPE "SystemRole" AS ENUM ('ADMIN', 'USER');
 
@@ -35,7 +38,16 @@ CREATE TYPE "EscalationTarget" AS ENUM ('PRIMARY', 'BACKUP', 'MANAGER', 'TEAM_CH
 -- CreateEnum
 CREATE TYPE "BatchStatus" AS ENUM ('PUBLISHED', 'ROLLED_BACK', 'PARTIAL');
 
--- CreateTable accounts (Auth.js)
+-- CreateEnum
+CREATE TYPE "NotificationUrgency" AS ENUM ('DEFAULT', 'IMPORTANT');
+
+-- CreateEnum
+CREATE TYPE "AlertStatus" AS ENUM ('FIRING', 'ACKNOWLEDGED', 'RESOLVED');
+
+-- CreateEnum
+CREATE TYPE "IntegrationType" AS ENUM ('GENERIC_WEBHOOK', 'PROMETHEUS', 'GRAFANA');
+
+-- CreateTable
 CREATE TABLE "accounts" (
     "id" TEXT NOT NULL,
     "userId" UUID NOT NULL,
@@ -49,147 +61,167 @@ CREATE TABLE "accounts" (
     "scope" TEXT,
     "id_token" TEXT,
     "session_state" TEXT,
+
     CONSTRAINT "accounts_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable sessions (Auth.js)
+-- CreateTable
 CREATE TABLE "sessions" (
     "id" TEXT NOT NULL,
     "sessionToken" TEXT NOT NULL,
     "userId" UUID NOT NULL,
-    "expires" TIMESTAMPTZ NOT NULL,
+    "expires" TIMESTAMP(3) NOT NULL,
+
     CONSTRAINT "sessions_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable verification_tokens (Auth.js)
+-- CreateTable
 CREATE TABLE "verification_tokens" (
     "identifier" TEXT NOT NULL,
     "token" TEXT NOT NULL,
-    "expires" TIMESTAMPTZ NOT NULL
+    "expires" TIMESTAMP(3) NOT NULL
 );
 
--- CreateTable users
+-- CreateTable
 CREATE TABLE "users" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "email" TEXT NOT NULL,
     "full_name" TEXT NOT NULL,
     "keycloak_id" TEXT,
     "telegram_chat_id" BIGINT,
+    "telegram_link_token" TEXT,
+    "telegram_link_token_exp" TIMESTAMP(3),
     "teams_user_id" TEXT,
     "teams_conversation_id" TEXT,
+    "phone" TEXT,
     "system_role" "SystemRole" NOT NULL DEFAULT 'USER',
     "timezone" TEXT NOT NULL DEFAULT 'Asia/Ho_Chi_Minh',
+    "theme" TEXT NOT NULL DEFAULT 'light',
     "is_active" BOOLEAN NOT NULL DEFAULT true,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable teams
+-- CreateTable
 CREATE TABLE "teams" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" TEXT NOT NULL,
     "description" TEXT,
     "slack_channel" TEXT,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
     CONSTRAINT "teams_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable team_members
+-- CreateTable
 CREATE TABLE "team_members" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "team_id" UUID NOT NULL,
     "user_id" UUID NOT NULL,
     "role" "TeamRole" NOT NULL DEFAULT 'MEMBER',
     "order" INTEGER NOT NULL DEFAULT 0,
-    "joined_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "joined_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
     CONSTRAINT "team_members_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable rotation_policies
+-- CreateTable
 CREATE TABLE "rotation_policies" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "team_id" UUID NOT NULL,
+    "escalation_policy_id" UUID,
     "name" TEXT NOT NULL,
     "cadence" "CadenceKind" NOT NULL,
     "cron_expression" TEXT,
     "shift_duration_hours" INTEGER NOT NULL,
     "handover_offset_minutes" INTEGER NOT NULL DEFAULT 0,
     "confirmation_due_hours" INTEGER NOT NULL DEFAULT 24,
-    "reminder_lead_hours" INTEGER[] DEFAULT ARRAY[24, 2],
+    "reminder_lead_hours" INTEGER[] DEFAULT ARRAY[24, 2]::INTEGER[],
     "max_generate_weeks" INTEGER NOT NULL DEFAULT 4,
+    "time_slots" JSONB DEFAULT '[]',
+    "timezone" TEXT NOT NULL DEFAULT 'Asia/Ho_Chi_Minh',
+    "checklist_required" BOOLEAN NOT NULL DEFAULT false,
+    "template_tasks" JSONB NOT NULL DEFAULT '[]',
     "is_active" BOOLEAN NOT NULL DEFAULT true,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
     CONSTRAINT "rotation_policies_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable schedule_batches
+-- CreateTable
 CREATE TABLE "schedule_batches" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "policy_id" UUID NOT NULL,
     "published_by" UUID NOT NULL,
-    "range_start" TIMESTAMPTZ NOT NULL,
-    "range_end" TIMESTAMPTZ NOT NULL,
+    "range_start" TIMESTAMP(3) NOT NULL,
+    "range_end" TIMESTAMP(3) NOT NULL,
     "status" "BatchStatus" NOT NULL DEFAULT 'PUBLISHED',
     "idempotency_key" TEXT NOT NULL,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
     CONSTRAINT "schedule_batches_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable shifts
+-- CreateTable
 CREATE TABLE "shifts" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "policy_id" UUID NOT NULL,
     "batch_id" UUID,
     "assignee_id" UUID NOT NULL,
     "backup_id" UUID,
-    "starts_at" TIMESTAMPTZ NOT NULL,
-    "ends_at" TIMESTAMPTZ NOT NULL,
+    "override_for_shift_id" UUID,
+    "starts_at" TIMESTAMP(3) NOT NULL,
+    "ends_at" TIMESTAMP(3) NOT NULL,
     "status" "ShiftStatus" NOT NULL DEFAULT 'DRAFT',
     "source" "ShiftSource" NOT NULL DEFAULT 'AUTOGENERATED',
     "version" INTEGER NOT NULL DEFAULT 0,
     "notes" TEXT,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
     CONSTRAINT "shifts_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable shift_confirmations
+-- CreateTable
 CREATE TABLE "shift_confirmations" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "shift_id" UUID NOT NULL,
     "user_id" UUID NOT NULL,
     "status" "ConfirmationStatus" NOT NULL DEFAULT 'PENDING',
-    "due_at" TIMESTAMPTZ NOT NULL,
-    "responded_at" TIMESTAMPTZ,
+    "due_at" TIMESTAMP(3) NOT NULL,
+    "responded_at" TIMESTAMP(3),
     "token" TEXT NOT NULL DEFAULT encode(gen_random_bytes(32), 'hex'),
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
     CONSTRAINT "shift_confirmations_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable swap_requests
+-- CreateTable
 CREATE TABLE "swap_requests" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "requester_id" UUID NOT NULL,
-    "target_user_id" UUID NOT NULL,
+    "target_user_id" UUID,
     "original_shift_id" UUID NOT NULL,
     "target_shift_id" UUID,
     "status" "SwapStatus" NOT NULL DEFAULT 'REQUESTED',
     "requester_note" TEXT,
     "target_note" TEXT,
     "manager_note" TEXT,
-    "expires_at" TIMESTAMPTZ NOT NULL,
+    "expires_at" TIMESTAMP(3) NOT NULL,
     "idempotency_key" TEXT,
     "version" INTEGER NOT NULL DEFAULT 0,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
     CONSTRAINT "swap_requests_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable team_notification_channels
+-- CreateTable
 CREATE TABLE "team_notification_channels" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "team_id" UUID NOT NULL,
@@ -197,12 +229,13 @@ CREATE TABLE "team_notification_channels" (
     "name" TEXT NOT NULL,
     "config_json" JSONB NOT NULL,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
     CONSTRAINT "team_notification_channels_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable notification_messages
+-- CreateTable
 CREATE TABLE "notification_messages" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "shift_id" UUID,
@@ -212,39 +245,69 @@ CREATE TABLE "notification_messages" (
     "event_type" TEXT NOT NULL,
     "template_id" TEXT NOT NULL,
     "payload_json" JSONB NOT NULL,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
     CONSTRAINT "notification_messages_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable notification_deliveries
+-- CreateTable
 CREATE TABLE "notification_deliveries" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "message_id" UUID NOT NULL,
     "channel_type" "ChannelType" NOT NULL,
     "status" "DeliveryStatus" NOT NULL DEFAULT 'QUEUED',
     "attempt_count" INTEGER NOT NULL DEFAULT 0,
-    "last_attempt_at" TIMESTAMPTZ,
+    "last_attempt_at" TIMESTAMP(3),
     "external_id" TEXT,
     "error_json" JSONB,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
     CONSTRAINT "notification_deliveries_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable escalation_rules
+-- CreateTable
+CREATE TABLE "escalation_policies" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "team_id" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "escalation_policies_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "escalation_rules" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "policy_id" UUID NOT NULL,
+    "escalation_policy_id" UUID NOT NULL,
     "step_order" INTEGER NOT NULL,
     "target" "EscalationTarget" NOT NULL,
     "delay_minutes" INTEGER NOT NULL,
     "channel_type" "ChannelType" NOT NULL,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
     CONSTRAINT "escalation_rules_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable audit_logs
+-- CreateTable
+CREATE TABLE "user_notification_rules" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "user_id" UUID NOT NULL,
+    "urgency" "NotificationUrgency" NOT NULL DEFAULT 'DEFAULT',
+    "step_order" INTEGER NOT NULL,
+    "channel_type" "ChannelType" NOT NULL,
+    "delay_minutes" INTEGER NOT NULL DEFAULT 0,
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "user_notification_rules_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "audit_logs" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "actor_id" UUID,
@@ -255,55 +318,256 @@ CREATE TABLE "audit_logs" (
     "new_value" JSONB,
     "ip_address" TEXT,
     "user_agent" TEXT,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
     CONSTRAINT "audit_logs_pkey" PRIMARY KEY ("id")
 );
 
--- Unique constraints
-CREATE UNIQUE INDEX "accounts_provider_providerAccountId_key" ON "accounts"("provider", "providerAccountId");
-CREATE UNIQUE INDEX "sessions_sessionToken_key" ON "sessions"("sessionToken");
-CREATE UNIQUE INDEX "verification_tokens_token_key" ON "verification_tokens"("token");
-CREATE UNIQUE INDEX "verification_tokens_identifier_token_key" ON "verification_tokens"("identifier", "token");
-CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
-CREATE UNIQUE INDEX "users_keycloak_id_key" ON "users"("keycloak_id");
-CREATE UNIQUE INDEX "teams_name_key" ON "teams"("name");
-CREATE UNIQUE INDEX "team_members_team_id_user_id_key" ON "team_members"("team_id", "user_id");
-CREATE UNIQUE INDEX "schedule_batches_idempotency_key_key" ON "schedule_batches"("idempotency_key");
-CREATE UNIQUE INDEX "shift_confirmations_shift_id_key" ON "shift_confirmations"("shift_id");
-CREATE UNIQUE INDEX "shift_confirmations_token_key" ON "shift_confirmations"("token");
-CREATE UNIQUE INDEX "swap_requests_idempotency_key_key" ON "swap_requests"("idempotency_key");
-CREATE UNIQUE INDEX "team_notification_channels_team_id_type_name_key" ON "team_notification_channels"("team_id", "type", "name");
-CREATE UNIQUE INDEX "escalation_rules_policy_id_step_order_key" ON "escalation_rules"("policy_id", "step_order");
+-- CreateTable
+CREATE TABLE "alert_integrations" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "team_id" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "type" "IntegrationType" NOT NULL DEFAULT 'GENERIC_WEBHOOK',
+    "token" TEXT NOT NULL DEFAULT encode(gen_random_bytes(24), 'hex'),
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
--- Performance indexes
+    CONSTRAINT "alert_integrations_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "alerts" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "integration_id" UUID NOT NULL,
+    "title" TEXT NOT NULL,
+    "message" TEXT,
+    "severity" TEXT,
+    "status" "AlertStatus" NOT NULL DEFAULT 'FIRING',
+    "source_ref" TEXT,
+    "payload_json" JSONB NOT NULL,
+    "triggered_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "acknowledged_by" UUID,
+    "acknowledged_at" TIMESTAMP(3),
+    "resolved_at" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "alerts_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "shift_tasks" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "shift_id" UUID NOT NULL,
+    "title" TEXT NOT NULL,
+    "is_completed" BOOLEAN NOT NULL DEFAULT false,
+    "completed_at" TIMESTAMP(3),
+    "order" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "shift_tasks_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "runbooks" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "team_id" UUID NOT NULL,
+    "title" TEXT NOT NULL,
+    "content" TEXT NOT NULL DEFAULT '',
+    "keywords" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "created_by_id" UUID NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "runbooks_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "accounts_provider_providerAccountId_key" ON "accounts"("provider", "providerAccountId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "sessions_sessionToken_key" ON "sessions"("sessionToken");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "verification_tokens_token_key" ON "verification_tokens"("token");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "verification_tokens_identifier_token_key" ON "verification_tokens"("identifier", "token");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_keycloak_id_key" ON "users"("keycloak_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_telegram_link_token_key" ON "users"("telegram_link_token");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "teams_name_key" ON "teams"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "team_members_team_id_user_id_key" ON "team_members"("team_id", "user_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "schedule_batches_idempotency_key_key" ON "schedule_batches"("idempotency_key");
+
+-- CreateIndex
 CREATE INDEX "shifts_policy_id_starts_at_ends_at_idx" ON "shifts"("policy_id", "starts_at", "ends_at");
+
+-- CreateIndex
 CREATE INDEX "shifts_assignee_id_starts_at_idx" ON "shifts"("assignee_id", "starts_at");
+
+-- CreateIndex
 CREATE INDEX "shifts_status_idx" ON "shifts"("status");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "shift_confirmations_shift_id_key" ON "shift_confirmations"("shift_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "shift_confirmations_token_key" ON "shift_confirmations"("token");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "swap_requests_idempotency_key_key" ON "swap_requests"("idempotency_key");
+
+-- CreateIndex
 CREATE INDEX "swap_requests_requester_id_status_idx" ON "swap_requests"("requester_id", "status");
+
+-- CreateIndex
 CREATE INDEX "swap_requests_target_user_id_status_idx" ON "swap_requests"("target_user_id", "status");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "team_notification_channels_team_id_type_name_key" ON "team_notification_channels"("team_id", "type", "name");
+
+-- CreateIndex
 CREATE INDEX "notification_messages_shift_id_idx" ON "notification_messages"("shift_id");
+
+-- CreateIndex
 CREATE INDEX "notification_messages_recipient_id_created_at_idx" ON "notification_messages"("recipient_id", "created_at");
+
+-- CreateIndex
 CREATE INDEX "notification_deliveries_status_channel_type_idx" ON "notification_deliveries"("status", "channel_type");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "escalation_rules_escalation_policy_id_step_order_key" ON "escalation_rules"("escalation_policy_id", "step_order");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "user_notification_rules_user_id_urgency_step_order_key" ON "user_notification_rules"("user_id", "urgency", "step_order");
+
+-- CreateIndex
 CREATE INDEX "audit_logs_entity_type_entity_id_idx" ON "audit_logs"("entity_type", "entity_id");
+
+-- CreateIndex
 CREATE INDEX "audit_logs_actor_id_created_at_idx" ON "audit_logs"("actor_id", "created_at");
 
--- Foreign key constraints
+-- CreateIndex
+CREATE UNIQUE INDEX "alert_integrations_token_key" ON "alert_integrations"("token");
+
+-- CreateIndex
+CREATE INDEX "alert_integrations_team_id_idx" ON "alert_integrations"("team_id");
+
+-- CreateIndex
+CREATE INDEX "alerts_integration_id_triggered_at_idx" ON "alerts"("integration_id", "triggered_at");
+
+-- CreateIndex
+CREATE INDEX "alerts_status_idx" ON "alerts"("status");
+
+-- CreateIndex
+CREATE INDEX "shift_tasks_shift_id_idx" ON "shift_tasks"("shift_id");
+
+-- CreateIndex
+CREATE INDEX "runbooks_team_id_idx" ON "runbooks"("team_id");
+
+-- AddForeignKey
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "team_members" ADD CONSTRAINT "team_members_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "teams"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "team_members" ADD CONSTRAINT "team_members_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "rotation_policies" ADD CONSTRAINT "rotation_policies_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "teams"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "schedule_batches" ADD CONSTRAINT "schedule_batches_policy_id_fkey" FOREIGN KEY ("policy_id") REFERENCES "rotation_policies"("id") ON UPDATE CASCADE;
-ALTER TABLE "shifts" ADD CONSTRAINT "shifts_policy_id_fkey" FOREIGN KEY ("policy_id") REFERENCES "rotation_policies"("id") ON UPDATE CASCADE;
-ALTER TABLE "shifts" ADD CONSTRAINT "shifts_batch_id_fkey" FOREIGN KEY ("batch_id") REFERENCES "schedule_batches"("id") ON UPDATE CASCADE;
-ALTER TABLE "shifts" ADD CONSTRAINT "shifts_assignee_id_fkey" FOREIGN KEY ("assignee_id") REFERENCES "users"("id") ON UPDATE CASCADE;
-ALTER TABLE "shifts" ADD CONSTRAINT "shifts_backup_id_fkey" FOREIGN KEY ("backup_id") REFERENCES "users"("id") ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "rotation_policies" ADD CONSTRAINT "rotation_policies_escalation_policy_id_fkey" FOREIGN KEY ("escalation_policy_id") REFERENCES "escalation_policies"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "schedule_batches" ADD CONSTRAINT "schedule_batches_policy_id_fkey" FOREIGN KEY ("policy_id") REFERENCES "rotation_policies"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "shifts" ADD CONSTRAINT "shifts_policy_id_fkey" FOREIGN KEY ("policy_id") REFERENCES "rotation_policies"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "shifts" ADD CONSTRAINT "shifts_batch_id_fkey" FOREIGN KEY ("batch_id") REFERENCES "schedule_batches"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "shifts" ADD CONSTRAINT "shifts_assignee_id_fkey" FOREIGN KEY ("assignee_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "shifts" ADD CONSTRAINT "shifts_backup_id_fkey" FOREIGN KEY ("backup_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "shifts" ADD CONSTRAINT "shifts_override_for_shift_id_fkey" FOREIGN KEY ("override_for_shift_id") REFERENCES "shifts"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "shift_confirmations" ADD CONSTRAINT "shift_confirmations_shift_id_fkey" FOREIGN KEY ("shift_id") REFERENCES "shifts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "shift_confirmations" ADD CONSTRAINT "shift_confirmations_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON UPDATE CASCADE;
-ALTER TABLE "swap_requests" ADD CONSTRAINT "swap_requests_requester_id_fkey" FOREIGN KEY ("requester_id") REFERENCES "users"("id") ON UPDATE CASCADE;
-ALTER TABLE "swap_requests" ADD CONSTRAINT "swap_requests_target_user_id_fkey" FOREIGN KEY ("target_user_id") REFERENCES "users"("id") ON UPDATE CASCADE;
-ALTER TABLE "swap_requests" ADD CONSTRAINT "swap_requests_original_shift_id_fkey" FOREIGN KEY ("original_shift_id") REFERENCES "shifts"("id") ON UPDATE CASCADE;
-ALTER TABLE "swap_requests" ADD CONSTRAINT "swap_requests_target_shift_id_fkey" FOREIGN KEY ("target_shift_id") REFERENCES "shifts"("id") ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "shift_confirmations" ADD CONSTRAINT "shift_confirmations_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "swap_requests" ADD CONSTRAINT "swap_requests_requester_id_fkey" FOREIGN KEY ("requester_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "swap_requests" ADD CONSTRAINT "swap_requests_target_user_id_fkey" FOREIGN KEY ("target_user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "swap_requests" ADD CONSTRAINT "swap_requests_original_shift_id_fkey" FOREIGN KEY ("original_shift_id") REFERENCES "shifts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "swap_requests" ADD CONSTRAINT "swap_requests_target_shift_id_fkey" FOREIGN KEY ("target_shift_id") REFERENCES "shifts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "team_notification_channels" ADD CONSTRAINT "team_notification_channels_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "teams"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "notification_deliveries" ADD CONSTRAINT "notification_deliveries_message_id_fkey" FOREIGN KEY ("message_id") REFERENCES "notification_messages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "escalation_policies" ADD CONSTRAINT "escalation_policies_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "teams"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "escalation_rules" ADD CONSTRAINT "escalation_rules_escalation_policy_id_fkey" FOREIGN KEY ("escalation_policy_id") REFERENCES "escalation_policies"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user_notification_rules" ADD CONSTRAINT "user_notification_rules_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_actor_id_fkey" FOREIGN KEY ("actor_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "alert_integrations" ADD CONSTRAINT "alert_integrations_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "teams"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "alerts" ADD CONSTRAINT "alerts_integration_id_fkey" FOREIGN KEY ("integration_id") REFERENCES "alert_integrations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "alerts" ADD CONSTRAINT "alerts_acknowledged_by_fkey" FOREIGN KEY ("acknowledged_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "shift_tasks" ADD CONSTRAINT "shift_tasks_shift_id_fkey" FOREIGN KEY ("shift_id") REFERENCES "shifts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "runbooks" ADD CONSTRAINT "runbooks_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "teams"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "runbooks" ADD CONSTRAINT "runbooks_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
