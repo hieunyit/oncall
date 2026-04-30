@@ -1,4 +1,4 @@
-import { addHours, addDays, addWeeks, isAfter, isBefore, eachDayOfInterval, subDays } from "date-fns";
+﻿import { addHours, addDays, addWeeks, isAfter, isBefore, eachDayOfInterval, subDays } from "date-fns";
 import { TZDate } from "@date-fns/tz";
 import { Cron } from "croner";
 import { CadenceKind } from "@/app/generated/prisma/client";
@@ -36,7 +36,7 @@ export interface GeneratedShift {
 }
 
 /**
- * Map of userId → list of existing shifts from OTHER policies that belong to the same team.
+ * Map of userId -> list of existing shifts from OTHER policies that belong to the same team.
  * Used to skip participants who would violate the cross-policy constraint:
  * a person cannot have overlapping shifts from two different policies in the same team.
  */
@@ -46,40 +46,144 @@ function overlaps(a: { startsAt: Date; endsAt: Date }, b: { startsAt: Date; ends
   return a.startsAt < b.endsAt && a.endsAt > b.startsAt;
 }
 
-/**
- * Returns the participant to assign for a given slot.
- * Starts from `idx` and looks forward (wrapping) for the first person with no cross-policy conflict.
- * Falls back to round-robin if everyone is busy.
- */
-function pickParticipant(
-  participants: ParticipantSlot[],
-  idx: number,
+interface AssignmentState {
+  assignedCounts: Map<string, number>;
+  nightCounts: Map<string, number>;
+  previousAssigneeId: string | null;
+  previousNightAssigneeId: string | null;
+}
+
+function getCount(map: Map<string, number>, userId: string): number {
+  return map.get(userId) ?? 0;
+}
+
+function getOrderedIndices(length: number, startIdx: number): number[] {
+  return Array.from({ length }, (_, i) => (startIdx + i) % length);
+}
+
+function hasCrossPolicyConflict(
+  userId: string,
   slot: { startsAt: Date; endsAt: Date },
   currentPolicyId: string | undefined,
+  occupied: OccupiedMap
+): boolean {
+  if (!currentPolicyId) return false;
+  return (occupied.get(userId) ?? []).some(
+    (o) => o.policyId !== currentPolicyId && overlaps(o, slot)
+  );
+}
+
+function selectParticipant(
+  participants: ParticipantSlot[],
+  preferredIdx: number,
+  slot: { startsAt: Date; endsAt: Date },
+  isNightShift: boolean,
+  currentPolicyId: string | undefined,
   occupied: OccupiedMap,
-  options?: {
-    excludeUserIds?: Set<string>;
-  }
+  state: AssignmentState
 ): ParticipantSlot {
-  const excluded = options?.excludeUserIds;
+  const ordered = getOrderedIndices(participants.length, preferredIdx);
 
-  for (let i = 0; i < participants.length; i++) {
-    const p = participants[(idx + i) % participants.length];
-    if (excluded?.has(p.userId)) continue;
-    if (!currentPolicyId) return p; // no conflict checking if policyId unknown
-    const conflicts = (occupied.get(p.userId) ?? []).some(
-      (o) => o.policyId !== currentPolicyId && overlaps(o, slot)
+  const noConflict = ordered.filter(
+    (idx) =>
+      !hasCrossPolicyConflict(
+        participants[idx].userId,
+        slot,
+        currentPolicyId,
+        occupied
+      )
+  );
+
+  // If everyone conflicts with another policy, we still keep scheduling as fallback.
+  const pool = noConflict.length > 0 ? noConflict : ordered;
+
+  const previousAssigneeId = state.previousAssigneeId;
+  const previousNightAssigneeId = state.previousNightAssigneeId;
+
+  // Priority tiers:
+  // 1) avoid consecutive shifts + avoid consecutive night shifts
+  // 2) avoid consecutive shifts
+  // 3) avoid consecutive night shifts
+  // 4) fallback to any candidate
+  const tier0 = pool.filter((idx) => {
+    const userId = participants[idx].userId;
+    return (
+      (participants.length <= 1 || userId !== previousAssigneeId) &&
+      (!isNightShift || participants.length <= 1 || userId !== previousNightAssigneeId)
     );
-    if (!conflicts) return p;
-  }
-  // all busy → fall back to round-robin
-  for (let i = 0; i < participants.length; i++) {
-    const p = participants[(idx + i) % participants.length];
-    if (excluded?.has(p.userId)) continue;
-    return p;
+  });
+  const tier1 = pool.filter(
+    (idx) =>
+      participants.length <= 1 ||
+      participants[idx].userId !== previousAssigneeId
+  );
+  const tier2 = pool.filter(
+    (idx) =>
+      !isNightShift ||
+      participants.length <= 1 ||
+      participants[idx].userId !== previousNightAssigneeId
+  );
+
+  const candidates =
+    tier0.length > 0
+      ? tier0
+      : tier1.length > 0
+        ? tier1
+        : tier2.length > 0
+          ? tier2
+          : pool;
+
+  // Among candidates, choose "most balanced" first, then closest to preferred rotation order.
+  let bestIdx = candidates[0];
+  for (const idx of candidates.slice(1)) {
+    const currentId = participants[idx].userId;
+    const bestId = participants[bestIdx].userId;
+
+    const currentAssigned = getCount(state.assignedCounts, currentId);
+    const bestAssigned = getCount(state.assignedCounts, bestId);
+    if (currentAssigned !== bestAssigned) {
+      if (currentAssigned < bestAssigned) bestIdx = idx;
+      continue;
+    }
+
+    if (isNightShift) {
+      const currentNight = getCount(state.nightCounts, currentId);
+      const bestNight = getCount(state.nightCounts, bestId);
+      if (currentNight !== bestNight) {
+        if (currentNight < bestNight) bestIdx = idx;
+        continue;
+      }
+    }
+
+    const currentOrder = (idx - preferredIdx + participants.length) % participants.length;
+    const bestOrder = (bestIdx - preferredIdx + participants.length) % participants.length;
+    if (currentOrder !== bestOrder) {
+      if (currentOrder < bestOrder) bestIdx = idx;
+      continue;
+    }
+
+    if (currentId < bestId) {
+      bestIdx = idx;
+    }
   }
 
-  return participants[idx % participants.length];
+  return participants[bestIdx];
+}
+
+function recordAssignment(state: AssignmentState, assigneeId: string, isNightShift: boolean) {
+  state.assignedCounts.set(
+    assigneeId,
+    getCount(state.assignedCounts, assigneeId) + 1
+  );
+  state.previousAssigneeId = assigneeId;
+
+  if (isNightShift) {
+    state.nightCounts.set(
+      assigneeId,
+      getCount(state.nightCounts, assigneeId) + 1
+    );
+    state.previousNightAssigneeId = assigneeId;
+  }
 }
 
 /** Build a TZDate for a specific calendar day + hour:minute in the given timezone */
@@ -121,23 +225,28 @@ export function generateShifts(
   const policyId = options?.policyId;
   const occupied = options?.occupied ?? new Map();
 
+  const state: AssignmentState = {
+    assignedCounts: new Map(),
+    nightCounts: new Map(),
+    previousAssigneeId: null,
+    previousNightAssigneeId: null,
+  };
+
   function applyHandover(rawEnd: Date): Date {
     return policy.handoverOffsetMinutes !== 0
       ? new Date(rawEnd.getTime() + policy.handoverOffsetMinutes * 60_000)
       : rawEnd;
   }
 
-  // ── Time-slot mode ────────────────────────────────────────────────────────
+  // Time-slot mode
   if (policy.timeSlots && policy.timeSlots.length > 0) {
     const days = eachDayOfInterval({ start: rangeStart, end: subDays(rangeEnd, 1) });
-    // Advance base person by 1 per day so each person rotates through all slot types.
-    // idx here is the base index for the current day; slot i within the day gets
-    // person (idx + i) % N, ensuring fair rotation across shift types.
+
+    // Move preferred base by 1 per day so everyone rotates through slot types.
     let dayBaseIdx = startingIndex % participants.length;
-    let previousLateAssigneeId: string | null = null;
 
     for (const day of days) {
-      const dow = day.getUTCDay(); // 0=Sun … 6=Sat; use UTC to avoid server-tz shift
+      const dow = day.getUTCDay(); // 0=Sun ... 6=Sat; UTC day to avoid server timezone drift
       const slotsForDay = policy.timeSlots
         .filter((s) => !s.daysOfWeek || s.daysOfWeek.length === 0 || s.daysOfWeek.includes(dow))
         .sort((a, b) => {
@@ -149,56 +258,60 @@ export function generateShifts(
           return aEnd - bEnd;
         });
       if (slotsForDay.length === 0) continue;
+
       const lateSlotIndex = slotsForDay.length >= 2 ? slotsForDay.length - 1 : -1;
 
       for (let slotI = 0; slotI < slotsForDay.length; slotI++) {
         const slot = slotsForDay[slotI];
         const startsAt = tzDateTime(day, slot.startHour, slot.startMinute, tz);
-        let endsAt = tzDateTime(day, slot.endHour, slot.endMinute, tz);
 
-        // Overnight shift: end time is on the next calendar day
-        if (endsAt <= startsAt) {
-          const nextDay = new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate() + 1));
+        const rawEndsAt = tzDateTime(day, slot.endHour, slot.endMinute, tz);
+        const overnight = rawEndsAt <= startsAt;
+        let endsAt = rawEndsAt;
+
+        if (overnight) {
+          const nextDay = new Date(
+            Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate() + 1)
+          );
           endsAt = tzDateTime(nextDay, slot.endHour, slot.endMinute, tz);
         }
 
         if (isAfter(startsAt, rangeEnd)) break;
 
-        const slotIdx = (dayBaseIdx + slotI) % participants.length;
-        const excludeUserIds = new Set<string>();
-        if (
-          lateSlotIndex >= 0 &&
-          slotI === lateSlotIndex &&
-          previousLateAssigneeId &&
-          participants.length > 1
-        ) {
-          excludeUserIds.add(previousLateAssigneeId);
-        }
-        const participant = pickParticipant(
+        const preferredIdx = (dayBaseIdx + slotI) % participants.length;
+        const isNightShift = overnight || slotI === lateSlotIndex;
+
+        const participant = selectParticipant(
           participants,
-          slotIdx,
+          preferredIdx,
           { startsAt, endsAt },
+          isNightShift,
           policyId,
           occupied,
-          { excludeUserIds: excludeUserIds.size > 0 ? excludeUserIds : undefined }
+          state
         );
-        shifts.push({ assigneeId: participant.userId, backupId: participant.backupId, startsAt, endsAt });
-        if (slotI === lateSlotIndex) {
-          previousLateAssigneeId = participant.userId;
-        }
+
+        shifts.push({
+          assigneeId: participant.userId,
+          backupId: participant.backupId,
+          startsAt,
+          endsAt,
+        });
+
+        recordAssignment(state, participant.userId, isNightShift);
       }
 
       dayBaseIdx = (dayBaseIdx + 1) % participants.length;
     }
+
     return shifts;
   }
 
-  // ── CUSTOM_CRON mode ──────────────────────────────────────────────────────
+  // CUSTOM_CRON mode
   if (policy.cadence === CadenceKind.CUSTOM_CRON) {
     if (!policy.cronExpression) return shifts;
 
     const cron = new Cron(policy.cronExpression, { timezone: tz });
-    // Start from the first cron fire at or after rangeStart
     let next = cron.nextRun(new Date(rangeStart.getTime() - 1));
 
     while (next && isBefore(next, rangeEnd)) {
@@ -207,16 +320,32 @@ export function generateShifts(
 
       if (isAfter(endsAt, rangeEnd)) break;
 
-      const participant = pickParticipant(participants, idx, { startsAt, endsAt }, policyId, occupied);
-      shifts.push({ assigneeId: participant.userId, backupId: participant.backupId, startsAt, endsAt });
-      idx++;
+      const participant = selectParticipant(
+        participants,
+        idx,
+        { startsAt, endsAt },
+        false,
+        policyId,
+        occupied,
+        state
+      );
 
+      shifts.push({
+        assigneeId: participant.userId,
+        backupId: participant.backupId,
+        startsAt,
+        endsAt,
+      });
+
+      recordAssignment(state, participant.userId, false);
+      idx++;
       next = cron.nextRun(startsAt);
     }
+
     return shifts;
   }
 
-  // ── DAILY / WEEKLY cadence ────────────────────────────────────────────────
+  // DAILY / WEEKLY cadence
   let current = rangeStart;
 
   while (isBefore(current, rangeEnd)) {
@@ -225,8 +354,24 @@ export function generateShifts(
 
     if (isAfter(endsAt, rangeEnd)) break;
 
-    const participant = pickParticipant(participants, idx, { startsAt, endsAt }, policyId, occupied);
-    shifts.push({ assigneeId: participant.userId, backupId: participant.backupId, startsAt, endsAt });
+    const participant = selectParticipant(
+      participants,
+      idx,
+      { startsAt, endsAt },
+      false,
+      policyId,
+      occupied,
+      state
+    );
+
+    shifts.push({
+      assigneeId: participant.userId,
+      backupId: participant.backupId,
+      startsAt,
+      endsAt,
+    });
+
+    recordAssignment(state, participant.userId, false);
     idx++;
 
     current =

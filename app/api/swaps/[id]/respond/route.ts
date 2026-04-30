@@ -13,6 +13,7 @@ import {
 } from "@/lib/api-response";
 import { SwapStatus } from "@/app/generated/prisma/client";
 import { writeAuditLog } from "@/lib/audit";
+import { validateSwapAssignmentConstraints } from "@/lib/rotation/swap-constraints";
 
 const RespondSchema = z.object({
   action: z.enum(["accept", "decline", "cancel"]),
@@ -28,7 +29,13 @@ export async function POST(
     if (!actor) return unauthorized();
 
     const { id } = await params;
-    const swap = await prisma.swapRequest.findUnique({ where: { id } });
+    const swap = await prisma.swapRequest.findUnique({
+      where: { id },
+      include: {
+        originalShift: { include: { policy: { select: { teamId: true, timezone: true } } } },
+        targetShift: { select: { id: true } },
+      },
+    });
     if (!swap) return notFound("Swap request not found");
 
     const body = await req.json();
@@ -71,6 +78,22 @@ export async function POST(
         data: { status: SwapStatus.EXPIRED },
       });
       return conflict("Swap request has expired", "EXPIRED");
+    }
+
+    if (action === "accept") {
+      const constraintViolation = await validateSwapAssignmentConstraints({
+        userId: actor.id,
+        teamId: swap.originalShift.policy.teamId,
+        startsAt: swap.originalShift.startsAt,
+        endsAt: swap.originalShift.endsAt,
+        timezone: swap.originalShift.policy.timezone,
+        excludeShiftIds: swap.targetShift ? [swap.targetShift.id] : [],
+        allowConsecutive: true,
+        allowConsecutiveNight: true,
+      });
+      if (constraintViolation) {
+        return conflict(constraintViolation.message, constraintViolation.code);
+      }
     }
 
     const newStatus = action === "accept" ? SwapStatus.ACCEPTED_BY_TARGET : SwapStatus.REJECTED;

@@ -23,9 +23,9 @@ export function ResendButton({ deliveryId }: { deliveryId: string }) {
     <button
       onClick={handleResend}
       disabled={loading}
-      className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 disabled:opacity-50"
+      className="inline-flex h-7 items-center rounded-md border border-indigo-200 bg-indigo-50 px-2.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-60"
     >
-      {loading ? "..." : "Gửi lại"}
+      {loading ? "Đang gửi..." : "Gửi lại"}
     </button>
   );
 }

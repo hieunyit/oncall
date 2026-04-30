@@ -12,6 +12,7 @@ import {
 import { SwapStatus, ShiftSource, ShiftStatus, TeamRole } from "@/app/generated/prisma/client";
 import { writeAuditLog } from "@/lib/audit";
 import { notifyTeamChannels } from "@/lib/notifications/notify-channel";
+import { validateSwapAssignmentConstraints } from "@/lib/rotation/swap-constraints";
 
 const ApproveSchema = z.object({
   note: z.string().max(500).optional(),
@@ -34,10 +35,10 @@ export async function POST(
         requester: { select: { id: true, fullName: true } },
         targetUser: { select: { id: true, fullName: true } },
         originalShift: {
-          include: { policy: { select: { teamId: true, id: true, name: true } } },
+          include: { policy: { select: { teamId: true, id: true, name: true, timezone: true } } },
         },
         targetShift: {
-          include: { policy: { select: { teamId: true, id: true, name: true } } },
+          include: { policy: { select: { teamId: true, id: true, name: true, timezone: true } } },
         },
       },
     });
@@ -98,6 +99,36 @@ export async function POST(
           "Requester already has a shift from another policy overlapping the target shift's time",
           "CROSS_POLICY_CONFLICT"
         );
+      }
+    }
+
+    const spacingConflict1 = await validateSwapAssignmentConstraints({
+      userId: swap.targetUserId!,
+      teamId: swap.originalShift.policy.teamId,
+      startsAt: swap.originalShift.startsAt,
+      endsAt: swap.originalShift.endsAt,
+      timezone: swap.originalShift.policy.timezone,
+      excludeShiftIds: swap.targetShiftId ? [swap.targetShiftId] : [],
+      allowConsecutive: true,
+      allowConsecutiveNight: true,
+    });
+    if (spacingConflict1) {
+      return conflict(spacingConflict1.message, spacingConflict1.code);
+    }
+
+    if (swap.targetShiftId && swap.targetShift) {
+      const spacingConflict2 = await validateSwapAssignmentConstraints({
+        userId: swap.requesterId,
+        teamId: swap.targetShift.policy.teamId,
+        startsAt: swap.targetShift.startsAt,
+        endsAt: swap.targetShift.endsAt,
+        timezone: swap.targetShift.policy.timezone,
+        excludeShiftIds: [swap.originalShiftId],
+        allowConsecutive: true,
+        allowConsecutiveNight: true,
+      });
+      if (spacingConflict2) {
+        return conflict(spacingConflict2.message, spacingConflict2.code);
       }
     }
 

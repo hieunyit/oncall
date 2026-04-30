@@ -172,6 +172,59 @@ describe("generateShifts", () => {
       expect(lateAssignees[i]).not.toBe(lateAssignees[i - 1]);
     }
   });
+
+  it("avoids assigning the same user to two consecutive shifts in time-slot mode", () => {
+    const policyWithSlots = {
+      ...basePolicy,
+      cadence: CadenceKind.DAILY,
+      shiftDurationHours: 24,
+      timezone: "Asia/Ho_Chi_Minh",
+      timeSlots: [
+        { label: "Day", startHour: 8, startMinute: 0, endHour: 20, endMinute: 0 },
+        { label: "Night", startHour: 20, startMinute: 0, endHour: 8, endMinute: 0 },
+      ],
+    };
+    const twoParticipants = [{ userId: "user-1" }, { userId: "user-2" }];
+    const start = new Date("2026-01-01T00:00:00Z");
+    const end = new Date("2026-01-05T00:00:00Z");
+
+    const shifts = generateShifts(policyWithSlots, twoParticipants, start, end);
+    const ordered = [...shifts].sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
+
+    for (let i = 1; i < ordered.length; i++) {
+      expect(ordered[i].assigneeId).not.toBe(ordered[i - 1].assigneeId);
+    }
+  });
+
+  it("keeps total shift counts as even as possible in time-slot mode", () => {
+    const policyWithSlots = {
+      ...basePolicy,
+      cadence: CadenceKind.DAILY,
+      shiftDurationHours: 24,
+      timezone: "Asia/Ho_Chi_Minh",
+      timeSlots: [
+        { label: "Day", startHour: 8, startMinute: 0, endHour: 20, endMinute: 0 },
+        { label: "Night", startHour: 20, startMinute: 0, endHour: 8, endMinute: 0 },
+      ],
+    };
+    const fourParticipants = [
+      { userId: "u1" },
+      { userId: "u2" },
+      { userId: "u3" },
+      { userId: "u4" },
+    ];
+    const start = new Date("2026-01-01T00:00:00Z");
+    const end = new Date("2026-01-11T00:00:00Z"); // 10 days -> 20 shifts
+
+    const shifts = generateShifts(policyWithSlots, fourParticipants, start, end);
+    const counts = new Map<string, number>();
+    for (const s of shifts) {
+      counts.set(s.assigneeId, (counts.get(s.assigneeId) ?? 0) + 1);
+    }
+
+    const values = [...counts.values()];
+    expect(Math.max(...values) - Math.min(...values)).toBeLessThanOrEqual(1);
+  });
 });
 
 describe("computeConfirmationDueAt", () => {

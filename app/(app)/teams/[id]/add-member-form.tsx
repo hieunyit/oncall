@@ -12,38 +12,81 @@ interface User {
 interface Props {
   teamId: string;
   availableUsers: User[];
+  activePolicyIds: string[];
 }
 
-export function AddMemberForm({ teamId, availableUsers }: Props) {
+const RESCHEDULE_SKIP_CODES = new Set(["NO_PUBLISHED_BATCH", "BATCH_EXPIRED", "POLICY_INACTIVE"]);
+
+export function AddMemberForm({ teamId, availableUsers, activePolicyIds }: Props) {
   const router = useRouter();
   const [userId, setUserId] = useState("");
   const [role, setRole] = useState<"MEMBER" | "MANAGER">("MEMBER");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  async function reschedulePolicy(policyId: string): Promise<"ok" | "skipped" | "error"> {
+    try {
+      const res = await fetch(`/api/policies/${policyId}/reschedule-from-now`, {
+        method: "POST",
+      });
+      const payload = (await res.json().catch(() => ({}))) as { code?: string };
+      if (!res.ok) {
+        if (typeof payload.code === "string" && RESCHEDULE_SKIP_CODES.has(payload.code)) {
+          return "skipped";
+        }
+        return "error";
+      }
+      return "ok";
+    } catch {
+      return "error";
+    }
+  }
 
   async function handleAdd() {
     if (!userId) return;
     setLoading(true);
     setError(null);
-    const res = await fetch(`/api/teams/${teamId}/members`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, role }),
-    });
-    if (!res.ok) {
-      const d = await res.json();
-      setError(d.error ?? "Lỗi khi thêm thành viên");
-    } else {
+    setNotice(null);
+
+    try {
+      const res = await fetch(`/api/teams/${teamId}/members`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, role }),
+      });
+
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => ({}))) as { error?: string };
+        setError(payload.error ?? "Không thể thêm thành viên");
+        return;
+      }
+
+      const outcomes =
+        activePolicyIds.length > 0
+          ? await Promise.all(activePolicyIds.map((policyId) => reschedulePolicy(policyId)))
+          : [];
+      const failedCount = outcomes.filter((outcome) => outcome === "error").length;
+
       setUserId("");
+      if (failedCount > 0) {
+        setNotice(
+          `Đã thêm thành viên, nhưng ${failedCount}/${activePolicyIds.length} chính sách chưa cập nhật được lịch. Vui lòng bấm "Cập nhật từ ngày..." trong từng chính sách.`
+        );
+      }
+
       router.refresh();
+    } catch {
+      setError("Không thể kết nối đến máy chủ");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   if (availableUsers.length === 0) return null;
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-wrap">
       <select
         value={userId}
         onChange={(e) => setUserId(e.target.value)}
@@ -72,6 +115,7 @@ export function AddMemberForm({ teamId, availableUsers }: Props) {
         {loading ? "..." : "+ Thêm"}
       </button>
       {error && <span className="text-xs text-red-600">{error}</span>}
+      {notice && <span className="text-xs text-amber-700">{notice}</span>}
     </div>
   );
 }

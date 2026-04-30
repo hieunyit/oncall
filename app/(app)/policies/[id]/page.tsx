@@ -188,6 +188,7 @@ export default async function PolicyDetailPage({
                 <th className="text-left px-4 py-2 font-medium text-gray-500">Bắt đầu</th>
                 <th className="text-left px-4 py-2 font-medium text-gray-500">Kết thúc</th>
                 <th className="text-left px-4 py-2 font-medium text-gray-500">Người trực</th>
+                <th className="text-left px-4 py-2 font-medium text-gray-500">Nguồn</th>
                 <th className="text-left px-4 py-2 font-medium text-gray-500">Xác nhận</th>
               </tr>
             </thead>
@@ -197,6 +198,22 @@ export default async function PolicyDetailPage({
                   <td className="px-4 py-2 text-gray-700">{s.startsAt.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}</td>
                   <td className="px-4 py-2 text-gray-700">{s.endsAt.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}</td>
                   <td className="px-4 py-2 font-medium text-gray-900">{s.assignee.fullName}</td>
+                  <td className="px-4 py-2">
+                    {s.source === "SWAP" ? (
+                      <span className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium bg-indigo-100 text-indigo-700">
+                        <span>⇄</span>
+                        <span>Đổi ca</span>
+                      </span>
+                    ) : s.source === "OVERRIDE" ? (
+                      <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-amber-100 text-amber-700">
+                        Override
+                      </span>
+                    ) : (
+                      <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-gray-100 text-gray-500">
+                        Tự động
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-2">
                     <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
                       s.confirmation?.status === "CONFIRMED" ? "bg-green-100 text-green-700" :

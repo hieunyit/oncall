@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser, requireTeamRole, isNextResponse } from "@/lib/rbac";
-import { ok, created, unauthorized, notFound, handleError } from "@/lib/api-response";
+import { ok, created, unauthorized, notFound, forbidden, handleError } from "@/lib/api-response";
 import { TeamRole } from "@/app/generated/prisma/client";
 
 const CreateTaskSchema = z.object({
@@ -25,8 +25,13 @@ export async function GET(
     });
     if (!shift) return notFound("Shift not found");
 
-    const result = await requireTeamRole(shift.policy.teamId, TeamRole.MEMBER);
-    if (isNextResponse(result)) return result;
+    const roleCheck = await requireTeamRole(shift.policy.teamId, TeamRole.MEMBER);
+    if (isNextResponse(roleCheck)) return roleCheck;
+    const canManageChecklist =
+      roleCheck.user.id === shift.assigneeId || roleCheck.teamRole === TeamRole.MANAGER;
+    if (!canManageChecklist) {
+      return forbidden("Only the shift assignee or manager can manage checklist items");
+    }
 
     let tasks = await prisma.shiftTask.findMany({
       where: { shiftId: id },

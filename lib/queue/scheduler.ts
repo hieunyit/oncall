@@ -96,3 +96,17 @@ export async function scheduleAllRemindersForBatch(
     ])
   );
 }
+
+export async function scheduleAllRemindersForBatchSafe(
+  confirmations: ConfirmationInfo[],
+  policy: PolicyInfo,
+  context: string
+): Promise<boolean> {
+  try {
+    await scheduleAllRemindersForBatch(confirmations, policy);
+    return true;
+  } catch (error) {
+    console.error(`[queue] failed to schedule reminders (${context}):`, error);
+    return false;
+  }
+}

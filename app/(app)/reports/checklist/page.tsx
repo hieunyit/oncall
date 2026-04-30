@@ -1,14 +1,26 @@
+import Link from "next/link";
+import {
+  endOfDay,
+  format,
+  isValid,
+  parseISO,
+  startOfDay,
+} from "date-fns";
+import { vi } from "date-fns/locale";
+import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
-import { startOfDay, endOfDay, format, eachDayOfInterval, parseISO } from "date-fns";
-import { vi } from "date-fns/locale";
-import Link from "next/link";
 
 export const metadata = { title: "Báo cáo Checklist" };
 
 interface PageProps {
   searchParams: Promise<{ from?: string; to?: string; teamId?: string }>;
+}
+
+function safeDate(value: string | undefined, fallback: Date) {
+  if (!value) return fallback;
+  const parsed = parseISO(value);
+  return isValid(parsed) ? parsed : fallback;
 }
 
 export default async function ChecklistReportPage({ searchParams }: PageProps) {
@@ -17,18 +29,28 @@ export default async function ChecklistReportPage({ searchParams }: PageProps) {
 
   const currentUser = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true, systemRole: true, teamMembers: { select: { teamId: true } } },
+    select: {
+      id: true,
+      systemRole: true,
+      teamMembers: { select: { teamId: true } },
+    },
   });
   if (!currentUser) redirect("/login");
 
   const isAdmin = currentUser.systemRole === "ADMIN";
-  const myTeamIds = currentUser.teamMembers.map((m) => m.teamId);
-
+  const myTeamIds = currentUser.teamMembers.map((member) => member.teamId);
   const { from, to, teamId } = await searchParams;
 
   const today = new Date();
-  const fromDate = from ? startOfDay(parseISO(from)) : startOfDay(new Date(today.getFullYear(), today.getMonth(), 1));
-  const toDate = to ? endOfDay(parseISO(to)) : endOfDay(today);
+  const fallbackFrom = startOfDay(new Date(today.getFullYear(), today.getMonth(), 1));
+  const fallbackTo = endOfDay(today);
+  let fromDate = startOfDay(safeDate(from, fallbackFrom));
+  let toDate = endOfDay(safeDate(to, fallbackTo));
+  if (fromDate > toDate) {
+    const temp = fromDate;
+    fromDate = startOfDay(toDate);
+    toDate = endOfDay(temp);
+  }
 
   const teams = await prisma.team.findMany({
     where: isAdmin ? {} : { id: { in: myTeamIds } },
@@ -36,12 +58,17 @@ export default async function ChecklistReportPage({ searchParams }: PageProps) {
     orderBy: { name: "asc" },
   });
 
-  const teamFilter = teamId ?? (!isAdmin && myTeamIds.length === 1 ? myTeamIds[0] : undefined);
+  const teamFilter =
+    teamId ?? (!isAdmin && myTeamIds.length === 1 ? myTeamIds[0] : undefined);
 
   const shifts = await prisma.shift.findMany({
     where: {
       startsAt: { gte: fromDate, lte: toDate },
-      ...(teamFilter ? { policy: { teamId: teamFilter } } : isAdmin ? {} : { policy: { teamId: { in: myTeamIds } } }),
+      ...(teamFilter
+        ? { policy: { teamId: teamFilter } }
+        : isAdmin
+          ? {}
+          : { policy: { teamId: { in: myTeamIds } } }),
     },
     include: {
       assignee: { select: { fullName: true } },
@@ -51,157 +78,259 @@ export default async function ChecklistReportPage({ searchParams }: PageProps) {
     orderBy: { startsAt: "asc" },
   });
 
-  // Only include shifts that have tasks
-  const shiftsWithTasks = shifts.filter((s) => s.tasks.length > 0);
+  const shiftsWithTasks = shifts.filter((shift) => shift.tasks.length > 0);
 
-  // Group by day
   const byDay: Record<string, typeof shiftsWithTasks> = {};
-  for (const s of shiftsWithTasks) {
-    const dayKey = format(s.startsAt, "yyyy-MM-dd");
+  for (const shift of shiftsWithTasks) {
+    const dayKey = format(shift.startsAt, "yyyy-MM-dd");
     if (!byDay[dayKey]) byDay[dayKey] = [];
-    byDay[dayKey].push(s);
+    byDay[dayKey].push(shift);
   }
-
   const days = Object.keys(byDay).sort();
 
-  // Summary stats
-  const totalTasks = shiftsWithTasks.reduce((n, s) => n + s.tasks.length, 0);
-  const doneTasks = shiftsWithTasks.reduce((n, s) => n + s.tasks.filter((t) => t.isCompleted).length, 0);
-  const shiftsComplete = shiftsWithTasks.filter((s) => s.tasks.every((t) => t.isCompleted)).length;
-  const shiftsPartial = shiftsWithTasks.filter((s) => s.tasks.some((t) => t.isCompleted) && !s.tasks.every((t) => t.isCompleted)).length;
-  const shiftsPending = shiftsWithTasks.filter((s) => s.tasks.every((t) => !t.isCompleted)).length;
+  const totalTasks = shiftsWithTasks.reduce((sum, shift) => sum + shift.tasks.length, 0);
+  const doneTasks = shiftsWithTasks.reduce(
+    (sum, shift) => sum + shift.tasks.filter((task) => task.isCompleted).length,
+    0
+  );
+  const shiftsComplete = shiftsWithTasks.filter((shift) =>
+    shift.tasks.every((task) => task.isCompleted)
+  ).length;
+  const shiftsPartial = shiftsWithTasks.filter(
+    (shift) =>
+      shift.tasks.some((task) => task.isCompleted) &&
+      !shift.tasks.every((task) => task.isCompleted)
+  ).length;
+  const shiftsPending = shiftsWithTasks.filter((shift) =>
+    shift.tasks.every((task) => !task.isCompleted)
+  ).length;
+  const completionRate =
+    totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex items-center gap-2 text-sm text-gray-500">
-        <Link href="/reports" className="hover:text-gray-700">Báo cáo</Link>
+        <Link href="/reports" className="hover:text-gray-700">
+          Báo cáo
+        </Link>
         <span>/</span>
-        <span className="text-gray-900 font-medium">Checklist</span>
+        <span className="font-medium text-gray-900">Checklist</span>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-gray-900">Báo cáo Checklist công việc</h1>
+      <div className="rounded-2xl border border-slate-700 bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-900 px-6 py-5 text-white">
+        <p className="text-[11px] uppercase tracking-[0.18em] text-slate-300">
+          Checklist Analytics
+        </p>
+        <h1 className="mt-1 text-2xl font-semibold">Báo cáo checklist theo ca</h1>
+        <p className="mt-1 text-sm text-slate-300">
+          Theo dõi mức độ hoàn thành checklist trước khi kết thúc ca trực.
+        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+          <span className="rounded-full border border-slate-600 bg-slate-800/70 px-2.5 py-1">
+            {format(fromDate, "dd/MM/yyyy")} - {format(toDate, "dd/MM/yyyy")}
+          </span>
+          <span className="rounded-full border border-slate-600 bg-slate-800/70 px-2.5 py-1">
+            Tỷ lệ hoàn thành: {completionRate}%
+          </span>
+          <span className="rounded-full border border-slate-600 bg-slate-800/70 px-2.5 py-1">
+            Ca có checklist: {shiftsWithTasks.length}
+          </span>
+        </div>
+      </div>
 
-        {/* Filters */}
-        <form method="GET" className="flex flex-wrap items-center gap-2">
-          {teams.length > 1 && (
-            <select
-              name="teamId"
-              defaultValue={teamFilter ?? ""}
-              className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700"
-            >
-              <option value="">Tất cả nhóm</option>
-              {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-            </select>
+      <div className="rounded-2xl border border-gray-200 bg-white p-4">
+        <form method="GET" className="flex flex-wrap items-end gap-3">
+          {(teams.length > 1 || isAdmin) && (
+            <label className="min-w-[200px]">
+              <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                Nhóm trực
+              </span>
+              <select
+                name="teamId"
+                defaultValue={teamFilter ?? ""}
+                className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700"
+              >
+                <option value="">Tất cả nhóm</option>
+                {teams.map((team) => (
+                  <option key={team.id} value={team.id}>
+                    {team.name}
+                  </option>
+                ))}
+              </select>
+            </label>
           )}
-          <input
-            type="date"
-            name="from"
-            defaultValue={format(fromDate, "yyyy-MM-dd")}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700"
-          />
-          <span className="text-gray-400 text-sm">→</span>
-          <input
-            type="date"
-            name="to"
-            defaultValue={format(toDate, "yyyy-MM-dd")}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700"
-          />
+
+          <label>
+            <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+              Từ ngày
+            </span>
+            <input
+              type="date"
+              name="from"
+              defaultValue={format(fromDate, "yyyy-MM-dd")}
+              className="h-9 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700"
+            />
+          </label>
+
+          <label>
+            <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+              Đến ngày
+            </span>
+            <input
+              type="date"
+              name="to"
+              defaultValue={format(toDate, "yyyy-MM-dd")}
+              className="h-9 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700"
+            />
+          </label>
+
           <button
             type="submit"
-            className="text-sm px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+            className="h-9 rounded-lg bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-700"
           >
-            Lọc
+            Áp dụng
           </button>
         </form>
       </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Tổng công việc" value={totalTasks} sub={`${doneTasks} đã hoàn thành`} color="blue" />
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <StatCard
+          label="Tổng công việc"
+          value={totalTasks}
+          helper={`${doneTasks} đã hoàn thành`}
+          tone="indigo"
+        />
         <StatCard
           label="Tỷ lệ hoàn thành"
-          value={totalTasks > 0 ? `${Math.round((doneTasks / totalTasks) * 100)}%` : "—"}
-          sub={`${doneTasks}/${totalTasks}`}
-          color={totalTasks > 0 && doneTasks === totalTasks ? "green" : "orange"}
+          value={totalTasks > 0 ? `${completionRate}%` : "-"}
+          helper={`${doneTasks}/${totalTasks} mục`}
+          tone={completionRate >= 80 ? "green" : completionRate >= 50 ? "amber" : "rose"}
         />
-        <StatCard label="Ca hoàn thành" value={shiftsComplete} sub={`/${shiftsWithTasks.length} ca có checklist`} color="green" />
-        <StatCard label="Ca chưa làm" value={shiftsPending} sub={`${shiftsPartial} ca làm một phần`} color={shiftsPending > 0 ? "red" : "green"} />
+        <StatCard
+          label="Ca hoàn thành"
+          value={shiftsComplete}
+          helper={`${shiftsPartial} ca làm dở`}
+          tone="green"
+        />
+        <StatCard
+          label="Ca chưa làm"
+          value={shiftsPending}
+          helper={`trên ${shiftsWithTasks.length} ca có checklist`}
+          tone={shiftsPending > 0 ? "rose" : "green"}
+        />
       </div>
 
-      {/* By-day detail */}
       {days.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 px-5 py-12 text-center">
-          <p className="text-gray-400 text-sm">Không có ca nào có checklist trong khoảng thời gian này.</p>
+        <div className="rounded-2xl border border-dashed border-gray-200 bg-white px-5 py-12 text-center text-sm text-gray-500">
+          Không có ca nào có checklist trong khoảng thời gian này.
         </div>
       ) : (
         <div className="space-y-4">
           {days.map((dayKey) => {
             const dayShifts = byDay[dayKey];
-            const dayTotal = dayShifts.reduce((n, s) => n + s.tasks.length, 0);
-            const dayDone = dayShifts.reduce((n, s) => n + s.tasks.filter((t) => t.isCompleted).length, 0);
+            const dayTotal = dayShifts.reduce((sum, shift) => sum + shift.tasks.length, 0);
+            const dayDone = dayShifts.reduce(
+              (sum, shift) =>
+                sum + shift.tasks.filter((task) => task.isCompleted).length,
+              0
+            );
+            const dayRate = dayTotal > 0 ? Math.round((dayDone / dayTotal) * 100) : 0;
             const dayDate = parseISO(dayKey);
 
             return (
-              <div key={dayKey} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="px-5 py-3 bg-gray-50 border-b flex items-center justify-between">
-                  <h3 className="font-semibold text-gray-800 text-sm">
+              <section
+                key={dayKey}
+                className="overflow-hidden rounded-2xl border border-gray-200 bg-white"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 bg-gray-50 px-5 py-3">
+                  <h3 className="text-sm font-semibold text-gray-900">
                     {format(dayDate, "EEEE, dd/MM/yyyy", { locale: vi })}
                   </h3>
-                  <div className="flex items-center gap-3">
-                    <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="flex items-center gap-3 text-xs">
+                    <div className="h-2 w-28 overflow-hidden rounded-full bg-gray-200">
                       <div
-                        className={`h-full rounded-full ${dayDone === dayTotal ? "bg-green-500" : "bg-indigo-500"}`}
-                        style={{ width: dayTotal > 0 ? `${Math.round((dayDone / dayTotal) * 100)}%` : "0%" }}
+                        className={`h-full rounded-full ${dayRate >= 80 ? "bg-emerald-500" : "bg-indigo-500"}`}
+                        style={{ width: `${dayRate}%` }}
                       />
                     </div>
-                    <span className={`text-xs font-semibold ${dayDone === dayTotal ? "text-green-600" : "text-gray-600"}`}>
-                      {dayDone}/{dayTotal}
+                    <span className="font-semibold text-gray-700">
+                      {dayDone}/{dayTotal} ({dayRate}%)
                     </span>
                   </div>
                 </div>
 
-                <div className="divide-y divide-gray-50">
+                <div className="divide-y divide-gray-100">
                   {dayShifts.map((shift) => {
-                    const done = shift.tasks.filter((t) => t.isCompleted).length;
+                    const done = shift.tasks.filter((task) => task.isCompleted).length;
                     const total = shift.tasks.length;
                     const allDone = done === total;
+                    const progressTone = allDone
+                      ? "bg-emerald-100 text-emerald-700"
+                      : done > 0
+                        ? "bg-amber-100 text-amber-700"
+                        : "bg-slate-100 text-slate-600";
 
                     return (
                       <div key={shift.id} className="px-5 py-3">
-                        <div className="flex items-center justify-between gap-4 mb-2">
-                          <div>
-                            <span className="text-sm font-medium text-gray-900">{shift.assignee.fullName}</span>
-                            <span className="text-xs text-gray-400 ml-2">
-                              {shift.policy?.team?.name ?? "—"} · {shift.policy?.name ?? "—"}
-                            </span>
-                            <span className="text-xs text-gray-400 ml-2">
-                              {format(shift.startsAt, "HH:mm")}–{format(shift.endsAt, "HH:mm")}
-                            </span>
+                        <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-gray-900">
+                              {shift.assignee.fullName}
+                            </p>
+                            <p className="truncate text-xs text-gray-500">
+                              {shift.policy?.team?.name ?? "-"} · {shift.policy?.name ?? "-"}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {format(shift.startsAt, "HH:mm")} - {format(shift.endsAt, "HH:mm")}
+                            </p>
                           </div>
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                            allDone ? "bg-green-100 text-green-700" :
-                            done > 0 ? "bg-blue-100 text-blue-700" :
-                            "bg-gray-100 text-gray-500"
-                          }`}>
-                            {allDone ? "Hoàn thành" : done > 0 ? `${done}/${total}` : "Chưa làm"}
+                          <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${progressTone}`}>
+                            {allDone ? "Hoàn thành" : `${done}/${total}`}
                           </span>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+
+                        <div className="grid grid-cols-1 gap-1.5 lg:grid-cols-2">
                           {shift.tasks.map((task) => (
-                            <div key={task.id} className="flex items-center gap-2 text-xs text-gray-600">
-                              <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${
-                                task.isCompleted ? "bg-green-500 border-green-500 text-white" : "border-gray-300"
-                              }`}>
+                            <div
+                              key={task.id}
+                              className="flex items-center gap-2 rounded-lg border border-gray-100 px-2.5 py-1.5 text-xs"
+                            >
+                              <span
+                                className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+                                  task.isCompleted
+                                    ? "border-emerald-500 bg-emerald-500 text-white"
+                                    : "border-gray-300"
+                                }`}
+                              >
                                 {task.isCompleted && (
-                                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/>
+                                  <svg
+                                    className="h-2.5 w-2.5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={3}
+                                      d="M5 13l4 4L19 7"
+                                    />
                                   </svg>
                                 )}
                               </span>
-                              <span className={task.isCompleted ? "line-through text-gray-400" : ""}>{task.title}</span>
+
+                              <span
+                                className={`flex-1 truncate ${
+                                  task.isCompleted
+                                    ? "text-gray-400 line-through"
+                                    : "text-gray-700"
+                                }`}
+                              >
+                                {task.title}
+                              </span>
+
                               {task.isCompleted && task.completedAt && (
-                                <span className="text-gray-400 ml-auto shrink-0">
+                                <span className="shrink-0 text-[11px] text-gray-400">
                                   {format(task.completedAt, "HH:mm")}
                                 </span>
                               )}
@@ -212,7 +341,7 @@ export default async function ChecklistReportPage({ searchParams }: PageProps) {
                     );
                   })}
                 </div>
-              </div>
+              </section>
             );
           })}
         </div>
@@ -221,18 +350,32 @@ export default async function ChecklistReportPage({ searchParams }: PageProps) {
   );
 }
 
-function StatCard({ label, value, sub, color }: { label: string; value: string | number; sub: string; color: string }) {
-  const palette: Record<string, string> = {
-    blue: "border-l-blue-500 text-blue-700",
-    green: "border-l-green-500 text-green-700",
-    orange: "border-l-orange-500 text-orange-700",
-    red: "border-l-red-500 text-red-700",
+function StatCard({
+  label,
+  value,
+  helper,
+  tone,
+}: {
+  label: string;
+  value: string | number;
+  helper: string;
+  tone: "indigo" | "green" | "amber" | "rose";
+}) {
+  const toneClass: Record<typeof tone, string> = {
+    indigo: "bg-indigo-100 text-indigo-700",
+    green: "bg-emerald-100 text-emerald-700",
+    amber: "bg-amber-100 text-amber-700",
+    rose: "bg-rose-100 text-rose-700",
   };
+
   return (
-    <div className={`bg-white rounded-xl border border-gray-200 border-l-4 ${palette[color] ?? palette.blue} p-4`}>
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className={`text-2xl font-bold mt-0.5 ${(palette[color] ?? "").split(" ")[1]}`}>{value}</p>
-      <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
+    <div className="rounded-2xl border border-gray-200 bg-white p-4">
+      <p className="text-[11px] uppercase tracking-wide text-gray-500">{label}</p>
+      <p className="mt-2 text-2xl font-bold tabular-nums text-gray-900">{value}</p>
+      <p className="mt-1 text-xs text-gray-500">{helper}</p>
+      <span className={`mt-3 inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${toneClass[tone]}`}>
+        KPI
+      </span>
     </div>
   );
 }

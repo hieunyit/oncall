@@ -13,7 +13,7 @@ import {
 import { ShiftStatus, ShiftSource, TeamRole } from "@/app/generated/prisma/client";
 import { generateShifts, computeConfirmationDueAt, TimeSlot, OccupiedMap } from "@/lib/rotation/engine";
 import { writeAuditLog } from "@/lib/audit";
-import { scheduleAllRemindersForBatch } from "@/lib/queue/scheduler";
+import { scheduleAllRemindersForBatchSafe } from "@/lib/queue/scheduler";
 import { notifyTeamChannels } from "@/lib/notifications/notify-channel";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { addWeeks } from "date-fns";
@@ -223,7 +223,7 @@ export async function POST(req: NextRequest) {
       include: { shift: { select: { startsAt: true, endsAt: true } } },
     });
 
-    await scheduleAllRemindersForBatch(
+    const remindersScheduled = await scheduleAllRemindersForBatchSafe(
       confirmations.map((c) => ({
         id: c.id,
         shiftId: c.shiftId,
@@ -231,7 +231,8 @@ export async function POST(req: NextRequest) {
         dueAt: c.dueAt,
         shift: c.shift,
       })),
-      policy
+      policy,
+      `publish-batch:${batch.id}`
     );
 
     await writeAuditLog({
@@ -259,7 +260,10 @@ export async function POST(req: NextRequest) {
       },
     }).catch((e) => console.error("notify team channels failed:", e));
 
-    return created(batch);
+    return created({
+      ...batch,
+      remindersScheduled,
+    });
   } catch (error) {
     return handleError(error);
   }

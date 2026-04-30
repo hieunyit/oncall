@@ -4,6 +4,7 @@ import { getSessionUser } from "@/lib/rbac";
 import { ok, unauthorized, forbidden, notFound, conflict, badRequest, handleError } from "@/lib/api-response";
 import { SwapStatus, ShiftStatus } from "@/app/generated/prisma/client";
 import { writeAuditLog } from "@/lib/audit";
+import { validateSwapAssignmentConstraints } from "@/lib/rotation/swap-constraints";
 
 export async function POST(
   _req: NextRequest,
@@ -17,7 +18,7 @@ export async function POST(
     const swap = await prisma.swapRequest.findUnique({
       where: { id },
       include: {
-        originalShift: { include: { policy: { select: { teamId: true } } } },
+        originalShift: { include: { policy: { select: { teamId: true, timezone: true } } } },
       },
     });
     if (!swap) return notFound("Swap request not found");
@@ -73,6 +74,19 @@ export async function POST(
         "You already have a shift from another policy that overlaps this time slot",
         "CROSS_POLICY_CONFLICT"
       );
+    }
+
+    const constraintViolation = await validateSwapAssignmentConstraints({
+      userId: actor.id,
+      teamId: swap.originalShift.policy.teamId,
+      startsAt: swap.originalShift.startsAt,
+      endsAt: swap.originalShift.endsAt,
+      timezone: swap.originalShift.policy.timezone,
+      allowConsecutive: true,
+      allowConsecutiveNight: true,
+    });
+    if (constraintViolation) {
+      return conflict(constraintViolation.message, constraintViolation.code);
     }
 
     const updatedCount = await prisma.swapRequest.updateMany({

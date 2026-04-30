@@ -70,7 +70,10 @@ export function BatchList({ batches }: Props) {
     const res = await fetch(`/api/schedules/batches/${rescheduleId}/reschedule`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fromDate: new Date(fromDate).toISOString() }),
+      body: JSON.stringify({
+        // Send date-only string; API will parse in local day context.
+        fromDate,
+      }),
     });
 
     const json = await res.json().catch(() => ({}));

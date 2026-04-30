@@ -195,7 +195,7 @@ export async function setTelegramWebhook(webhookUrl: string): Promise<unknown> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       url: webhookUrl,
-      secret_token: secret,
+      ...(secret ? { secret_token: secret } : {}),
       allowed_updates: ["message", "callback_query"],
     }),
   });

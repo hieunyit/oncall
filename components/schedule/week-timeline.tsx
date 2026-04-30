@@ -12,6 +12,7 @@ interface ShiftBlock {
   policyName: string;
   startsAt: Date;
   endsAt: Date;
+  source?: string;
   confirmationStatus?: string | null;
   isMe: boolean;
   isOverride?: boolean;
@@ -265,6 +266,7 @@ export function WeekTimeline({
                 const confirmed = shift.confirmationStatus === "CONFIRMED";
                 const declined = shift.confirmationStatus === "DECLINED";
                 const pending = shift.confirmationStatus === "PENDING";
+                const isSwap = shift.source === "SWAP";
                 const checklistIncomplete =
                   shift.checklistRequired &&
                   (shift.checklistTotal === 0 || (shift.checklistDone ?? 0) < (shift.checklistTotal ?? 0));
@@ -289,11 +291,12 @@ export function WeekTimeline({
                         ? `⚠ Chồng chéo chính sách! ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
                         : checklistIncomplete
                           ? `! Checklist chưa hoàn thành · ${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
-                          : `${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
+                          : `${shift.assigneeName} · ${shift.policyName}${isSwap ? " · Đổi ca" : ""} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
                     }
                   >
                     {conflict && <span className="shrink-0 text-[11px]">⚠</span>}
                     {!conflict && checklistIncomplete && <span className="shrink-0 text-[11px]">!</span>}
+                    {!conflict && !checklistIncomplete && isSwap && <span className="shrink-0 text-[11px]">⇄</span>}
                     <span className="text-[11px] font-semibold text-white truncate leading-tight flex-1 flex items-center gap-1 min-w-0">
                       <span className="truncate">{shift.policyName}</span>
                       <span className="opacity-70 shrink-0 hidden sm:inline">

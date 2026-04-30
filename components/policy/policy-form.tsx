@@ -158,18 +158,26 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
 
     const data = await res.json();
     if (isEdit) {
-      router.refresh();
-      setLoading(false);
+      setShowReschedulePrompt(false);
       setRescheduleResult(null);
       setRescheduleError(null);
-      await handleRescheduleNow({ silentIfNoBatch: true });
+
+      const outcome = await handleRescheduleNow({ silentIfNoBatch: true });
+      if (outcome === "error") {
+        setShowReschedulePrompt(true);
+      } else {
+        router.refresh();
+      }
+      setLoading(false);
     } else {
       router.push(`/policies/${data.data.id}`);
     }
   }
 
-  async function handleRescheduleNow(options?: { silentIfNoBatch?: boolean }) {
-    if (!initialData?.id) return;
+  async function handleRescheduleNow(
+    options?: { silentIfNoBatch?: boolean }
+  ): Promise<"ok" | "skipped" | "error"> {
+    if (!initialData?.id) return "skipped";
     setRescheduling(true);
     setRescheduleError(null);
     try {
@@ -180,16 +188,18 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
       if (!res.ok) {
         const code = typeof json.code === "string" ? json.code : undefined;
         if (options?.silentIfNoBatch && (code === "NO_PUBLISHED_BATCH" || code === "BATCH_EXPIRED")) {
-          return;
+          return "skipped";
         }
         setRescheduleError(json.error ?? "Không thể tạo lại lịch trực.");
-      } else {
-        const d = json.data ?? json;
-        setRescheduleResult({ removedShifts: d.removedShifts, newShifts: d.newShifts });
-        router.refresh();
+        return "error";
       }
+
+      const d = json.data ?? json;
+      setRescheduleResult({ removedShifts: d.removedShifts, newShifts: d.newShifts });
+      return "ok";
     } catch {
       setRescheduleError("Không thể kết nối đến máy chủ.");
+      return "error";
     } finally {
       setRescheduling(false);
     }
@@ -216,7 +226,12 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
-              onClick={() => void handleRescheduleNow()}
+              onClick={async () => {
+                const outcome = await handleRescheduleNow();
+                if (outcome !== "error") {
+                  router.refresh();
+                }
+              }}
               disabled={rescheduling}
               className="px-3 py-1.5 text-xs font-medium bg-amber-600 hover:bg-amber-700 text-white rounded-lg disabled:opacity-50 transition-colors"
             >

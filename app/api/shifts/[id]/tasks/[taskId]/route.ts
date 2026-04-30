@@ -25,8 +25,11 @@ export async function PATCH(
     });
     if (!shift) return notFound("Shift not found");
 
-    const result = await requireTeamRole(shift.policy.teamId, TeamRole.MEMBER);
-    if (isNextResponse(result)) return result;
+    const roleCheck = await requireTeamRole(shift.policy.teamId, TeamRole.MEMBER);
+    if (isNextResponse(roleCheck)) return roleCheck;
+    const isAssignee = roleCheck.user.id === shift.assigneeId;
+    const isManager = roleCheck.teamRole === TeamRole.MANAGER;
+    const canManageChecklist = isAssignee || isManager;
 
     const task = await prisma.shiftTask.findUnique({ where: { id: taskId } });
     if (!task || task.shiftId !== id) return notFound("Task not found");
@@ -35,8 +38,12 @@ export async function PATCH(
     const data = UpdateTaskSchema.parse(body);
 
     // Only the shift assignee can check/uncheck tasks
-    if (data.isCompleted !== undefined && actor.id !== shift.assigneeId) {
+    if (data.isCompleted !== undefined && !isAssignee) {
       return forbidden("Only the shift assignee can check tasks");
+    }
+
+    if (data.title !== undefined && !canManageChecklist) {
+      return forbidden("Only the shift assignee or manager can rename tasks");
     }
 
     // Tasks can only be toggled within 2 hours before shift starts
@@ -80,8 +87,13 @@ export async function DELETE(
     });
     if (!shift) return notFound("Shift not found");
 
-    const result = await requireTeamRole(shift.policy.teamId, TeamRole.MEMBER);
-    if (isNextResponse(result)) return result;
+    const roleCheck = await requireTeamRole(shift.policy.teamId, TeamRole.MEMBER);
+    if (isNextResponse(roleCheck)) return roleCheck;
+    const canManageChecklist =
+      roleCheck.user.id === shift.assigneeId || roleCheck.teamRole === TeamRole.MANAGER;
+    if (!canManageChecklist) {
+      return forbidden("Only the shift assignee or manager can delete tasks");
+    }
 
     const task = await prisma.shiftTask.findUnique({ where: { id: taskId } });
     if (!task || task.shiftId !== id) return notFound("Task not found");

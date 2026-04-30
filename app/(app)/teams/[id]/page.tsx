@@ -145,7 +145,11 @@ export default async function TeamDetailPage({
 
         {isManager && (
           <div className="px-5 py-4 border-t border-gray-100 bg-gray-50 rounded-b-xl">
-            <AddMemberForm teamId={id} availableUsers={allUsers} />
+            <AddMemberForm
+              teamId={id}
+              availableUsers={allUsers}
+              activePolicyIds={team.rotationPolicies.map((policy) => policy.id)}
+            />
           </div>
         )}
       </section>

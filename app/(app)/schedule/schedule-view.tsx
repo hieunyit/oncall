@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { format, addDays, startOfWeek, addWeeks, subWeeks, isSameMonth, differenceInMinutes } from "date-fns";
 import { vi } from "date-fns/locale";
 import { useRouter } from "next/navigation";
@@ -339,7 +339,13 @@ function ShiftDetailModal({
   onOverride?: (shift: ShiftBlock) => void;
 }) {
   const router = useRouter();
-  const [tasks, setTasks] = useState<Array<{ id: string; title: string; isCompleted: boolean }>>([]);
+  const [tasks, setTasks] = useState<Array<{
+    id: string;
+    title: string;
+    isCompleted: boolean;
+    completedAt?: string | null;
+    order?: number;
+  }>>([]);
   const [tasksLoaded, setTasksLoaded] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [addingTask, setAddingTask] = useState(false);
@@ -351,18 +357,29 @@ function ShiftDetailModal({
   const [swapLoading, setSwapLoading] = useState(false);
   const [swapSuccess, setSwapSuccess] = useState(false);
   const [swapError, setSwapError] = useState("");
+  const [taskError, setTaskError] = useState("");
+  const [taskTab, setTaskTab] = useState<"open" | "done">("open");
+  const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editingTaskTitle, setEditingTaskTitle] = useState("");
+  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
   const isMe = shift.assigneeId === currentUserId;
   const isPending = localConfirmStatus === "PENDING";
   const isActive = shift.status === "ACTIVE";
   const canRequestSwap = isMe && !isActive && shift.status !== "COMPLETED";
+  const canManageChecklist = isMe || Boolean(isManager);
   const canEditChecklist = isMe && shift.startsAt <= new Date(Date.now() + 2 * 60 * 60 * 1000);
 
   useEffect(() => {
+    setTaskError("");
     fetch(`/api/shifts/${shift.id}/tasks`)
       .then((r) => r.json())
       .then((d) => { setTasks(d.data ?? []); setTasksLoaded(true); })
-      .catch(() => setTasksLoaded(true));
+      .catch(() => {
+        setTaskError("Khong the tai checklist.");
+        setTasksLoaded(true);
+      });
   }, [shift.id]);
 
   async function handleConfirmAction(action: "confirm" | "decline") {
@@ -405,40 +422,196 @@ function ShiftDetailModal({
     }
   }
 
-  async function handleAddTask(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key !== "Enter" || !newTaskTitle.trim()) return;
+  function getApiError(payload: unknown, fallback: string): string {
+    if (payload && typeof payload === "object" && "error" in payload) {
+      const error = (payload as { error?: unknown }).error;
+      if (typeof error === "string" && error.trim()) return error;
+    }
+    return fallback;
+  }
+
+  async function handleAddTask() {
+    if (!canManageChecklist || !newTaskTitle.trim()) return;
     setAddingTask(true);
+    setTaskError("");
     const res = await fetch(`/api/shifts/${shift.id}/tasks`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title: newTaskTitle.trim() }),
     });
-    if (res.ok) {
-      const d = await res.json();
-      setTasks((prev) => [...prev, d.data]);
-      setNewTaskTitle("");
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setTaskError(getApiError(json, "Khong the them muc checklist."));
+      setAddingTask(false);
+      return;
     }
+    setTasks((prev) => [...prev, (json as { data: (typeof tasks)[number] }).data]);
+    setNewTaskTitle("");
     setAddingTask(false);
   }
 
+  async function handleTaskInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      await handleAddTask();
+    }
+  }
+
   async function handleToggleTask(taskId: string, current: boolean) {
+    if (!canEditChecklist) return;
+    setTaskError("");
     const res = await fetch(`/api/shifts/${shift.id}/tasks/${taskId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ isCompleted: !current }),
     });
-    if (res.ok) {
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setTaskError(getApiError(json, "Khong the cap nhat checklist."));
+      return;
+    }
+
+    const updated = (json as { data?: (typeof tasks)[number] }).data;
+    if (updated) {
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, ...updated } : t)));
+    } else {
       setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, isCompleted: !current } : t)));
     }
   }
 
-  async function handleDeleteTask(taskId: string) {
-    const res = await fetch(`/api/shifts/${shift.id}/tasks/${taskId}`, { method: "DELETE" });
-    if (res.ok) setTasks((prev) => prev.filter((t) => t.id !== taskId));
+  async function handleToggleMany(targetCompleted: boolean) {
+    if (!canEditChecklist) return;
+    const targetTasks = tasks.filter((t) => t.isCompleted !== targetCompleted);
+    if (targetTasks.length === 0) return;
+
+    setBulkUpdating(true);
+    setTaskError("");
+
+    const results = await Promise.all(
+      targetTasks.map(async (task) => {
+        const res = await fetch(`/api/shifts/${shift.id}/tasks/${task.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isCompleted: targetCompleted }),
+        });
+        const json = await res.json().catch(() => ({}));
+        return { id: task.id, ok: res.ok, payload: json };
+      })
+    );
+
+    const failed = results.filter((r) => !r.ok).length;
+    const successful = new Map<string, (typeof tasks)[number]>();
+    for (const result of results) {
+      if (result.ok) {
+        const updated = (result.payload as { data?: (typeof tasks)[number] }).data;
+        if (updated) {
+          successful.set(result.id, updated);
+        } else {
+          successful.set(result.id, { id: result.id, title: "", isCompleted: targetCompleted });
+        }
+      }
+    }
+
+    setTasks((prev) =>
+      prev.map((task) => {
+        const updated = successful.get(task.id);
+        if (!updated) return task;
+        return {
+          ...task,
+          ...updated,
+          title: updated.title || task.title,
+          isCompleted: targetCompleted,
+          completedAt:
+            updated.completedAt !== undefined
+              ? updated.completedAt
+              : targetCompleted
+                ? new Date().toISOString()
+                : null,
+        };
+      })
+    );
+
+    if (failed > 0) {
+      setTaskError(`Khong the cap nhat ${failed}/${targetTasks.length} muc.`);
+    }
+    setBulkUpdating(false);
   }
 
+  function startEditingTask(task: (typeof tasks)[number]) {
+    if (!canManageChecklist) return;
+    setEditingTaskId(task.id);
+    setEditingTaskTitle(task.title);
+    setTaskError("");
+  }
+
+  function cancelEditingTask() {
+    setEditingTaskId(null);
+    setEditingTaskTitle("");
+  }
+
+  async function saveTaskTitle(taskId: string) {
+    if (!canManageChecklist || !editingTaskTitle.trim()) return;
+    setTaskError("");
+    const res = await fetch(`/api/shifts/${shift.id}/tasks/${taskId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: editingTaskTitle.trim() }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setTaskError(getApiError(json, "Khong the cap nhat tieu de checklist."));
+      return;
+    }
+    const updated = (json as { data?: (typeof tasks)[number] }).data;
+    setTasks((prev) =>
+      prev.map((task) => (task.id === taskId ? { ...task, ...(updated ?? {}), title: editingTaskTitle.trim() } : task))
+    );
+    cancelEditingTask();
+  }
+
+  async function handleDeleteTask(taskId: string) {
+    if (!canManageChecklist) return;
+    setDeletingTaskId(taskId);
+    setTaskError("");
+    const res = await fetch(`/api/shifts/${shift.id}/tasks/${taskId}`, { method: "DELETE" });
+    if (res.ok) {
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      if (editingTaskId === taskId) cancelEditingTask();
+    } else {
+      const json = await res.json().catch(() => ({}));
+      setTaskError(getApiError(json, "Khong the xoa muc checklist."));
+    }
+    setDeletingTaskId(null);
+  }
+
+  const orderedTasks = useMemo(() => {
+    return [...tasks].sort((a, b) => {
+      const byOrder = (a.order ?? 0) - (b.order ?? 0);
+      if (byOrder !== 0) return byOrder;
+      return a.title.localeCompare(b.title, "vi");
+    });
+  }, [tasks]);
+
+  const openTasks = useMemo(
+    () => orderedTasks.filter((task) => !task.isCompleted),
+    [orderedTasks]
+  );
+  const doneTasksList = useMemo(
+    () =>
+      orderedTasks
+        .filter((task) => task.isCompleted)
+        .sort((a, b) => {
+          const at = a.completedAt ? new Date(a.completedAt).getTime() : 0;
+          const bt = b.completedAt ? new Date(b.completedAt).getTime() : 0;
+          return bt - at;
+        }),
+    [orderedTasks]
+  );
+
+  const visibleTasks = taskTab === "open" ? openTasks : doneTasksList;
   const totalTasks = tasks.length;
-  const doneTasks = tasks.filter((t) => t.isCompleted).length;
+  const doneTasks = doneTasksList.length;
+  const completionPercent = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
   const allDone = totalTasks > 0 && doneTasks === totalTasks;
   const duration = formatDuration(shift.startsAt, shift.endsAt);
   const confirmInfo = localConfirmStatus ? CONFIRMATION_STATUS[localConfirmStatus] : null;
@@ -662,64 +835,239 @@ function ShiftDetailModal({
 
         {/* Checklist */}
         <div className="px-5 py-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-gray-700">Checklist công việc</h3>
-            {tasksLoaded && totalTasks > 0 && (
-              <div className="flex items-center gap-2">
-                <span className={`text-xs font-semibold ${allDone ? "text-green-600" : "text-gray-500"}`}>
-                  {doneTasks}/{totalTasks}
+          <div className="rounded-xl border border-gray-200 bg-white p-3 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">Checklist theo ca</h3>
+                <p className="text-[11px] text-gray-500 mt-0.5">
+                  Han checklist: {format(shift.endsAt, "HH:mm dd/MM/yyyy")}
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                {shift.checklistRequired ? (
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
+                    Bat buoc
+                  </span>
+                ) : (
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">
+                    Tuy chon
+                  </span>
+                )}
+                <span
+                  className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
+                    allDone ? "bg-green-100 text-green-700" : totalTasks === 0 ? "bg-gray-100 text-gray-600" : "bg-blue-100 text-blue-700"
+                  }`}
+                >
+                  {totalTasks === 0 ? "Chua co muc" : allDone ? "Hoan tat" : `${doneTasks}/${totalTasks}`}
                 </span>
-                <div className="w-20 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+              </div>
+            </div>
+
+            {tasksLoaded && totalTasks > 0 && (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[11px] text-gray-500">
+                  <span>Tien do</span>
+                  <span className="font-medium text-gray-700">{completionPercent}%</span>
+                </div>
+                <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all ${allDone ? "bg-green-500" : "bg-blue-500"}`}
-                    style={{ width: `${totalTasks > 0 ? (doneTasks / totalTasks) * 100 : 0}%` }}
+                    style={{ width: `${completionPercent}%` }}
                   />
                 </div>
               </div>
             )}
-          </div>
 
-          {!tasksLoaded ? (
-            <p className="text-xs text-gray-400">Đang tải...</p>
-          ) : (
-            <>
-              {totalTasks === 0 && (
-                <p className="text-xs text-gray-400 mb-3">Chưa có mục nào. Nhập bên dưới để thêm.</p>
-              )}
-              <div className="space-y-1.5 mb-3">
-                {tasks.map((task) => (
-                  <div key={task.id} className="flex items-center gap-2.5 group py-0.5">
-                    <input
-                      type="checkbox"
-                      checked={task.isCompleted}
-                      onChange={() => canEditChecklist && handleToggleTask(task.id, task.isCompleted)}
-                      disabled={!canEditChecklist}
-                      className="w-4 h-4 rounded border-gray-300 text-blue-600 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
-                      title={canEditChecklist ? undefined : "Chỉ có thể tick khi ca sắp bắt đầu hoặc đang diễn ra"}
-                    />
-                    <span className={`flex-1 text-sm ${task.isCompleted ? "line-through text-gray-400" : "text-gray-800"}`}>
-                      {task.title}
-                    </span>
+            {taskError && (
+              <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2.5 py-1.5">
+                {taskError}
+              </p>
+            )}
+
+            {isMe && !canEditChecklist && (
+              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2.5 py-1.5">
+                Checklist chi mo tu 2 gio truoc khi ca bat dau.
+              </p>
+            )}
+
+            {!tasksLoaded ? (
+              <p className="text-xs text-gray-500">Dang tai checklist...</p>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden">
                     <button
-                      onClick={() => handleDeleteTask(task.id)}
-                      className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 text-xs shrink-0"
+                      type="button"
+                      onClick={() => setTaskTab("open")}
+                      className={`px-2.5 py-1 text-xs font-medium ${
+                        taskTab === "open" ? "bg-indigo-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
+                      }`}
                     >
-                      ✕
+                      Chua xong ({openTasks.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTaskTab("done")}
+                      className={`px-2.5 py-1 text-xs font-medium ${
+                        taskTab === "done" ? "bg-indigo-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      Da xong ({doneTasksList.length})
                     </button>
                   </div>
-                ))}
-              </div>
-              <input
-                type="text"
-                placeholder="Thêm mục... (Enter để lưu)"
-                value={newTaskTitle}
-                onChange={(e) => setNewTaskTitle(e.target.value)}
-                onKeyDown={handleAddTask}
-                disabled={addingTask}
-                className="w-full text-sm text-gray-900 bg-white border border-gray-200 rounded-lg px-3 py-2 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-              />
-            </>
-          )}
+
+                  {canEditChecklist && totalTasks > 0 && (
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleMany(true)}
+                        disabled={bulkUpdating || openTasks.length === 0}
+                        className="text-[11px] px-2 py-1 rounded border border-green-200 text-green-700 bg-green-50 hover:bg-green-100 disabled:opacity-50"
+                      >
+                        Hoan tat tat ca
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleMany(false)}
+                        disabled={bulkUpdating || doneTasksList.length === 0}
+                        className="text-[11px] px-2 py-1 rounded border border-gray-200 text-gray-600 bg-white hover:bg-gray-50 disabled:opacity-50"
+                      >
+                        Mo lai tat ca
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {visibleTasks.length === 0 ? (
+                  <p className="text-xs text-gray-500">
+                    {taskTab === "open" ? "Khong con muc dang mo." : "Chua co muc nao hoan thanh."}
+                  </p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {visibleTasks.map((task) => {
+                      const isEditing = editingTaskId === task.id;
+                      const completedAt =
+                        task.completedAt && !Number.isNaN(new Date(task.completedAt).getTime())
+                          ? format(new Date(task.completedAt), "HH:mm dd/MM")
+                          : null;
+
+                      return (
+                        <div
+                          key={task.id}
+                          className={`group rounded-lg border px-2.5 py-2 ${
+                            task.isCompleted ? "border-green-100 bg-green-50/40" : "border-gray-200 bg-white"
+                          }`}
+                        >
+                          <div className="flex items-start gap-2">
+                            <input
+                              type="checkbox"
+                              checked={task.isCompleted}
+                              onChange={() => handleToggleTask(task.id, task.isCompleted)}
+                              disabled={!canEditChecklist || bulkUpdating}
+                              className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+                              title={canEditChecklist ? undefined : "Chi co nguoi truc moi duoc tick checklist"}
+                            />
+
+                            <div className="flex-1 min-w-0">
+                              {isEditing ? (
+                                <div className="space-y-1.5">
+                                  <input
+                                    type="text"
+                                    value={editingTaskTitle}
+                                    onChange={(e) => setEditingTaskTitle(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        e.preventDefault();
+                                        void saveTaskTitle(task.id);
+                                      }
+                                      if (e.key === "Escape") {
+                                        e.preventDefault();
+                                        cancelEditingTask();
+                                      }
+                                    }}
+                                    className="w-full text-sm border border-indigo-200 rounded px-2 py-1 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                  />
+                                  <div className="flex items-center gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => saveTaskTitle(task.id)}
+                                      className="text-[11px] px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
+                                    >
+                                      Luu
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={cancelEditingTask}
+                                      className="text-[11px] px-2 py-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-50"
+                                    >
+                                      Huy
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <>
+                                  <p className={`text-sm leading-relaxed ${task.isCompleted ? "text-gray-500 line-through" : "text-gray-800"}`}>
+                                    {task.title}
+                                  </p>
+                                  {task.isCompleted && completedAt && (
+                                    <p className="text-[11px] text-green-700 mt-0.5">Hoan thanh luc {completedAt}</p>
+                                  )}
+                                </>
+                              )}
+                            </div>
+
+                            {canManageChecklist && !isEditing && (
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                  type="button"
+                                  onClick={() => startEditingTask(task)}
+                                  className="text-[11px] px-1.5 py-0.5 rounded border border-gray-200 text-gray-500 hover:text-indigo-700 hover:border-indigo-200"
+                                >
+                                  Sua
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteTask(task.id)}
+                                  disabled={deletingTaskId === task.id}
+                                  className="text-[11px] px-1.5 py-0.5 rounded border border-red-200 text-red-500 hover:bg-red-50 disabled:opacity-50"
+                                >
+                                  Xoa
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {canManageChecklist ? (
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      type="text"
+                      placeholder="Them muc checklist moi..."
+                      value={newTaskTitle}
+                      onChange={(e) => setNewTaskTitle(e.target.value)}
+                      onKeyDown={handleTaskInputKeyDown}
+                      disabled={addingTask}
+                      className="flex-1 text-sm text-gray-900 bg-white border border-gray-200 rounded-lg px-3 py-2 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddTask}
+                      disabled={addingTask || !newTaskTitle.trim()}
+                      className="px-3 py-2 text-xs font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      Them
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500">Chi nguoi truc hoac quan ly moi duoc sua checklist.</p>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
