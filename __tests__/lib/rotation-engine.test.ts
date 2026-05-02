@@ -225,6 +225,192 @@ describe("generateShifts", () => {
     const values = [...counts.values()];
     expect(Math.max(...values) - Math.min(...values)).toBeLessThanOrEqual(1);
   });
+
+  it("never assigns the same user two slots in one day (same-day constraint)", () => {
+    // 3 slots, 4 participants — enough to cover every slot with different people
+    const policy4 = {
+      ...basePolicy,
+      cadence: CadenceKind.DAILY,
+      shiftDurationHours: 24,
+      timezone: "UTC",
+      timeSlots: [
+        { label: "S0", startHour: 0, startMinute: 0, endHour: 8, endMinute: 0 },
+        { label: "S1", startHour: 8, startMinute: 0, endHour: 16, endMinute: 0 },
+        { label: "S2", startHour: 16, startMinute: 0, endHour: 24, endMinute: 0 },
+      ],
+    };
+    const four = [{ userId: "a" }, { userId: "b" }, { userId: "c" }, { userId: "d" }];
+    const start = new Date("2026-01-01T00:00:00Z");
+    const end = new Date("2026-01-08T00:00:00Z"); // 7 days
+
+    const shifts = generateShifts(policy4, four, start, end);
+    // Group by calendar day (UTC)
+    const byDay = new Map<string, string[]>();
+    for (const s of shifts) {
+      const key = s.startsAt.toISOString().slice(0, 10);
+      const list = byDay.get(key) ?? [];
+      list.push(s.assigneeId);
+      byDay.set(key, list);
+    }
+    for (const [, assignees] of byDay) {
+      expect(new Set(assignees).size).toBe(assignees.length);
+    }
+  });
+
+  it("rest-day rule: night-shift person has no shift next day when 4+ people and 3 slots", () => {
+    // Slots: 0-8h (night), 8-16h, 16-24h; 4 participants → rest-day rule applies
+    const policy3slot = {
+      ...basePolicy,
+      cadence: CadenceKind.DAILY,
+      shiftDurationHours: 24,
+      timezone: "UTC",
+      timeSlots: [
+        { label: "Night", startHour: 0, startMinute: 0, endHour: 8, endMinute: 0 },
+        { label: "Morning", startHour: 8, startMinute: 0, endHour: 16, endMinute: 0 },
+        { label: "Afternoon", startHour: 16, startMinute: 0, endHour: 24, endMinute: 0 },
+      ],
+    };
+    const four = [{ userId: "a" }, { userId: "b" }, { userId: "c" }, { userId: "d" }];
+    const start = new Date("2026-01-01T00:00:00Z");
+    const end = new Date("2026-01-09T00:00:00Z"); // 8 days
+
+    const shifts = generateShifts(policy3slot, four, start, end);
+
+    const byDay = new Map<string, { assigneeId: string; startsAt: Date }[]>();
+    for (const s of shifts) {
+      const key = s.startsAt.toISOString().slice(0, 10);
+      byDay.set(key, [...(byDay.get(key) ?? []), s]);
+    }
+
+    const days = [...byDay.keys()].sort();
+    for (let i = 0; i < days.length - 1; i++) {
+      const todayShifts = byDay.get(days[i])!;
+      const tomorrowShifts = byDay.get(days[i + 1])!;
+
+      // Find who worked the 0-8h (night) slot today
+      const nightShift = todayShifts.find((s) => {
+        const h = s.startsAt.getUTCHours();
+        return h === 0;
+      });
+      if (!nightShift) continue;
+
+      const nightWorker = nightShift.assigneeId;
+      const tomorrowWorkers = tomorrowShifts.map((s) => s.assigneeId);
+
+      // The night worker must not appear in tomorrow's shifts
+      expect(tomorrowWorkers).not.toContain(nightWorker);
+    }
+  });
+
+  it("D+2 rule: night-shift person cannot work the night slot two days later (4+ people, 3 slots)", () => {
+    const policy3slot = {
+      ...basePolicy,
+      cadence: CadenceKind.DAILY,
+      shiftDurationHours: 24,
+      timezone: "UTC",
+      timeSlots: [
+        { label: "Night", startHour: 0, startMinute: 0, endHour: 8, endMinute: 0 },
+        { label: "Morning", startHour: 8, startMinute: 0, endHour: 16, endMinute: 0 },
+        { label: "Afternoon", startHour: 16, startMinute: 0, endHour: 24, endMinute: 0 },
+      ],
+    };
+    const four = [{ userId: "a" }, { userId: "b" }, { userId: "c" }, { userId: "d" }];
+    const start = new Date("2026-01-01T00:00:00Z");
+    const end = new Date("2026-01-09T00:00:00Z"); // 8 days
+
+    const shifts = generateShifts(policy3slot, four, start, end);
+
+    const byDay = new Map<string, { assigneeId: string; startsAt: Date }[]>();
+    for (const s of shifts) {
+      const key = s.startsAt.toISOString().slice(0, 10);
+      byDay.set(key, [...(byDay.get(key) ?? []), s]);
+    }
+
+    const days = [...byDay.keys()].sort();
+    for (let i = 0; i < days.length - 2; i++) {
+      const todayNight = byDay
+        .get(days[i])!
+        .find((s) => s.startsAt.getUTCHours() === 0);
+      if (!todayNight) continue;
+
+      const workerD = todayNight.assigneeId;
+      const dayD2Night = byDay
+        .get(days[i + 2])!
+        .find((s) => s.startsAt.getUTCHours() === 0);
+
+      // D+2 night slot must not be the same person as D night slot
+      if (dayD2Night) {
+        expect(dayD2Night.assigneeId).not.toBe(workerD);
+      }
+    }
+  });
+
+  it("3-person case: no consecutive night shifts (existing behaviour preserved)", () => {
+    // 3 participants → rest-day rule does NOT apply (< 4), but consecutive night check still works
+    const policy3slot = {
+      ...basePolicy,
+      cadence: CadenceKind.DAILY,
+      shiftDurationHours: 24,
+      timezone: "UTC",
+      timeSlots: [
+        { label: "Night", startHour: 0, startMinute: 0, endHour: 8, endMinute: 0 },
+        { label: "Morning", startHour: 8, startMinute: 0, endHour: 16, endMinute: 0 },
+        { label: "Afternoon", startHour: 16, startMinute: 0, endHour: 24, endMinute: 0 },
+      ],
+    };
+    const three = [{ userId: "x" }, { userId: "y" }, { userId: "z" }];
+    const start = new Date("2026-01-01T00:00:00Z");
+    const end = new Date("2026-01-10T00:00:00Z"); // 9 days
+
+    const shifts = generateShifts(policy3slot, three, start, end);
+
+    const byDay = new Map<string, { assigneeId: string; startsAt: Date }[]>();
+    for (const s of shifts) {
+      const key = s.startsAt.toISOString().slice(0, 10);
+      byDay.set(key, [...(byDay.get(key) ?? []), s]);
+    }
+
+    const days = [...byDay.keys()].sort();
+    const nightAssignees = days.map((d) => {
+      const nightShift = byDay.get(d)!.find((s) => s.startsAt.getUTCHours() === 0);
+      return nightShift?.assigneeId ?? null;
+    });
+
+    for (let i = 1; i < nightAssignees.length; i++) {
+      if (nightAssignees[i] && nightAssignees[i - 1]) {
+        expect(nightAssignees[i]).not.toBe(nightAssignees[i - 1]);
+      }
+    }
+  });
+
+  it("priorState: consecutive-night constraint is honoured across reschedule boundary", () => {
+    const policy3slot = {
+      ...basePolicy,
+      cadence: CadenceKind.DAILY,
+      shiftDurationHours: 24,
+      timezone: "UTC",
+      timeSlots: [
+        { label: "Night", startHour: 0, startMinute: 0, endHour: 8, endMinute: 0 },
+        { label: "Morning", startHour: 8, startMinute: 0, endHour: 16, endMinute: 0 },
+        { label: "Afternoon", startHour: 16, startMinute: 0, endHour: 24, endMinute: 0 },
+      ],
+    };
+    const three = [{ userId: "x" }, { userId: "y" }, { userId: "z" }];
+    const start = new Date("2026-01-03T00:00:00Z"); // reschedule starts day 3
+    const end = new Date("2026-01-07T00:00:00Z");
+
+    // Simulate: "z" was the night-shift person on day 2 (the day before rangeStart)
+    const shifts = generateShifts(policy3slot, three, start, end, 0, {
+      priorState: { previousNightAssigneeId: "z" },
+    });
+
+    // First night slot should not be "z"
+    const firstNightShift = shifts
+      .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime())
+      .find((s) => s.startsAt.getUTCHours() === 0);
+
+    expect(firstNightShift?.assigneeId).not.toBe("z");
+  });
 });
 
 describe("computeConfirmationDueAt", () => {

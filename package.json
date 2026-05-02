@@ -14,6 +14,7 @@
     "workers": "ts-node --esm workers/index.ts",
     "workers:dev": "tsx workers/index.ts",
     "db:seed": "tsx prisma/seed.ts",
+    "make-admin": "tsx scripts/make-admin.ts",
     "cleanup:stale:preview": "tsx scripts/cleanup-stale-policy-data.ts",
     "cleanup:stale:execute": "tsx scripts/cleanup-stale-policy-data.ts --execute",
     "test": "vitest run",
