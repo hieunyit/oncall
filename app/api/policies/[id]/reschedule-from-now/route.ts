@@ -150,7 +150,8 @@ export async function POST(
 
     const existingTeamShifts = await prisma.shift.findMany({
       where: {
-        policy: { teamId: policy.teamId },
+        // Check conflicts across all policies/teams for selected assignees,
+        // not only within the current team.
         assigneeId: { in: participants.map((p) => p.userId) },
         status: { in: [ShiftStatus.PUBLISHED, ShiftStatus.ACTIVE, ShiftStatus.COMPLETED] },
         startsAt: { lt: batch.rangeEnd },

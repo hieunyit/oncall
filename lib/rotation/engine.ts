@@ -353,11 +353,15 @@ function assignDaySlotsStrict(
   restDayExclude: Set<string>,
   nightHardExclude: Set<string>
 ): number[] | null {
-  const tryAssignment = (applyNightExclude: boolean): number[] | null => {
+  const tryAssignment = (
+    applyRestExclude: boolean,
+    applyNightExclude: boolean
+  ): number[] | null => {
     const assignment = new Array<number>(plans.length).fill(-1);
     const usedToday = new Set<string>();
     const temporaryAssignedCounts = new Map(state.assignedCounts);
     const temporaryNightCounts = new Map(state.nightCounts);
+    const activeRestExclude = applyRestExclude ? restDayExclude : new Set<string>();
 
     const dfs = (
       previousAssigneeId: string | null,
@@ -377,7 +381,7 @@ function assignDaySlotsStrict(
           state,
           tz,
           usedToday,
-          restDayExclude,
+          activeRestExclude,
           nightHardExclude,
           applyNightExclude
         );
@@ -461,7 +465,19 @@ function assignDaySlotsStrict(
     return solved ? assignment : null;
   };
 
-  return tryAssignment(true) ?? tryAssignment(false);
+  const configs: Array<{ applyRestExclude: boolean; applyNightExclude: boolean }> = [
+    { applyRestExclude: true, applyNightExclude: true },
+    { applyRestExclude: true, applyNightExclude: false },
+    { applyRestExclude: false, applyNightExclude: true },
+    { applyRestExclude: false, applyNightExclude: false },
+  ];
+
+  for (const cfg of configs) {
+    const solved = tryAssignment(cfg.applyRestExclude, cfg.applyNightExclude);
+    if (solved) return solved;
+  }
+
+  return null;
 }
 
 function selectParticipant(
@@ -864,17 +880,15 @@ export function generateShifts(
         continue;
       }
 
-      const strictAssignments = strictAssignment
-        ? assignDaySlotsStrict(
-            plans,
-            participants,
-            occupied,
-            state,
-            tz,
-            restDayExclude,
-            nightHardExclude
-          )
-        : null;
+      const strictAssignments = assignDaySlotsStrict(
+        plans,
+        participants,
+        occupied,
+        state,
+        tz,
+        restDayExclude,
+        nightHardExclude
+      );
 
       if (strictAssignment && !strictAssignments) {
         throw new Error(`UNASSIGNABLE_SLOT:${plans[0].startsAt.toISOString()}`);

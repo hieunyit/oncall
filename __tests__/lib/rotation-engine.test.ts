@@ -343,6 +343,90 @@ describe("generateShifts", () => {
     }
   });
 
+  it("respects occupied map from other policies to avoid cross-policy same-day duplicates", () => {
+    const policy3slot = {
+      ...basePolicy,
+      cadence: CadenceKind.DAILY,
+      shiftDurationHours: 24,
+      timezone: "UTC",
+      timeSlots: [
+        { label: "S0", startHour: 0, startMinute: 0, endHour: 8, endMinute: 0 },
+        { label: "S1", startHour: 8, startMinute: 0, endHour: 16, endMinute: 0 },
+        { label: "S2", startHour: 16, startMinute: 0, endHour: 24, endMinute: 0 },
+      ],
+    };
+
+    const four = [
+      { userId: "u1" },
+      { userId: "u2" },
+      { userId: "u3" },
+      { userId: "u4" },
+    ];
+
+    const start = new Date("2026-05-08T00:00:00Z");
+    const end = new Date("2026-05-09T00:00:00Z");
+
+    const occupied = new Map([
+      [
+        "u1",
+        [
+          {
+            policyId: "other-policy",
+            startsAt: new Date("2026-05-08T09:00:00Z"),
+            endsAt: new Date("2026-05-08T17:00:00Z"),
+          },
+        ],
+      ],
+    ]);
+
+    const shifts = generateShifts(policy3slot, four, start, end, 0, {
+      occupied,
+      strictAssignment: true,
+    });
+
+    expect(shifts).toHaveLength(3);
+    expect(shifts.every((shift) => shift.assigneeId !== "u1")).toBe(true);
+  });
+
+  it("relaxes next-day rest exclusion when needed to still satisfy one-shift-per-day", () => {
+    const policy6slot = {
+      ...basePolicy,
+      cadence: CadenceKind.DAILY,
+      shiftDurationHours: 24,
+      timezone: "UTC",
+      timeSlots: [
+        { label: "S0", startHour: 0, startMinute: 0, endHour: 4, endMinute: 0 },
+        { label: "S1", startHour: 4, startMinute: 0, endHour: 8, endMinute: 0 },
+        { label: "S2", startHour: 8, startMinute: 0, endHour: 12, endMinute: 0 },
+        { label: "S3", startHour: 12, startMinute: 0, endHour: 16, endMinute: 0 },
+        { label: "S4", startHour: 16, startMinute: 0, endHour: 20, endMinute: 0 },
+        { label: "S5", startHour: 20, startMinute: 0, endHour: 24, endMinute: 0 },
+      ],
+    };
+    const seven = [
+      { userId: "u1" },
+      { userId: "u2" },
+      { userId: "u3" },
+      { userId: "u4" },
+      { userId: "u5" },
+      { userId: "u6" },
+      { userId: "u7" },
+    ];
+    const start = new Date("2026-01-05T00:00:00Z");
+    const end = new Date("2026-01-06T00:00:00Z");
+
+    const shifts = generateShifts(policy6slot, seven, start, end, 0, {
+      strictAssignment: true,
+      priorState: {
+        lastNightAssigneeIds: ["u1", "u2"],
+      },
+    });
+
+    expect(shifts).toHaveLength(6);
+    const assignees = shifts.map((shift) => shift.assigneeId);
+    expect(new Set(assignees).size).toBe(assignees.length);
+  });
+
   it("D+2 rule: night-shift person cannot work the night slot two days later (4+ people, 3 slots)", () => {
     const policy3slot = {
       ...basePolicy,
