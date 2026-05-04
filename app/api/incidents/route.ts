@@ -11,7 +11,7 @@ import { incidentInclude } from "@/lib/incidents/query";
 const CreateIncidentSchema = z.object({
   teamId: z.string().uuid(),
   policyId: z.string().uuid().nullable().optional(),
-  shiftId: z.string().uuid().nullable().optional(),
+  shiftId: z.string().uuid(),
   title: z.string().trim().min(3).max(180),
   description: z.string().trim().max(8000).optional(),
   severity: z.nativeEnum(IncidentSeverity).default(IncidentSeverity.MEDIUM),
@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
       parseDateParam(params.get("end")) ?? (shiftId && !hasExplicitRange ? null : endOfMonth(now));
 
     if (rangeStart && rangeEnd && rangeEnd < rangeStart) {
-      return badRequest("end phải lớn hơn hoặc bằng start");
+      return badRequest("end phai lon hon hoac bang start");
     }
 
     const scope = await getIncidentAccessScope(user.id, user.systemRole);
@@ -100,33 +100,35 @@ export async function POST(req: NextRequest) {
       return forbidden();
     }
 
-    if (data.policyId) {
-      const policy = await prisma.rotationPolicy.findUnique({
-        where: { id: data.policyId },
-        select: { id: true, teamId: true },
-      });
-      if (!policy || policy.teamId !== data.teamId) {
-        return badRequest("policyId không thuộc team đã chọn");
-      }
+    const shiftForIncident = await prisma.shift.findUnique({
+      where: { id: data.shiftId },
+      select: {
+        id: true,
+        assigneeId: true,
+        policyId: true,
+        policy: { select: { teamId: true } },
+      },
+    });
+    if (!shiftForIncident || shiftForIncident.policy.teamId !== data.teamId) {
+      return badRequest("shiftId khong thuoc team da chon");
+    }
+    if (shiftForIncident.assigneeId !== user.id) {
+      return forbidden("Chi nguoi truc cua ca nay moi duoc tao incident/report");
+    }
+    if (data.policyId && data.policyId !== shiftForIncident.policyId) {
+      return badRequest("policyId khong khop voi shiftId da chon");
     }
 
-    if (data.shiftId) {
-      const shift = await prisma.shift.findUnique({
-        where: { id: data.shiftId },
-        select: { id: true, policy: { select: { teamId: true } } },
-      });
-      if (!shift || shift.policy.teamId !== data.teamId) {
-        return badRequest("shiftId không thuộc team đã chọn");
-      }
-    }
+    const policyIdToUse = data.policyId ?? shiftForIncident.policyId;
+    const assigneeIdToUse = data.assigneeId ?? shiftForIncident.assigneeId;
 
-    if (data.assigneeId) {
+    if (assigneeIdToUse) {
       const membership = await prisma.teamMember.findUnique({
-        where: { teamId_userId: { teamId: data.teamId, userId: data.assigneeId } },
+        where: { teamId_userId: { teamId: data.teamId, userId: assigneeIdToUse } },
         select: { id: true },
       });
       if (!membership) {
-        return badRequest("assigneeId phải là thành viên của team");
+        return badRequest("assigneeId phai la thanh vien cua team");
       }
     }
 
@@ -136,14 +138,14 @@ export async function POST(req: NextRequest) {
       const createdIncident = await tx.incident.create({
         data: {
           teamId: data.teamId,
-          policyId: data.policyId ?? null,
-          shiftId: data.shiftId ?? null,
+          policyId: policyIdToUse,
+          shiftId: data.shiftId,
           title: data.title,
           description: data.description?.trim() || null,
           severity: data.severity,
           occurredAt,
           createdById: user.id,
-          assigneeId: data.assigneeId ?? null,
+          assigneeId: assigneeIdToUse,
           impactSummary: data.impactSummary?.trim() || null,
           rootCause: data.rootCause?.trim() || null,
           actionItems: data.actionItems?.trim() || null,
@@ -156,7 +158,7 @@ export async function POST(req: NextRequest) {
           fromStatus: null,
           toStatus: createdIncident.status,
           changedById: user.id,
-          note: "Tạo incident",
+          note: "Tao incident",
         },
       });
 

@@ -5,6 +5,12 @@ import {
   INCIDENT_EXCEL_MIME_TYPES,
   INCIDENT_IMAGE_EXTENSIONS,
   INCIDENT_IMAGE_MIME_PREFIX,
+  INCIDENT_PDF_EXTENSIONS,
+  INCIDENT_PDF_MIME_TYPES,
+  INCIDENT_TEXT_EXTENSIONS,
+  INCIDENT_TEXT_MIME_TYPES,
+  INCIDENT_WORD_EXTENSIONS,
+  INCIDENT_WORD_MIME_TYPES,
 } from "@/lib/incidents/constants";
 
 export function normalizeIncidentFileName(fileName: string): string {
@@ -32,6 +38,18 @@ export function detectIncidentAttachmentKind(
 
   if (INCIDENT_EXCEL_MIME_TYPES.has(mime) || INCIDENT_EXCEL_EXTENSIONS.has(ext)) {
     return IncidentAttachmentKind.EXCEL;
+  }
+
+  if (INCIDENT_PDF_MIME_TYPES.has(mime) || INCIDENT_PDF_EXTENSIONS.has(ext)) {
+    return IncidentAttachmentKind.PDF;
+  }
+
+  if (INCIDENT_WORD_MIME_TYPES.has(mime) || INCIDENT_WORD_EXTENSIONS.has(ext)) {
+    return IncidentAttachmentKind.WORD;
+  }
+
+  if (INCIDENT_TEXT_MIME_TYPES.has(mime) || INCIDENT_TEXT_EXTENSIONS.has(ext)) {
+    return IncidentAttachmentKind.TEXT;
   }
 
   return null;

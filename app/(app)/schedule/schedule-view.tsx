@@ -1108,6 +1108,7 @@ function ShiftDetailModal({
             assigneeId={shift.assigneeId}
             startsAt={shift.startsAt}
             teamMembers={teamMembers ?? []}
+            canCreate={isMe}
             canManage={isMe || Boolean(isManager)}
           />
         </div>

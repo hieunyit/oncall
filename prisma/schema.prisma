@@ -120,6 +120,9 @@ enum IncidentStatus {
 enum IncidentAttachmentKind {
   IMAGE
   EXCEL
+  PDF
+  WORD
+  TEXT
 }
 
 // ─── Auth.js tables ──────────────────────────────────────────────────────────

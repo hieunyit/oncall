@@ -166,7 +166,10 @@ export type IncidentStatus = (typeof IncidentStatus)[keyof typeof IncidentStatus
 
 export const IncidentAttachmentKind = {
   IMAGE: 'IMAGE',
-  EXCEL: 'EXCEL'
+  EXCEL: 'EXCEL',
+  PDF: 'PDF',
+  WORD: 'WORD',
+  TEXT: 'TEXT'
 } as const
 
 export type IncidentAttachmentKind = (typeof IncidentAttachmentKind)[keyof typeof IncidentAttachmentKind]

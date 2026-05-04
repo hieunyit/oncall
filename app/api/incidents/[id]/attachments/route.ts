@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
+import { IncidentAttachmentKind } from "@/app/generated/prisma/client";
 import { badRequest, forbidden, handleError, ok, unauthorized } from "@/lib/api-response";
 import { getSessionUser } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
@@ -29,7 +30,7 @@ export async function POST(
       where: { id },
       select: { id: true, teamId: true },
     });
-    if (!incident) return badRequest("Incident không tồn tại");
+    if (!incident) return badRequest("Incident khong ton tai");
     if (!ensureTeamAccess(scope, incident.teamId)) return forbidden();
 
     const form = await req.formData();
@@ -39,11 +40,11 @@ export async function POST(
     ].filter((entry): entry is File => entry instanceof File);
 
     if (files.length === 0) {
-      return badRequest("Vui lòng chọn ít nhất một file");
+      return badRequest("Vui long chon it nhat mot file");
     }
 
     if (files.length > MAX_INCIDENT_UPLOAD_FILES) {
-      return badRequest(`Chỉ cho phép tối đa ${MAX_INCIDENT_UPLOAD_FILES} file mỗi lần tải`);
+      return badRequest(`Chi cho phep toi da ${MAX_INCIDENT_UPLOAD_FILES} file moi lan tai`);
     }
 
     const incidentDir = path.join(process.cwd(), "public", "uploads", "incidents", incident.id);
@@ -54,18 +55,18 @@ export async function POST(
       storagePath: string;
       contentType: string;
       sizeBytes: number;
-      kind: "IMAGE" | "EXCEL";
+      kind: IncidentAttachmentKind;
       uploadedById: string;
     }> = [];
 
     for (const file of files) {
       if (file.size <= 0) {
-        return badRequest(`File "${file.name}" trống hoặc không hợp lệ`);
+        return badRequest(`File \"${file.name}\" trong hoac khong hop le`);
       }
 
       if (file.size > MAX_INCIDENT_UPLOAD_SIZE_BYTES) {
         return badRequest(
-          `File "${file.name}" vượt giới hạn ${Math.round(
+          `File \"${file.name}\" vuot gioi han ${Math.round(
             MAX_INCIDENT_UPLOAD_SIZE_BYTES / 1024 / 1024
           )}MB`
         );
@@ -74,7 +75,7 @@ export async function POST(
       const kind = detectIncidentAttachmentKind(file.name, file.type);
       if (!kind) {
         return badRequest(
-          `File "${file.name}" không hợp lệ. Chỉ chấp nhận ảnh hoặc file Excel/CSV`
+          `File \"${file.name}\" khong hop le. Chi chap nhan anh, Excel/CSV, PDF, Word, TXT`
         );
       }
 

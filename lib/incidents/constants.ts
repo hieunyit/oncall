@@ -31,6 +31,23 @@ const EXCEL_EXTENSIONS = new Set([
   ".csv",
 ]);
 
+const PDF_EXTENSIONS = new Set([
+  ".pdf",
+]);
+
+const WORD_EXTENSIONS = new Set([
+  ".doc",
+  ".docx",
+  ".odt",
+  ".rtf",
+]);
+
+const TEXT_EXTENSIONS = new Set([
+  ".txt",
+  ".log",
+  ".md",
+]);
+
 const IMAGE_MIME_PREFIX = "image/";
 const EXCEL_MIME_TYPES = new Set([
   "application/vnd.ms-excel",
@@ -39,8 +56,25 @@ const EXCEL_MIME_TYPES = new Set([
   "application/csv",
 ]);
 
+const PDF_MIME_TYPES = new Set([
+  "application/pdf",
+]);
+
+const WORD_MIME_TYPES = new Set([
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.oasis.opendocument.text",
+  "application/rtf",
+  "text/rtf",
+]);
+
+const TEXT_MIME_TYPES = new Set([
+  "text/plain",
+  "text/markdown",
+]);
+
 export const MAX_INCIDENT_UPLOAD_SIZE_BYTES = 15 * 1024 * 1024; // 15MB/file
-export const MAX_INCIDENT_UPLOAD_FILES = 6;
+export const MAX_INCIDENT_UPLOAD_FILES = 12;
 
 export function toIncidentDayKey(date: Date, tz = "Asia/Ho_Chi_Minh"): string {
   return new Intl.DateTimeFormat("en-CA", {
@@ -53,5 +87,11 @@ export function toIncidentDayKey(date: Date, tz = "Asia/Ho_Chi_Minh"): string {
 
 export const INCIDENT_IMAGE_EXTENSIONS = IMAGE_EXTENSIONS;
 export const INCIDENT_EXCEL_EXTENSIONS = EXCEL_EXTENSIONS;
+export const INCIDENT_PDF_EXTENSIONS = PDF_EXTENSIONS;
+export const INCIDENT_WORD_EXTENSIONS = WORD_EXTENSIONS;
+export const INCIDENT_TEXT_EXTENSIONS = TEXT_EXTENSIONS;
 export const INCIDENT_IMAGE_MIME_PREFIX = IMAGE_MIME_PREFIX;
 export const INCIDENT_EXCEL_MIME_TYPES = EXCEL_MIME_TYPES;
+export const INCIDENT_PDF_MIME_TYPES = PDF_MIME_TYPES;
+export const INCIDENT_WORD_MIME_TYPES = WORD_MIME_TYPES;
+export const INCIDENT_TEXT_MIME_TYPES = TEXT_MIME_TYPES;

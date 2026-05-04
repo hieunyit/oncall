@@ -11,7 +11,7 @@ type IncidentAttachment = {
   fileName: string;
   storagePath: string;
   sizeBytes: number;
-  kind: "IMAGE" | "EXCEL";
+  kind: "IMAGE" | "EXCEL" | "PDF" | "WORD" | "TEXT";
 };
 
 type IncidentLifecycle = {
@@ -27,6 +27,9 @@ type IncidentItem = {
   id: string;
   title: string;
   description: string | null;
+  impactSummary: string | null;
+  rootCause: string | null;
+  actionItems: string | null;
   severity: IncidentSeverity;
   status: IncidentStatus;
   occurredAt: string;
@@ -48,6 +51,14 @@ const SEVERITY_LABELS: Record<IncidentSeverity, string> = {
   MEDIUM: "Trung binh",
   HIGH: "Cao",
   CRITICAL: "Nghiem trong",
+};
+
+const ATTACHMENT_KIND_LABELS: Record<IncidentAttachment["kind"], string> = {
+  IMAGE: "IMG",
+  EXCEL: "XLS",
+  PDF: "PDF",
+  WORD: "DOC",
+  TEXT: "TXT",
 };
 
 const STATUSES: IncidentStatus[] = ["OPEN", "INVESTIGATING", "MITIGATED", "RESOLVED", "CLOSED"];
@@ -105,6 +116,7 @@ interface Props {
   assigneeId: string;
   startsAt: Date;
   teamMembers: Array<{ id: string; fullName: string }>;
+  canCreate: boolean;
   canManage: boolean;
 }
 
@@ -115,6 +127,7 @@ export function ShiftIncidentsPanel({
   assigneeId,
   startsAt,
   teamMembers,
+  canCreate,
   canManage,
 }: Props) {
   const [incidents, setIncidents] = useState<IncidentItem[]>([]);
@@ -131,6 +144,9 @@ export function ShiftIncidentsPanel({
     severity: "MEDIUM" as IncidentSeverity,
     occurredAt: toLocalDatetimeInputValue(startsAt),
     description: "",
+    impactSummary: "",
+    rootCause: "",
+    actionItems: "",
     assigneeId,
   });
 
@@ -168,7 +184,7 @@ export function ShiftIncidentsPanel({
 
   async function handleCreateIncident(e: React.FormEvent) {
     e.preventDefault();
-    if (!canManage || !createForm.title.trim()) return;
+    if (!canCreate || !createForm.title.trim()) return;
 
     setBusy(true);
     setError(null);
@@ -185,6 +201,9 @@ export function ShiftIncidentsPanel({
           severity: createForm.severity,
           occurredAt: new Date(createForm.occurredAt).toISOString(),
           assigneeId: createForm.assigneeId || null,
+          impactSummary: createForm.impactSummary.trim() || undefined,
+          rootCause: createForm.rootCause.trim() || undefined,
+          actionItems: createForm.actionItems.trim() || undefined,
         }),
       });
       const createPayload = await createRes.json();
@@ -217,6 +236,9 @@ export function ShiftIncidentsPanel({
         severity: "MEDIUM",
         occurredAt: toLocalDatetimeInputValue(startsAt),
         description: "",
+        impactSummary: "",
+        rootCause: "",
+        actionItems: "",
         assigneeId,
       });
       await fetchIncidents();
@@ -266,7 +288,7 @@ export function ShiftIncidentsPanel({
             {stats.total} incident · {stats.open} dang mo · {stats.critical} critical
           </p>
         </div>
-        {canManage && (
+        {canCreate && (
           <button
             type="button"
             onClick={() => setOpenCreate(true)}
@@ -276,6 +298,12 @@ export function ShiftIncidentsPanel({
           </button>
         )}
       </div>
+
+      {!canCreate && (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-2 text-xs text-amber-700">
+          Chi nguoi dang truc ca nay moi duoc tao incident/report.
+        </p>
+      )}
 
       {error && (
         <p className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-2 text-xs text-red-700">
@@ -321,6 +349,29 @@ export function ShiftIncidentsPanel({
                   </p>
                 )}
 
+                {(incident.impactSummary || incident.rootCause || incident.actionItems) && (
+                  <div className="mt-2 grid grid-cols-1 gap-1.5 md:grid-cols-3">
+                    <div className="rounded bg-slate-50 px-2 py-1.5 text-xs text-slate-700">
+                      <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                        Impact
+                      </p>
+                      <p>{incident.impactSummary || "-"}</p>
+                    </div>
+                    <div className="rounded bg-slate-50 px-2 py-1.5 text-xs text-slate-700">
+                      <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                        Root Cause
+                      </p>
+                      <p>{incident.rootCause || "-"}</p>
+                    </div>
+                    <div className="rounded bg-slate-50 px-2 py-1.5 text-xs text-slate-700">
+                      <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                        Action Items
+                      </p>
+                      <p>{incident.actionItems || "-"}</p>
+                    </div>
+                  </div>
+                )}
+
                 {incident.attachments.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {incident.attachments.map((file) => (
@@ -332,7 +383,7 @@ export function ShiftIncidentsPanel({
                         className="inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-50"
                       >
                         <span className="rounded bg-slate-100 px-1 py-0.5 text-[10px] font-semibold text-slate-600">
-                          {file.kind}
+                          {ATTACHMENT_KIND_LABELS[file.kind]}
                         </span>
                         <span className="max-w-[180px] truncate">{file.fileName}</span>
                         <span className="text-slate-400">({formatSize(file.sizeBytes)})</span>
@@ -483,14 +534,52 @@ export function ShiftIncidentsPanel({
                   placeholder="Tac dong, trieu chung, pham vi anh huong..."
                 />
               </div>
+              <div className="sm:col-span-2 grid grid-cols-1 gap-2 md:grid-cols-3">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-600">Impact</label>
+                  <textarea
+                    value={createForm.impactSummary}
+                    onChange={(e) =>
+                      setCreateForm((prev) => ({ ...prev, impactSummary: e.target.value }))
+                    }
+                    rows={3}
+                    className="input text-sm"
+                    placeholder="Pham vi anh huong"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-600">Root Cause</label>
+                  <textarea
+                    value={createForm.rootCause}
+                    onChange={(e) =>
+                      setCreateForm((prev) => ({ ...prev, rootCause: e.target.value }))
+                    }
+                    rows={3}
+                    className="input text-sm"
+                    placeholder="Nguyen nhan goc"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-600">Action Items</label>
+                  <textarea
+                    value={createForm.actionItems}
+                    onChange={(e) =>
+                      setCreateForm((prev) => ({ ...prev, actionItems: e.target.value }))
+                    }
+                    rows={3}
+                    className="input text-sm"
+                    placeholder="Ke hoach xu ly"
+                  />
+                </div>
+              </div>
               <div className="sm:col-span-2">
                 <label className="mb-1 block text-xs font-medium text-slate-600">
-                  Tep dinh kem (Excel/CSV/anh)
+                  Tep dinh kem (Anh, Excel/CSV, PDF, Word, TXT)
                 </label>
                 <input
                   type="file"
                   multiple
-                  accept=".xls,.xlsx,.csv,image/*"
+                  accept=".xls,.xlsx,.csv,.pdf,.doc,.docx,.odt,.rtf,.txt,.log,.md,image/*"
                   onChange={(e) => setCreateFiles(e.target.files)}
                   className="block w-full text-xs text-slate-600 file:mr-2 file:rounded file:border-0 file:bg-slate-100 file:px-2.5 file:py-1.5 file:text-xs file:font-medium file:text-slate-700 hover:file:bg-slate-200"
                 />
