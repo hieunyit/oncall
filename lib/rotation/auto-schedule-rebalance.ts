@@ -241,14 +241,16 @@ export function generateAutoShiftsWithoutConflict(
   const fallback = bestFallback;
 
   return {
-    shifts: fallback.shifts.map((shift, index) => ({
+    shifts: fallback.shifts.map((shift) => ({
       ...shift,
-      hasWarning: fallback.warningIndices.has(index),
+      // Fallback means strict one-shift-per-day constraints could not be satisfied.
+      // Mark all generated shifts so warning is visually obvious in calendar UI.
+      hasWarning: true,
     })),
     warning: {
       code: "AUTO_SCHEDULE_INSUFFICIENT_PEOPLE",
       message: AUTO_SCHEDULE_WARNING_MESSAGE,
-      affectedShifts: fallback.warningIndices.size,
+      affectedShifts: fallback.shifts.length,
       attemptErrors,
     },
   };

@@ -124,6 +124,13 @@ export function MonthCalendar({
             const dayKey = day.toISOString();
             const isExpanded = expandedDays.has(dayKey);
             const visibleShifts = isExpanded ? dayShifts : dayShifts.slice(0, 4);
+            const dayWarningCount = dayShifts.filter((shift) =>
+              Boolean(getAutoScheduleWarningMessage(shift.notes))
+            ).length;
+            const visibleWarningCount = visibleShifts.filter((shift) =>
+              Boolean(getAutoScheduleWarningMessage(shift.notes))
+            ).length;
+            const hiddenWarningCount = Math.max(dayWarningCount - visibleWarningCount, 0);
 
             return (
               <div
@@ -134,7 +141,18 @@ export function MonthCalendar({
                 } ${!inMonth ? "opacity-40" : ""} ${onDayClick ? "cursor-pointer hover:bg-indigo-50/30" : ""}`}
               >
                 {/* Date number */}
-                <div className="flex justify-end items-start mb-1">
+                <div className="flex items-start justify-between mb-1">
+                  <span className="min-w-[22px]">
+                    {dayWarningCount > 0 && (
+                      <span
+                        className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700"
+                        title={`${dayWarningCount} ca cảnh báo thiếu người trong ngày`}
+                      >
+                        <span className="leading-none">⚠</span>
+                        <span>{dayWarningCount}</span>
+                      </span>
+                    )}
+                  </span>
                   <span
                     className={`text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full ${
                       isToday
@@ -223,7 +241,7 @@ export function MonthCalendar({
                       onClick={(e) => { e.stopPropagation(); toggleExpanded(dayKey); }}
                       className="text-[10px] text-indigo-500 hover:text-indigo-700 pl-1 cursor-pointer w-full text-left"
                     >
-                      +{dayShifts.length - 4} ca nữa
+                      +{dayShifts.length - 4} ca nữa{hiddenWarningCount > 0 ? ` · ⚠${hiddenWarningCount}` : ""}
                     </button>
                   )}
                   {isExpanded && dayShifts.length > 4 && (
