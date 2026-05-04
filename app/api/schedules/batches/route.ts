@@ -12,10 +12,8 @@ import {
 } from "@/lib/api-response";
 import { ShiftStatus, ShiftSource, TeamRole } from "@/app/generated/prisma/client";
 import {
-  generateShifts,
   computeConfirmationDueAt,
   TimeSlot,
-  OccupiedMap,
   PriorState,
   localDayKey,
   isNightShiftTime,
@@ -30,7 +28,10 @@ import {
   filterTeamMembersByPolicySelection,
   getPolicyParticipantUserIds,
 } from "@/lib/rotation/policy-participants";
-import { pruneAutoScheduleConflicts } from "@/lib/rotation/auto-schedule-validation";
+import {
+  buildOccupiedMapFromShifts,
+  generateAutoShiftsWithoutConflict,
+} from "@/lib/rotation/auto-schedule-rebalance";
 
 const PublishSchema = z.object({
   policyId: z.string().uuid(),
@@ -217,53 +218,36 @@ export async function POST(req: NextRequest) {
         },
         select: { id: true, assigneeId: true, policyId: true, startsAt: true, endsAt: true },
       });
-
-      // Build occupied map: existing shifts from OTHER policies in the same team
-      // Used to skip participants who would violate the cross-policy constraint.
-      const occupied: OccupiedMap = new Map();
-      for (const s of existingTeamShifts) {
-        if (s.policyId === data.policyId) continue;
-        const list = occupied.get(s.assigneeId) ?? [];
-        list.push({ policyId: s.policyId, startsAt: s.startsAt, endsAt: s.endsAt });
-        occupied.set(s.assigneeId, list);
-      }
+      const occupied = buildOccupiedMapFromShifts(existingTeamShifts);
 
       // Carry over prior state so consecutive-night and rest-day rules hold across batch boundaries.
       const priorState = await buildPriorState(data.policyId, rangeStart, timeSlots, policy.timezone);
 
-      const generatedShifts = generateShifts(
-        { ...policy, timeSlots },
-        participants,
-        rangeStart,
-        rangeEnd,
-        startingIndex,
-        { policyId: data.policyId, occupied, priorState }
-      );
+      try {
+        const generatedShifts = generateAutoShiftsWithoutConflict({
+          policy: { ...policy, timeSlots },
+          policyId: data.policyId,
+          participants,
+          rangeStart,
+          rangeEnd,
+          startingIndex,
+          timezone: policy.timezone,
+          occupied,
+          existingShifts: existingTeamShifts,
+          priorState,
+        });
 
-      const pruned = pruneAutoScheduleConflicts({
-        generatedShifts: generatedShifts.map((s) => ({
+        shiftsToCreate = generatedShifts.map((s) => ({
           assigneeId: s.assigneeId,
+          backupId: s.backupId,
           startsAt: s.startsAt,
           endsAt: s.endsAt,
-        })),
-        existingShifts: existingTeamShifts,
-        timezone: policy.timezone,
-      });
-      if (pruned.shifts.length === 0) {
-        return badRequest("Không thể tạo ca hợp lệ trong khoảng thời gian đã chọn.");
+        }));
+      } catch {
+        return badRequest(
+          "Khong the sap xep du ca truc ma van dam bao moi nguoi chi co 1 ca trong ngay."
+        );
       }
-
-      shiftsToCreate = pruned.shifts.map((s) => ({
-        assigneeId: s.assigneeId,
-        backupId: generatedShifts.find(
-          (g) =>
-            g.assigneeId === s.assigneeId &&
-            g.startsAt.getTime() === s.startsAt.getTime() &&
-            g.endsAt.getTime() === s.endsAt.getTime()
-        )?.backupId,
-        startsAt: s.startsAt,
-        endsAt: s.endsAt,
-      }));
     }
 
     // Create batch + shifts + confirmations in a single transaction

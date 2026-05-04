@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser, requireTeamRole, isNextResponse } from "@/lib/rbac";
 import { ok, unauthorized, notFound, conflict, badRequest, handleError } from "@/lib/api-response";
 import { BatchStatus, ShiftStatus, ShiftSource, SwapStatus, TeamRole } from "@/app/generated/prisma/client";
-import { generateShifts, computeConfirmationDueAt, TimeSlot } from "@/lib/rotation/engine";
+import { computeConfirmationDueAt, TimeSlot } from "@/lib/rotation/engine";
 import { scheduleAllRemindersForBatchSafe } from "@/lib/queue/scheduler";
 import { notifyAssigneesScheduleUpdated } from "@/lib/notifications/notify-assignees";
 import { writeAuditLog } from "@/lib/audit";
@@ -12,7 +12,10 @@ import {
   filterTeamMembersByPolicySelection,
   getPolicyParticipantUserIds,
 } from "@/lib/rotation/policy-participants";
-import { pruneAutoScheduleConflicts } from "@/lib/rotation/auto-schedule-validation";
+import {
+  buildOccupiedMapFromShifts,
+  generateAutoShiftsWithoutConflict,
+} from "@/lib/rotation/auto-schedule-rebalance";
 
 // POST /api/policies/[id]/reschedule-from-now
 // Finds the active PUBLISHED batch for this policy and regenerates all future shifts
@@ -127,17 +130,6 @@ export async function POST(
         ? Math.floor(keptShiftCount / slotsPerDay) % participants.length
         : keptShiftCount % participants.length;
 
-    // Generate from start-of-today so the engine covers today's full day slots,
-    // but only keep shifts that start at or after NOW to avoid creating PUBLISHED
-    // duplicates of shifts that are already ACTIVE or have already passed today.
-    const newShifts = generateShifts(
-      { ...policy, timeSlots },
-      participants,
-      fromDate,      // rangeStart = midnight — engine needs full-day coverage
-      batch.rangeEnd,
-      startingIndex
-    ).filter((s) => s.startsAt >= cutoff);
-
     // Delete PUBLISHED shifts starting from NOW onwards (not midnight) across ALL
     // batches for this policy. Using policyId catches orphaned shifts from old or
     // rolled-back batches. Using `now` avoids touching shifts that have already
@@ -156,24 +148,32 @@ export async function POST(
         startsAt: { lt: batch.rangeEnd },
         endsAt: { gt: fromDate },
       },
-      select: { id: true, assigneeId: true, startsAt: true, endsAt: true },
+      select: { id: true, policyId: true, assigneeId: true, startsAt: true, endsAt: true },
     });
 
-    const pruned = pruneAutoScheduleConflicts({
-      generatedShifts: newShifts.map((s) => ({
-        assigneeId: s.assigneeId,
-        startsAt: s.startsAt,
-        endsAt: s.endsAt,
-      })),
-      existingShifts: existingTeamShifts,
-      timezone: policy.timezone,
-      ignoreExistingShiftIds: removeIds,
-    });
-    if (pruned.shifts.length === 0) {
-      return badRequest("Không thể tạo ca hợp lệ khi cập nhật lịch từ thời điểm hiện tại.");
+    const removeIdSet = new Set(removeIds);
+    const occupied = buildOccupiedMapFromShifts(existingTeamShifts, removeIdSet);
+
+    let shiftsAfterRebalance: ReturnType<typeof generateAutoShiftsWithoutConflict>;
+    try {
+      shiftsAfterRebalance = generateAutoShiftsWithoutConflict({
+        policy: { ...policy, timeSlots },
+        policyId,
+        participants,
+        rangeStart: fromDate,
+        rangeEnd: batch.rangeEnd,
+        startingIndex,
+        timezone: policy.timezone,
+        occupied,
+        existingShifts: existingTeamShifts,
+        ignoreExistingShiftIds: removeIds,
+        filterStartsAtGte: cutoff,
+      });
+    } catch {
+      return badRequest(
+        "Khong the sap xep du ca truc khi cap nhat lich tu thoi diem hien tai."
+      );
     }
-
-    const shiftsAfterPrune = pruned.shifts;
 
     await prisma.$transaction(async (tx) => {
       if (removeIds.length > 0) {
@@ -195,16 +195,11 @@ export async function POST(
       }
 
       await tx.shift.createMany({
-        data: shiftsAfterPrune.map((s) => ({
+        data: shiftsAfterRebalance.map((s) => ({
           policyId,
           batchId: batch.id,
           assigneeId: s.assigneeId,
-          backupId: newShifts.find(
-            (g) =>
-              g.assigneeId === s.assigneeId &&
-              g.startsAt.getTime() === s.startsAt.getTime() &&
-              g.endsAt.getTime() === s.endsAt.getTime()
-          )?.backupId,
+          backupId: s.backupId,
           startsAt: s.startsAt,
           endsAt: s.endsAt,
           status: ShiftStatus.PUBLISHED,
@@ -261,7 +256,7 @@ export async function POST(
         batchId: batch.id,
         fromDate: fromDate.toISOString(),
         removedShifts: removeIds.length,
-        newShifts: shiftsAfterPrune.length,
+        newShifts: shiftsAfterRebalance.length,
         remindersScheduled,
       },
       ipAddress: req.headers.get("x-forwarded-for") ?? undefined,
@@ -282,7 +277,7 @@ export async function POST(
       batchId: batch.id,
       fromDate: fromDate.toISOString(),
       removedShifts: removeIds.length,
-      newShifts: shiftsAfterPrune.length,
+      newShifts: shiftsAfterRebalance.length,
       remindersScheduled,
       assigneeNotifications,
     });

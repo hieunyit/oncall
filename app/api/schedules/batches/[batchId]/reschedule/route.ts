@@ -6,10 +6,8 @@ import { getSessionUser, requireTeamRole, isNextResponse } from "@/lib/rbac";
 import { ok, unauthorized, badRequest, notFound, conflict, handleError } from "@/lib/api-response";
 import { BatchStatus, ShiftStatus, ShiftSource, SwapStatus, TeamRole } from "@/app/generated/prisma/client";
 import {
-  generateShifts,
   computeConfirmationDueAt,
   TimeSlot,
-  OccupiedMap,
   PriorState,
   localDayKey,
   isNightShiftTime,
@@ -21,7 +19,10 @@ import {
   filterTeamMembersByPolicySelection,
   getPolicyParticipantUserIds,
 } from "@/lib/rotation/policy-participants";
-import { pruneAutoScheduleConflicts } from "@/lib/rotation/auto-schedule-validation";
+import {
+  buildOccupiedMapFromShifts,
+  generateAutoShiftsWithoutConflict,
+} from "@/lib/rotation/auto-schedule-rebalance";
 
 const Schema = z.object({
   fromDate: z.string().min(1),
@@ -138,41 +139,6 @@ export async function POST(
       timeSlots && timeSlots.length > 0
         ? Math.floor(keptShiftCount / slotsPerDay) % participants.length
         : keptShiftCount % participants.length;
-
-    // Build occupied map: shifts from OTHER policies in the same team within the new range.
-    const userIds = participants.map((p) => p.userId);
-    const crossPolicyShifts = await prisma.shift.findMany({
-      where: {
-        policyId: { not: batch.policyId },
-        policy: { teamId: policy.teamId },
-        assigneeId: { in: userIds },
-        status: { in: [ShiftStatus.PUBLISHED, ShiftStatus.ACTIVE] },
-        startsAt: { lt: batch.rangeEnd },
-        endsAt: { gt: cutoff },
-      },
-      select: { assigneeId: true, policyId: true, startsAt: true, endsAt: true },
-    });
-
-    const occupied: OccupiedMap = new Map();
-    for (const s of crossPolicyShifts) {
-      const list = occupied.get(s.assigneeId) ?? [];
-      list.push({ policyId: s.policyId, startsAt: s.startsAt, endsAt: s.endsAt });
-      occupied.set(s.assigneeId, list);
-    }
-
-    // Compute prior state from existing shifts just before cutoff.
-    // This carries over consecutive-night and rest-day constraints across the boundary.
-    const priorState = await buildPriorState(batch.policyId, cutoff, timeSlots, policy.timezone);
-
-    const newShifts = generateShifts(
-      { ...policy, timeSlots },
-      participants,
-      fromDate,
-      batch.rangeEnd,
-      startingIndex,
-      { policyId: batch.policyId, occupied, priorState }
-    ).filter((s) => s.startsAt >= cutoff);
-
     const existingTeamShifts = await prisma.shift.findMany({
       where: {
         policy: { teamId: policy.teamId },
@@ -181,24 +147,37 @@ export async function POST(
         startsAt: { lt: batch.rangeEnd },
         endsAt: { gt: fromDate },
       },
-      select: { id: true, assigneeId: true, startsAt: true, endsAt: true },
+      select: { id: true, policyId: true, assigneeId: true, startsAt: true, endsAt: true },
     });
 
-    const pruned = pruneAutoScheduleConflicts({
-      generatedShifts: newShifts.map((s) => ({
-        assigneeId: s.assigneeId,
-        startsAt: s.startsAt,
-        endsAt: s.endsAt,
-      })),
-      existingShifts: existingTeamShifts,
-      timezone: policy.timezone,
-      ignoreExistingShiftIds: removeIds,
-    });
-    if (pruned.shifts.length === 0) {
-      return badRequest("Không thể tạo ca hợp lệ trong khoảng cập nhật đã chọn.");
+    const removeIdSet = new Set(removeIds);
+    const occupied = buildOccupiedMapFromShifts(existingTeamShifts, removeIdSet);
+
+    // Compute prior state from existing shifts just before cutoff.
+    // This carries over consecutive-night and rest-day constraints across the boundary.
+    const priorState = await buildPriorState(batch.policyId, cutoff, timeSlots, policy.timezone);
+
+    let shiftsAfterRebalance: ReturnType<typeof generateAutoShiftsWithoutConflict>;
+    try {
+      shiftsAfterRebalance = generateAutoShiftsWithoutConflict({
+        policy: { ...policy, timeSlots },
+        policyId: batch.policyId,
+        participants,
+        rangeStart: fromDate,
+        rangeEnd: batch.rangeEnd,
+        startingIndex,
+        timezone: policy.timezone,
+        occupied,
+        existingShifts: existingTeamShifts,
+        ignoreExistingShiftIds: removeIds,
+        priorState,
+        filterStartsAtGte: cutoff,
+      });
+    } catch {
+      return badRequest(
+        "Khong the sap xep du ca truc sau khi cap nhat ma van dam bao moi nguoi chi co 1 ca trong ngay."
+      );
     }
-
-    const shiftsAfterPrune = pruned.shifts;
 
     // Execute in transaction
     await prisma.$transaction(async (tx) => {
@@ -223,16 +202,11 @@ export async function POST(
 
       // Create new shifts
       await tx.shift.createMany({
-        data: shiftsAfterPrune.map((s) => ({
+        data: shiftsAfterRebalance.map((s) => ({
           policyId: batch.policyId,
           batchId,
           assigneeId: s.assigneeId,
-          backupId: newShifts.find(
-            (g) =>
-              g.assigneeId === s.assigneeId &&
-              g.startsAt.getTime() === s.startsAt.getTime() &&
-              g.endsAt.getTime() === s.endsAt.getTime()
-          )?.backupId,
+          backupId: s.backupId,
           startsAt: s.startsAt,
           endsAt: s.endsAt,
           status: ShiftStatus.PUBLISHED,
@@ -292,7 +266,7 @@ export async function POST(
       newValue: {
         fromDate: cutoff.toISOString(),
         removedShifts: removeIds.length,
-        newShifts: shiftsAfterPrune.length,
+        newShifts: shiftsAfterRebalance.length,
         remindersScheduled,
       },
       ipAddress: req.headers.get("x-forwarded-for") ?? undefined,
@@ -313,7 +287,7 @@ export async function POST(
       batchId,
       fromDate: cutoff.toISOString(),
       removedShifts: removeIds.length,
-      newShifts: shiftsAfterPrune.length,
+      newShifts: shiftsAfterRebalance.length,
       remindersScheduled,
       assigneeNotifications,
     });

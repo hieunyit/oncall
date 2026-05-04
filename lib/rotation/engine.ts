@@ -36,10 +36,9 @@ export interface GeneratedShift {
 }
 
 /**
- * Map of userId -> list of existing shifts from OTHER policies that belong to the same team.
- * Used to skip participants who would violate the cross-policy constraint:
- * a person cannot have overlapping shifts OR two shifts on the same calendar day
- * from two different policies in the same team.
+ * Map of userId -> list of existing occupied windows.
+ * Used to skip participants who would violate scheduling constraints:
+ * a person cannot have overlapping shifts OR two shifts on the same calendar day.
  */
 export type OccupiedMap = Map<string, Array<{ policyId: string; startsAt: Date; endsAt: Date }>>;
 
@@ -164,22 +163,18 @@ function getOrderedIndices(length: number, startIdx: number): number[] {
   return Array.from({ length }, (_, i) => (startIdx + i) % length);
 }
 
-function hasCrossPolicyConflict(
+function hasOccupiedConflict(
   userId: string,
   slot: { startsAt: Date; endsAt: Date },
-  currentPolicyId: string | undefined,
   occupied: OccupiedMap,
   tz: string
 ): boolean {
-  if (!currentPolicyId) return false;
-
   const slotDay = localDayKey(slot.startsAt, tz);
 
   return (occupied.get(userId) ?? []).some(
     (o) =>
-      o.policyId !== currentPolicyId &&
       // Time overlap OR same calendar day.
-      // The same person should not work two policies on the same local calendar day.
+      // A person should not have more than one shift in the same local day.
       (overlaps(o, slot) || localDayKey(o.startsAt, tz) === slotDay)
   );
 }
@@ -200,8 +195,6 @@ function selectParticipant(
    * True for the last slot of the day when that slot is not a rest-rule slot.
    */
   isLateButNotNight: boolean,
-
-  currentPolicyId: string | undefined,
   occupied: OccupiedMap,
   state: AssignmentState,
   tz: string,
@@ -223,17 +216,26 @@ function selectParticipant(
    *
    * This exclusion is soft. It can be relaxed if not enough people exist.
    */
-  nightHardExclude: Set<string>
-): ParticipantSlot {
+  nightHardExclude: Set<string>,
+
+  /**
+   * In strict mode, do not relax hard scheduling constraints.
+   * If no candidate satisfies constraints, return null so caller can retry
+   * with a different rotation seed or fail fast.
+   */
+  strictAssignment: boolean
+): ParticipantSlot | null {
   const ordered = getOrderedIndices(participants.length, preferredIdx);
 
-  // Step 1: Prefer people without cross-policy conflicts.
+  // Step 1: Prefer people without occupied conflicts (same-day or overlap).
   const noCrossConflict = ordered.filter(
-    (idx) => !hasCrossPolicyConflict(participants[idx].userId, slot, currentPolicyId, occupied, tz)
+    (idx) => !hasOccupiedConflict(participants[idx].userId, slot, occupied, tz)
   );
 
-  // If everyone conflicts with other policies, fall back to the original ordered pool.
-  const crossPool = noCrossConflict.length > 0 ? noCrossConflict : ordered;
+  // Non-strict mode can relax to preserve backward compatibility.
+  const crossPool =
+    noCrossConflict.length > 0 ? noCrossConflict : strictAssignment ? [] : ordered;
+  if (crossPool.length === 0) return null;
 
   /**
    * Step 2A: Apply hard excludes first.
@@ -253,7 +255,9 @@ function selectParticipant(
     return !hardExclude.has(uid);
   });
 
-  const hardPool = withoutHardExclude.length > 0 ? withoutHardExclude : crossPool;
+  const hardPool =
+    withoutHardExclude.length > 0 ? withoutHardExclude : strictAssignment ? [] : crossPool;
+  if (hardPool.length === 0) return null;
 
   // Step 2B: Apply night-only excludes after hard excludes.
   const withoutNightExclude = hardPool.filter((idx) => {
@@ -404,6 +408,7 @@ export function generateShifts(
     policyId?: string;
     occupied?: OccupiedMap;
     priorState?: PriorState;
+    strictAssignment?: boolean;
   }
 ): GeneratedShift[] {
   if (participants.length === 0) return [];
@@ -415,9 +420,9 @@ export function generateShifts(
   let idx = startingIndex % participants.length;
 
   const tz = policy.timezone ?? "Asia/Ho_Chi_Minh";
-  const policyId = options?.policyId;
   const occupied = options?.occupied ?? new Map();
   const prior = options?.priorState ?? {};
+  const strictAssignment = options?.strictAssignment ?? false;
 
   const state: AssignmentState = {
     assignedCounts: new Map(),
@@ -565,13 +570,18 @@ export function generateShifts(
           { startsAt, endsAt },
           isNightForRestRule,
           isLateButNotNight,
-          policyId,
           occupied,
           state,
           tz,
           currentHardExclude,
-          effectiveNightExclude
+          effectiveNightExclude,
+          strictAssignment
         );
+        if (!participant) {
+          throw new Error(
+            `UNASSIGNABLE_SLOT:${startsAt.toISOString()}`
+          );
+        }
 
         shifts.push({
           assigneeId: participant.userId,
@@ -649,13 +659,18 @@ export function generateShifts(
         { startsAt, endsAt },
         false,
         false,
-        policyId,
         occupied,
         state,
         tz,
         new Set(),
-        new Set()
+        new Set(),
+        strictAssignment
       );
+      if (!participant) {
+        throw new Error(
+          `UNASSIGNABLE_SLOT:${startsAt.toISOString()}`
+        );
+      }
 
       shifts.push({
         assigneeId: participant.userId,
@@ -694,13 +709,18 @@ export function generateShifts(
       { startsAt, endsAt },
       false,
       false,
-      policyId,
       occupied,
       state,
       tz,
       new Set(),
-      new Set()
+      new Set(),
+      strictAssignment
     );
+    if (!participant) {
+      throw new Error(
+        `UNASSIGNABLE_SLOT:${startsAt.toISOString()}`
+      );
+    }
 
     shifts.push({
       assigneeId: participant.userId,
