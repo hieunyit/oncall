@@ -6,6 +6,11 @@ import { ok, unauthorized, notFound, badRequest, handleError } from "@/lib/api-r
 import { TeamRole } from "@/app/generated/prisma/client";
 import { generateShifts, TimeSlot } from "@/lib/rotation/engine";
 import { addWeeks } from "date-fns";
+import {
+  filterTeamMembersByPolicySelection,
+  getPolicyParticipantUserIds,
+} from "@/lib/rotation/policy-participants";
+import { validateAutoScheduleOneShiftPerDay } from "@/lib/rotation/auto-schedule-validation";
 
 const PreviewQuerySchema = z.object({
   weeks: z.coerce.number().int().min(1).max(12).default(4),
@@ -49,10 +54,16 @@ export async function GET(
       return badRequest("Team has no members");
     }
 
+    const participantUserIds = await getPolicyParticipantUserIds(policy.id);
+    const eligibleMembers = filterTeamMembersByPolicySelection(policy.team.members, participantUserIds);
+    if (eligibleMembers.length === 0) {
+      return badRequest("Chính sách này chưa có thành viên áp dụng");
+    }
+
     const rangeStart = query.startDate ? new Date(query.startDate) : new Date();
     const rangeEnd = addWeeks(rangeStart, query.weeks);
 
-    const participants = policy.team.members.map((m) => ({
+    const participants = eligibleMembers.map((m) => ({
       userId: m.user.id,
       backupId: undefined,
     }));
@@ -64,8 +75,21 @@ export async function GET(
       rangeEnd
     );
 
+    const autoViolation = validateAutoScheduleOneShiftPerDay({
+      generatedShifts: shifts.map((s) => ({
+        assigneeId: s.assigneeId,
+        startsAt: s.startsAt,
+        endsAt: s.endsAt,
+      })),
+      existingShifts: [],
+      timezone: policy.timezone,
+    });
+    if (autoViolation) {
+      return badRequest(autoViolation.message, { code: autoViolation.code });
+    }
+
     const memberMap = Object.fromEntries(
-      policy.team.members.map((m) => [m.user.id, m.user])
+      eligibleMembers.map((m) => [m.user.id, m.user])
     );
 
     const preview = shifts.map((s) => ({

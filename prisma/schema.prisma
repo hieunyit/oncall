@@ -228,6 +228,7 @@ model RotationPolicy {
   reminderLeadHours     Int[]       @default([24, 2]) @map("reminder_lead_hours")
   maxGenerateWeeks      Int         @default(4) @map("max_generate_weeks")
   timeSlots             Json?       @default("[]") @map("time_slots")
+  participantUserIds    Json        @default("[]") @map("participant_user_ids")
   timezone              String      @default("Asia/Ho_Chi_Minh")
   checklistRequired     Boolean     @default(false) @map("checklist_required")
   templateTasks         Json        @default("[]") @map("template_tasks")

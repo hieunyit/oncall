@@ -2,9 +2,13 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser, requireTeamRole, isNextResponse } from "@/lib/rbac";
-import { ok, noContent, unauthorized, notFound, handleError } from "@/lib/api-response";
+import { ok, noContent, unauthorized, notFound, badRequest, handleError } from "@/lib/api-response";
 import { BatchStatus, CadenceKind, ShiftStatus, SwapStatus, TeamRole } from "@/app/generated/prisma/client";
 import { writeAuditLog } from "@/lib/audit";
+import {
+  getPolicyParticipantUserIds,
+  setPolicyParticipantUserIds,
+} from "@/lib/rotation/policy-participants";
 
 const TimeSlotSchema = z.object({
   label: z.string(),
@@ -29,6 +33,7 @@ const UpdatePolicySchema = z.object({
   timeSlots: z.array(TimeSlotSchema).optional().nullable(),
   checklistRequired: z.boolean().optional(),
   templateTasks: z.array(z.string().min(1).max(500)).optional().nullable(),
+  memberIds: z.array(z.string().uuid()).min(1).optional(),
 });
 
 export async function GET(
@@ -61,7 +66,8 @@ export async function GET(
     const result = await requireTeamRole(policy.teamId, TeamRole.MEMBER);
     if (isNextResponse(result)) return result;
 
-    return ok(policy);
+    const participantUserIds = await getPolicyParticipantUserIds(id);
+    return ok({ ...policy, participantUserIds });
   } catch (error) {
     return handleError(error);
   }
@@ -83,7 +89,26 @@ export async function PATCH(
     if (isNextResponse(result)) return result;
 
     const body = await req.json();
-    const { escalationPolicyId, timeSlots, templateTasks, checklistRequired, ...rest } = UpdatePolicySchema.parse(body);
+    const {
+      escalationPolicyId,
+      timeSlots,
+      templateTasks,
+      checklistRequired,
+      memberIds,
+      ...rest
+    } = UpdatePolicySchema.parse(body);
+
+    if (memberIds) {
+      const teamMembers = await prisma.teamMember.findMany({
+        where: { teamId: policy.teamId },
+        select: { userId: true },
+      });
+      const teamUserIdSet = new Set(teamMembers.map((m) => m.userId));
+      const invalidMemberIds = memberIds.filter((id) => !teamUserIdSet.has(id));
+      if (invalidMemberIds.length > 0) {
+        return badRequest("Danh sách thành viên áp dụng không hợp lệ");
+      }
+    }
 
     // Fields supported by current generated Prisma client (stable columns)
     const updated = await prisma.rotationPolicy.update({
@@ -94,6 +119,10 @@ export async function PATCH(
         ...(timeSlots !== undefined && { timeSlots: timeSlots ?? [] }),
       },
     });
+
+    if (memberIds) {
+      await setPolicyParticipantUserIds(id, memberIds);
+    }
 
     // checklistRequired + templateTasks require migration 4 — update via raw SQL,
     // silently skip if columns don't exist yet (pre-migration environments)
@@ -121,7 +150,8 @@ export async function PATCH(
       ipAddress: req.headers.get("x-forwarded-for") ?? undefined,
     });
 
-    return ok(updated);
+    const participantUserIds = await getPolicyParticipantUserIds(id);
+    return ok({ ...updated, participantUserIds });
   } catch (error) {
     return handleError(error);
   }

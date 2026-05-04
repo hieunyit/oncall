@@ -8,6 +8,11 @@ import { generateShifts, computeConfirmationDueAt, TimeSlot } from "@/lib/rotati
 import { scheduleAllRemindersForBatchSafe } from "@/lib/queue/scheduler";
 import { notifyAssigneesScheduleUpdated } from "@/lib/notifications/notify-assignees";
 import { writeAuditLog } from "@/lib/audit";
+import {
+  filterTeamMembersByPolicySelection,
+  getPolicyParticipantUserIds,
+} from "@/lib/rotation/policy-participants";
+import { validateAutoScheduleOneShiftPerDay } from "@/lib/rotation/auto-schedule-validation";
 
 // POST /api/policies/[id]/reschedule-from-now
 // Finds the active PUBLISHED batch for this policy and regenerates all future shifts
@@ -93,7 +98,13 @@ export async function POST(
       );
     }
 
-    const participants = policy.team.members.map((m, i, arr) => ({
+    const selectedParticipantUserIds = await getPolicyParticipantUserIds(policy.id);
+    const eligibleMembers = filterTeamMembersByPolicySelection(policy.team.members, selectedParticipantUserIds);
+    if (eligibleMembers.length === 0) {
+      return badRequest("Chính sách này chưa có thành viên áp dụng");
+    }
+
+    const participants = eligibleMembers.map((m, i, arr) => ({
       userId: m.user.id,
       backupId: arr[(i + 1) % arr.length].user.id,
     }));
@@ -136,6 +147,31 @@ export async function POST(
       select: { id: true },
     });
     const removeIds = shiftsToRemove.map((s) => s.id);
+
+    const existingTeamShifts = await prisma.shift.findMany({
+      where: {
+        policy: { teamId: policy.teamId },
+        assigneeId: { in: participants.map((p) => p.userId) },
+        status: { in: [ShiftStatus.PUBLISHED, ShiftStatus.ACTIVE, ShiftStatus.COMPLETED] },
+        startsAt: { lt: batch.rangeEnd },
+        endsAt: { gt: fromDate },
+      },
+      select: { id: true, assigneeId: true, startsAt: true, endsAt: true },
+    });
+
+    const autoViolation = validateAutoScheduleOneShiftPerDay({
+      generatedShifts: newShifts.map((s) => ({
+        assigneeId: s.assigneeId,
+        startsAt: s.startsAt,
+        endsAt: s.endsAt,
+      })),
+      existingShifts: existingTeamShifts,
+      timezone: policy.timezone,
+      ignoreExistingShiftIds: removeIds,
+    });
+    if (autoViolation) {
+      return conflict(autoViolation.message, autoViolation.code);
+    }
 
     await prisma.$transaction(async (tx) => {
       if (removeIds.length > 0) {

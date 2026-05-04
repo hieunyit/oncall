@@ -1,9 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-interface Team { id: string; name: string; }
+interface TeamMemberOption {
+  id: string;
+  fullName: string;
+  email: string;
+}
+
+interface Team {
+  id: string;
+  name: string;
+  members: TeamMemberOption[];
+}
 interface EscalationPolicy { id: string; name: string; teamId: string; }
 
 interface TimeSlot {
@@ -34,6 +44,7 @@ interface PolicyFormProps {
     timeSlots?: TimeSlot[] | null;
     checklistRequired?: boolean;
     templateTasks?: string[] | null;
+    participantUserIds?: string[] | null;
   };
 }
 
@@ -42,9 +53,16 @@ const MINUTES = Array.from({ length: 60 }, (_, m) => m);
 export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], initialData }: PolicyFormProps) {
   const router = useRouter();
   const isEdit = !!initialData;
+  const teamMap = new Map(teams.map((team) => [team.id, team]));
+  const initialTeamId = initialData?.teamId ?? defaultTeamId ?? teams[0]?.id ?? "";
+  const initialTeamMembers = teamMap.get(initialTeamId)?.members ?? [];
+  const initialSelectedMemberIds =
+    initialData?.participantUserIds && initialData.participantUserIds.length > 0
+      ? [...new Set(initialData.participantUserIds)]
+      : initialTeamMembers.map((member) => member.id);
 
   const [form, setForm] = useState({
-    teamId: initialData?.teamId ?? defaultTeamId ?? teams[0]?.id ?? "",
+    teamId: initialTeamId,
     name: initialData?.name ?? "",
     cadence: initialData?.cadence ?? "WEEKLY",
     cronExpression: initialData?.cronExpression ?? "",
@@ -55,6 +73,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
     maxGenerateWeeks: initialData?.maxGenerateWeeks ?? 4,
     escalationPolicyId: initialData?.escalationPolicyId ?? "",
   });
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>(initialSelectedMemberIds);
 
   const initialSlots = initialData?.timeSlots ?? [];
   const [useTimeSlots, setUseTimeSlots] = useState(Array.isArray(initialSlots) && initialSlots.length > 0);
@@ -83,7 +102,31 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  const selectedTeam = teamMap.get(form.teamId);
+  const teamMembers = selectedTeam?.members ?? [];
+
   const teamEscalationPolicies = escalationPolicies.filter((p) => p.teamId === form.teamId);
+
+  useEffect(() => {
+    if (teamMembers.length === 0) {
+      setSelectedMemberIds([]);
+      return;
+    }
+
+    setSelectedMemberIds((prev) => {
+      const allowedIds = new Set(teamMembers.map((member) => member.id));
+      const intersection = prev.filter((id) => allowedIds.has(id));
+      if (intersection.length > 0) return intersection;
+      return teamMembers.map((member) => member.id);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.teamId]);
+
+  function toggleMember(memberId: string) {
+    setSelectedMemberIds((prev) =>
+      prev.includes(memberId) ? prev.filter((id) => id !== memberId) : [...prev, memberId]
+    );
+  }
 
   function addSlot() {
     setTimeSlots((prev) => [
@@ -138,7 +181,14 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
       timeSlots: useTimeSlots ? timeSlots : [],
       checklistRequired,
       templateTasks: templateTasks.filter((t) => t.trim()),
+      memberIds: selectedMemberIds,
     };
+
+    if (selectedMemberIds.length === 0) {
+      setError("Please select at least one member for this policy.");
+      setLoading(false);
+      return;
+    }
 
     const url = isEdit ? `/api/policies/${initialData!.id}` : "/api/policies";
     const method = isEdit ? "PATCH" : "POST";
@@ -283,6 +333,57 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
             <option key={t.id} value={t.id}>{t.name}</option>
           ))}
         </select>
+      </Field>
+
+      <Field label="Policy members">
+        <p className="text-xs text-gray-500 mb-2">
+          Only selected members will be used when generating this policy schedule.
+        </p>
+        <div className="border border-gray-200 rounded-lg p-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedMemberIds(teamMembers.map((member) => member.id))}
+              className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+            >
+              Select all
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedMemberIds([])}
+              className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+            >
+              Clear
+            </button>
+            <span className="text-xs text-gray-500 ml-auto">
+              {selectedMemberIds.length}/{teamMembers.length}
+            </span>
+          </div>
+
+          {teamMembers.length === 0 ? (
+            <p className="text-xs text-red-600">Team has no members.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {teamMembers.map((member) => (
+                <label
+                  key={member.id}
+                  className="flex items-start gap-2 rounded border border-gray-200 px-2 py-1.5 hover:border-indigo-300 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedMemberIds.includes(member.id)}
+                    onChange={() => toggleMember(member.id)}
+                    className="mt-0.5"
+                  />
+                  <span className="min-w-0">
+                    <span className="block text-sm text-gray-900 truncate">{member.fullName}</span>
+                    <span className="block text-xs text-gray-500 truncate">{member.email}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
       </Field>
 
       <Field label="Tên chính sách">

@@ -17,6 +17,11 @@ import {
 import { scheduleAllRemindersForBatchSafe } from "@/lib/queue/scheduler";
 import { notifyAssigneesScheduleUpdated } from "@/lib/notifications/notify-assignees";
 import { writeAuditLog } from "@/lib/audit";
+import {
+  filterTeamMembersByPolicySelection,
+  getPolicyParticipantUserIds,
+} from "@/lib/rotation/policy-participants";
+import { validateAutoScheduleOneShiftPerDay } from "@/lib/rotation/auto-schedule-validation";
 
 const Schema = z.object({
   fromDate: z.string().min(1),
@@ -108,13 +113,15 @@ export async function POST(
 
     const policy = batch.policy;
     const timeSlots = policy.timeSlots as TimeSlot[] | null | undefined;
-    const participants = policy.team.members.map((m, i, arr) => ({
+    const selectedParticipantUserIds = await getPolicyParticipantUserIds(policy.id);
+    const eligibleMembers = filterTeamMembersByPolicySelection(policy.team.members, selectedParticipantUserIds);
+    const participants = eligibleMembers.map((m, i, arr) => ({
       userId: m.user.id,
       backupId: arr[(i + 1) % arr.length].user.id,
     }));
 
     if (participants.length === 0) {
-      return badRequest("Team has no members");
+      return badRequest("Chính sách này chưa có thành viên áp dụng");
     }
 
     const keptShiftCount = await prisma.shift.count({
@@ -165,6 +172,31 @@ export async function POST(
       startingIndex,
       { policyId: batch.policyId, occupied, priorState }
     ).filter((s) => s.startsAt >= cutoff);
+
+    const existingTeamShifts = await prisma.shift.findMany({
+      where: {
+        policy: { teamId: policy.teamId },
+        assigneeId: { in: participants.map((p) => p.userId) },
+        status: { in: [ShiftStatus.PUBLISHED, ShiftStatus.ACTIVE, ShiftStatus.COMPLETED] },
+        startsAt: { lt: batch.rangeEnd },
+        endsAt: { gt: fromDate },
+      },
+      select: { id: true, assigneeId: true, startsAt: true, endsAt: true },
+    });
+
+    const autoViolation = validateAutoScheduleOneShiftPerDay({
+      generatedShifts: newShifts.map((s) => ({
+        assigneeId: s.assigneeId,
+        startsAt: s.startsAt,
+        endsAt: s.endsAt,
+      })),
+      existingShifts: existingTeamShifts,
+      timezone: policy.timezone,
+      ignoreExistingShiftIds: removeIds,
+    });
+    if (autoViolation) {
+      return conflict(autoViolation.message, autoViolation.code);
+    }
 
     // Execute in transaction
     await prisma.$transaction(async (tx) => {

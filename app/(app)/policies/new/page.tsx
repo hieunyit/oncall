@@ -19,13 +19,22 @@ export default async function NewPolicyPage({ searchParams }: PageProps) {
   });
   if (!currentUser) redirect("/login");
 
-  const [teams, escalationPolicies] = await Promise.all([
+  const [teamsRaw, escalationPolicies] = await Promise.all([
     prisma.team.findMany({
       where:
         currentUser.systemRole === "ADMIN"
           ? {}
           : { members: { some: { userId: currentUser.id, role: "MANAGER" } } },
-      select: { id: true, name: true },
+      select: {
+        id: true,
+        name: true,
+        members: {
+          include: {
+            user: { select: { id: true, fullName: true, email: true } },
+          },
+          orderBy: { order: "asc" },
+        },
+      },
       orderBy: { name: "asc" },
     }),
     prisma.escalationPolicy.findMany({
@@ -34,6 +43,12 @@ export default async function NewPolicyPage({ searchParams }: PageProps) {
       orderBy: { name: "asc" },
     }),
   ]);
+
+  const teams = teamsRaw.map((team) => ({
+    id: team.id,
+    name: team.name,
+    members: team.members.map((member) => member.user),
+  }));
 
   return (
     <div className="max-w-2xl space-y-6">

@@ -7,6 +7,7 @@ import { PublishBatchForm } from "../../teams/[id]/publish-batch-form";
 import { BatchList } from "./batch-list";
 import { DeletePolicyButton } from "./delete-policy-button";
 import { RescheduleButton } from "./reschedule-button";
+import { getPolicyParticipantUserIds } from "@/lib/rotation/policy-participants";
 
 export default async function PolicyDetailPage({
   params,
@@ -46,9 +47,18 @@ export default async function PolicyDetailPage({
   const isManager =
     currentUser.systemRole === "ADMIN" || myMembership?.role === "MANAGER";
 
-  const [teams, escalationPolicies] = await Promise.all([
+  const [teamsRaw, escalationPolicies, participantUserIds] = await Promise.all([
     prisma.team.findMany({
-      select: { id: true, name: true },
+      select: {
+        id: true,
+        name: true,
+        members: {
+          include: {
+            user: { select: { id: true, fullName: true, email: true } },
+          },
+          orderBy: { order: "asc" },
+        },
+      },
       where: currentUser.systemRole === "ADMIN" ? {} : { id: policy.teamId },
     }),
     prisma.escalationPolicy.findMany({
@@ -56,7 +66,13 @@ export default async function PolicyDetailPage({
       select: { id: true, name: true, teamId: true },
       orderBy: { name: "asc" },
     }),
+    getPolicyParticipantUserIds(policy.id),
   ]);
+  const teams = teamsRaw.map((team) => ({
+    id: team.id,
+    name: team.name,
+    members: team.members.map((member) => member.user),
+  }));
 
   // Load checklist fields via raw SQL (not yet in generated Prisma client)
   let checklistRequired = false;
@@ -127,6 +143,7 @@ export default async function PolicyDetailPage({
               timeSlots: policy.timeSlots as Array<{ label: string; startHour: number; startMinute: number; endHour: number; endMinute: number; daysOfWeek?: number[] }> | null,
               checklistRequired,
               templateTasks,
+              participantUserIds: participantUserIds ?? policy.team.members.map((member) => member.user.id),
             }}
           />
         </>
@@ -207,6 +224,10 @@ export default async function PolicyDetailPage({
                     ) : s.source === "OVERRIDE" ? (
                       <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-amber-100 text-amber-700">
                         Override
+                      </span>
+                    ) : s.source === "MANUAL" ? (
+                      <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-blue-100 text-blue-700">
+                        Gán tay
                       </span>
                     ) : (
                       <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-gray-100 text-gray-500">
