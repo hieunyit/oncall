@@ -12,7 +12,7 @@ import {
   filterTeamMembersByPolicySelection,
   getPolicyParticipantUserIds,
 } from "@/lib/rotation/policy-participants";
-import { validateAutoScheduleOneShiftPerDay } from "@/lib/rotation/auto-schedule-validation";
+import { pruneAutoScheduleConflicts } from "@/lib/rotation/auto-schedule-validation";
 
 // POST /api/policies/[id]/reschedule-from-now
 // Finds the active PUBLISHED batch for this policy and regenerates all future shifts
@@ -159,7 +159,7 @@ export async function POST(
       select: { id: true, assigneeId: true, startsAt: true, endsAt: true },
     });
 
-    const autoViolation = validateAutoScheduleOneShiftPerDay({
+    const pruned = pruneAutoScheduleConflicts({
       generatedShifts: newShifts.map((s) => ({
         assigneeId: s.assigneeId,
         startsAt: s.startsAt,
@@ -169,9 +169,11 @@ export async function POST(
       timezone: policy.timezone,
       ignoreExistingShiftIds: removeIds,
     });
-    if (autoViolation) {
-      return conflict(autoViolation.message, autoViolation.code);
+    if (pruned.shifts.length === 0) {
+      return badRequest("Không thể tạo ca hợp lệ khi cập nhật lịch từ thời điểm hiện tại.");
     }
+
+    const shiftsAfterPrune = pruned.shifts;
 
     await prisma.$transaction(async (tx) => {
       if (removeIds.length > 0) {
@@ -193,11 +195,16 @@ export async function POST(
       }
 
       await tx.shift.createMany({
-        data: newShifts.map((s) => ({
+        data: shiftsAfterPrune.map((s) => ({
           policyId,
           batchId: batch.id,
           assigneeId: s.assigneeId,
-          backupId: s.backupId,
+          backupId: newShifts.find(
+            (g) =>
+              g.assigneeId === s.assigneeId &&
+              g.startsAt.getTime() === s.startsAt.getTime() &&
+              g.endsAt.getTime() === s.endsAt.getTime()
+          )?.backupId,
           startsAt: s.startsAt,
           endsAt: s.endsAt,
           status: ShiftStatus.PUBLISHED,
@@ -254,7 +261,7 @@ export async function POST(
         batchId: batch.id,
         fromDate: fromDate.toISOString(),
         removedShifts: removeIds.length,
-        newShifts: newShifts.length,
+        newShifts: shiftsAfterPrune.length,
         remindersScheduled,
       },
       ipAddress: req.headers.get("x-forwarded-for") ?? undefined,
@@ -275,7 +282,7 @@ export async function POST(
       batchId: batch.id,
       fromDate: fromDate.toISOString(),
       removedShifts: removeIds.length,
-      newShifts: newShifts.length,
+      newShifts: shiftsAfterPrune.length,
       remindersScheduled,
       assigneeNotifications,
     });

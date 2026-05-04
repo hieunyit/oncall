@@ -977,11 +977,11 @@ function ShiftDetailModal({
               <div className="flex items-center gap-1.5 flex-wrap justify-end">
                 {shift.checklistRequired ? (
                   <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
-                    Bat buoc
+                    Bắt buộc
                   </span>
                 ) : (
                   <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">
-                    Tuy chon
+                    Tùy chọn
                   </span>
                 )}
                 <span
@@ -989,7 +989,7 @@ function ShiftDetailModal({
                     allDone ? "bg-green-100 text-green-700" : totalTasks === 0 ? "bg-gray-100 text-gray-600" : "bg-blue-100 text-blue-700"
                   }`}
                 >
-                  {totalTasks === 0 ? "Chua co muc" : allDone ? "Hoan tat" : `${doneTasks}/${totalTasks}`}
+                  {totalTasks === 0 ? "Chưa có mục" : allDone ? "Hoàn tất" : `${doneTasks}/${totalTasks}`}
                 </span>
               </div>
             </div>
@@ -997,7 +997,7 @@ function ShiftDetailModal({
             {tasksLoaded && totalTasks > 0 && (
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-[11px] text-gray-500">
-                  <span>Tien do</span>
+                  <span>Tiến độ</span>
                   <span className="font-medium text-gray-700">{completionPercent}%</span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
@@ -1017,7 +1017,7 @@ function ShiftDetailModal({
 
             {isMe && !canEditChecklist && (
               <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2.5 py-1.5">
-                Checklist chi mo tu 2 gio truoc khi ca bat dau.
+                Checklist chỉ mở trước 2h khi bắt đầu ca trực.
               </p>
             )}
 
@@ -1034,7 +1034,7 @@ function ShiftDetailModal({
                         taskTab === "open" ? "bg-indigo-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
                       }`}
                     >
-                      Chua xong ({openTasks.length})
+                      Chưa xong ({openTasks.length})
                     </button>
                     <button
                       type="button"
@@ -1043,7 +1043,7 @@ function ShiftDetailModal({
                         taskTab === "done" ? "bg-indigo-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
                       }`}
                     >
-                      Da xong ({doneTasksList.length})
+                      Đã xong ({doneTasksList.length})
                     </button>
                   </div>
 
@@ -1055,7 +1055,7 @@ function ShiftDetailModal({
                         disabled={bulkUpdating || openTasks.length === 0}
                         className="text-[11px] px-2 py-1 rounded border border-green-200 text-green-700 bg-green-50 hover:bg-green-100 disabled:opacity-50"
                       >
-                        Hoan tat tat ca
+                        Hoàn tất tất cả
                       </button>
                       <button
                         type="button"
@@ -1063,7 +1063,7 @@ function ShiftDetailModal({
                         disabled={bulkUpdating || doneTasksList.length === 0}
                         className="text-[11px] px-2 py-1 rounded border border-gray-200 text-gray-600 bg-white hover:bg-gray-50 disabled:opacity-50"
                       >
-                        Mo lai tat ca
+                        Mở lại tất cả
                       </button>
                     </div>
                   )}
@@ -1124,14 +1124,14 @@ function ShiftDetailModal({
                                       onClick={() => saveTaskTitle(task.id)}
                                       className="text-[11px] px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
                                     >
-                                      Luu
+                                      Lưu
                                     </button>
                                     <button
                                       type="button"
                                       onClick={cancelEditingTask}
                                       className="text-[11px] px-2 py-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-50"
                                     >
-                                      Huy
+                                      Hủy
                                     </button>
                                   </div>
                                 </div>
@@ -1141,7 +1141,7 @@ function ShiftDetailModal({
                                     {task.title}
                                   </p>
                                   {task.isCompleted && completedAt && (
-                                    <p className="text-[11px] text-green-700 mt-0.5">Hoan thanh luc {completedAt}</p>
+                                    <p className="text-[11px] text-green-700 mt-0.5">Hoàn thành lúc {completedAt}</p>
                                   )}
                                 </>
                               )}
@@ -1154,7 +1154,7 @@ function ShiftDetailModal({
                                   onClick={() => startEditingTask(task)}
                                   className="text-[11px] px-1.5 py-0.5 rounded border border-gray-200 text-gray-500 hover:text-indigo-700 hover:border-indigo-200"
                                 >
-                                  Sua
+                                  Sửa
                                 </button>
                                 <button
                                   type="button"
@@ -1162,7 +1162,7 @@ function ShiftDetailModal({
                                   disabled={deletingTaskId === task.id}
                                   className="text-[11px] px-1.5 py-0.5 rounded border border-red-200 text-red-500 hover:bg-red-50 disabled:opacity-50"
                                 >
-                                  Xoa
+                                  Xóa
                                 </button>
                               </div>
                             )}
@@ -1190,7 +1190,7 @@ function ShiftDetailModal({
                       disabled={addingTask || !newTaskTitle.trim()}
                       className="px-3 py-2 text-xs font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
                     >
-                      Them
+                      Thêm
                     </button>
                   </div>
                 ) : (

@@ -20,6 +20,11 @@ export type AutoScheduleViolation = {
   message: string;
 };
 
+type PruneResult = {
+  shifts: ShiftWindow[];
+  dropped: number;
+};
+
 function overlaps(a: { startsAt: Date; endsAt: Date }, b: { startsAt: Date; endsAt: Date }): boolean {
   return a.startsAt < b.endsAt && a.endsAt > b.startsAt;
 }
@@ -65,4 +70,49 @@ export function validateAutoScheduleOneShiftPerDay(input: ValidationInput): Auto
   }
 
   return null;
+}
+
+export function pruneAutoScheduleConflicts(input: ValidationInput): PruneResult {
+  const tz = input.timezone;
+  const ignoreSet = new Set(input.ignoreExistingShiftIds ?? []);
+
+  const existingByAssignee = new Map<string, ShiftWindow[]>();
+  const existingDayKeys = new Set<string>();
+  for (const shift of input.existingShifts) {
+    if (shift.id && ignoreSet.has(shift.id)) continue;
+    const day = localDayKey(shift.startsAt, tz);
+    existingDayKeys.add(`${shift.assigneeId}|${day}`);
+    const list = existingByAssignee.get(shift.assigneeId) ?? [];
+    list.push(shift);
+    existingByAssignee.set(shift.assigneeId, list);
+  }
+
+  const generatedSeenDay = new Set<string>();
+  const sorted = [...input.generatedShifts].sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
+  const accepted: ShiftWindow[] = [];
+
+  for (const shift of sorted) {
+    const day = localDayKey(shift.startsAt, tz);
+    const key = `${shift.assigneeId}|${day}`;
+    if (generatedSeenDay.has(key)) continue;
+    if (existingDayKeys.has(key)) continue;
+
+    const sameUserExisting = existingByAssignee.get(shift.assigneeId) ?? [];
+    let hasOverlap = false;
+    for (const existing of sameUserExisting) {
+      if (overlaps(existing, shift)) {
+        hasOverlap = true;
+        break;
+      }
+    }
+    if (hasOverlap) continue;
+
+    generatedSeenDay.add(key);
+    accepted.push(shift);
+  }
+
+  return {
+    shifts: accepted,
+    dropped: input.generatedShifts.length - accepted.length,
+  };
 }

@@ -30,7 +30,7 @@ import {
   filterTeamMembersByPolicySelection,
   getPolicyParticipantUserIds,
 } from "@/lib/rotation/policy-participants";
-import { validateAutoScheduleOneShiftPerDay } from "@/lib/rotation/auto-schedule-validation";
+import { pruneAutoScheduleConflicts } from "@/lib/rotation/auto-schedule-validation";
 
 const PublishSchema = z.object({
   policyId: z.string().uuid(),
@@ -240,7 +240,7 @@ export async function POST(req: NextRequest) {
         { policyId: data.policyId, occupied, priorState }
       );
 
-      const autoViolation = validateAutoScheduleOneShiftPerDay({
+      const pruned = pruneAutoScheduleConflicts({
         generatedShifts: generatedShifts.map((s) => ({
           assigneeId: s.assigneeId,
           startsAt: s.startsAt,
@@ -249,13 +249,18 @@ export async function POST(req: NextRequest) {
         existingShifts: existingTeamShifts,
         timezone: policy.timezone,
       });
-      if (autoViolation) {
-        return conflict(autoViolation.message, autoViolation.code);
+      if (pruned.shifts.length === 0) {
+        return badRequest("Không thể tạo ca hợp lệ trong khoảng thời gian đã chọn.");
       }
 
-      shiftsToCreate = generatedShifts.map((s) => ({
+      shiftsToCreate = pruned.shifts.map((s) => ({
         assigneeId: s.assigneeId,
-        backupId: s.backupId,
+        backupId: generatedShifts.find(
+          (g) =>
+            g.assigneeId === s.assigneeId &&
+            g.startsAt.getTime() === s.startsAt.getTime() &&
+            g.endsAt.getTime() === s.endsAt.getTime()
+        )?.backupId,
         startsAt: s.startsAt,
         endsAt: s.endsAt,
       }));

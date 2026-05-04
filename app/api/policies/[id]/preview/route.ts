@@ -10,11 +10,12 @@ import {
   filterTeamMembersByPolicySelection,
   getPolicyParticipantUserIds,
 } from "@/lib/rotation/policy-participants";
-import { validateAutoScheduleOneShiftPerDay } from "@/lib/rotation/auto-schedule-validation";
+import { pruneAutoScheduleConflicts } from "@/lib/rotation/auto-schedule-validation";
 
 const PreviewQuerySchema = z.object({
   weeks: z.coerce.number().int().min(1).max(12).default(4),
   startDate: z.string().datetime().optional(),
+  pruneConflicts: z.enum(["true", "false"]).optional(),
 });
 
 export async function GET(
@@ -49,6 +50,7 @@ export async function GET(
 
     const { searchParams } = req.nextUrl;
     const query = PreviewQuerySchema.parse(Object.fromEntries(searchParams));
+    const shouldPruneConflicts = query.pruneConflicts !== "false";
 
     if (policy.team.members.length === 0) {
       return badRequest("Team has no members");
@@ -75,29 +77,37 @@ export async function GET(
       rangeEnd
     );
 
-    const autoViolation = validateAutoScheduleOneShiftPerDay({
-      generatedShifts: shifts.map((s) => ({
-        assigneeId: s.assigneeId,
-        startsAt: s.startsAt,
-        endsAt: s.endsAt,
-      })),
-      existingShifts: [],
-      timezone: policy.timezone,
-    });
-    if (autoViolation) {
-      return badRequest(autoViolation.message, { code: autoViolation.code });
-    }
+    const filteredShifts = shouldPruneConflicts
+      ? (() => {
+          const pruned = pruneAutoScheduleConflicts({
+            generatedShifts: shifts.map((s) => ({
+              assigneeId: s.assigneeId,
+              startsAt: s.startsAt,
+              endsAt: s.endsAt,
+            })),
+            existingShifts: [],
+            timezone: policy.timezone,
+          });
+
+          const filteredShiftKeys = new Set(
+            pruned.shifts.map((s) => `${s.assigneeId}|${s.startsAt.getTime()}|${s.endsAt.getTime()}`)
+          );
+          return shifts.filter((s) =>
+            filteredShiftKeys.has(`${s.assigneeId}|${s.startsAt.getTime()}|${s.endsAt.getTime()}`)
+          );
+        })()
+      : shifts;
 
     const memberMap = Object.fromEntries(
       eligibleMembers.map((m) => [m.user.id, m.user])
     );
 
-    const preview = shifts.map((s) => ({
+    const preview = filteredShifts.map((s) => ({
       ...s,
       assignee: memberMap[s.assigneeId],
     }));
 
-    return ok({ preview, totalShifts: shifts.length, rangeStart, rangeEnd });
+    return ok({ preview, totalShifts: filteredShifts.length, rangeStart, rangeEnd });
   } catch (error) {
     return handleError(error);
   }
