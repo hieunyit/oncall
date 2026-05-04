@@ -142,6 +142,21 @@ export type AlertIntegration = Prisma.AlertIntegrationModel
  */
 export type Alert = Prisma.AlertModel
 /**
+ * Model Incident
+ * 
+ */
+export type Incident = Prisma.IncidentModel
+/**
+ * Model IncidentAttachment
+ * 
+ */
+export type IncidentAttachment = Prisma.IncidentAttachmentModel
+/**
+ * Model IncidentLifecycleEvent
+ * 
+ */
+export type IncidentLifecycleEvent = Prisma.IncidentLifecycleEventModel
+/**
  * Model ShiftTask
  * 
  */

@@ -46,7 +46,7 @@ export default async function RunbookDetailPage({
     : [];
 
   return (
-    <div className="max-w-3xl space-y-5">
+    <div className="mx-auto w-full max-w-[1400px] space-y-5">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-500">
         <Link href="/runbooks" className="hover:text-gray-700">Runbook</Link>

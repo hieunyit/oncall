@@ -49,7 +49,7 @@ export default async function ProfilePage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="mx-auto w-full max-w-[1400px] space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-gray-900">Hồ sơ & Cài đặt</h1>
         <p className="text-sm text-gray-500 mt-1">Quản lý thông tin cá nhân và kết nối thông báo</p>

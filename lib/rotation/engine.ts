@@ -1,4 +1,4 @@
-import { addHours, addDays, addWeeks, isAfter, isBefore, eachDayOfInterval, subDays } from "date-fns";
+import { addHours, addDays, addWeeks, isAfter, isBefore } from "date-fns";
 import { TZDate } from "@date-fns/tz";
 import { Cron } from "croner";
 import { CadenceKind } from "@/app/generated/prisma/client";
@@ -74,6 +74,41 @@ export function localDayKey(date: Date, tz: string): string {
 }
 
 /**
+ * Returns all local calendar days touched by the shift interval [startsAt, endsAt).
+ * Used by one-shift-per-day constraints, including overnight shifts.
+ */
+export function localDayKeysForWindow(startsAt: Date, endsAt: Date, tz: string): string[] {
+  const firstKey = localDayKey(startsAt, tz);
+  if (!isBefore(startsAt, endsAt)) return [firstKey];
+
+  const seen = new Set<string>();
+  const keys: string[] = [];
+
+  const cursor = new TZDate(startsAt, tz);
+  cursor.setHours(0, 0, 0, 0);
+
+  let guard = 0;
+  while (cursor.getTime() < endsAt.getTime() && guard < 400) {
+    const key = localDayKey(new Date(cursor.getTime()), tz);
+    if (!seen.has(key)) {
+      seen.add(key);
+      keys.push(key);
+    }
+    cursor.setDate(cursor.getDate() + 1);
+    guard++;
+  }
+
+  // Ensure the day containing the end boundary (exclusive) is represented.
+  const endProbe = new Date(endsAt.getTime() - 1);
+  const tailKey = localDayKey(endProbe < startsAt ? startsAt : endProbe, tz);
+  if (!seen.has(tailKey)) {
+    keys.push(tailKey);
+  }
+
+  return keys;
+}
+
+/**
  * Returns true when a generated shift qualifies as a midnight/overnight shift.
  *
  * This function is kept exported because other parts of the app may already import it.
@@ -137,10 +172,11 @@ interface AssignmentState {
   previousLateAssigneeId: string | null;
 
   /**
-   * People already assigned on the current calendar day.
-   * Used to avoid assigning the same person twice in one day within this policy.
+   * For generated shifts in this run, stores which local day keys each user
+   * already occupies. Used to block assigning the same user twice in one day,
+   * including overnight spill into the next day.
    */
-  assignedToday: Set<string>;
+  assignedDayKeysByUser: Map<string, Set<string>>;
 
   /**
    * Person who worked a rest-rule slot yesterday.
@@ -163,19 +199,32 @@ function getOrderedIndices(length: number, startIdx: number): number[] {
   return Array.from({ length }, (_, i) => (startIdx + i) % length);
 }
 
+function eachUtcDayInRange(start: Date, end: Date): Date[] {
+  const days: Date[] = [];
+  const cursor = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()));
+
+  while (cursor.getTime() < end.getTime()) {
+    days.push(new Date(cursor.getTime()));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+
+  return days;
+}
+
 function hasOccupiedConflict(
   userId: string,
   slot: { startsAt: Date; endsAt: Date },
   occupied: OccupiedMap,
   tz: string
 ): boolean {
-  const slotDay = localDayKey(slot.startsAt, tz);
+  const slotDays = new Set(localDayKeysForWindow(slot.startsAt, slot.endsAt, tz));
 
   return (occupied.get(userId) ?? []).some(
-    (o) =>
-      // Time overlap OR same calendar day.
-      // A person should not have more than one shift in the same local day.
-      (overlaps(o, slot) || localDayKey(o.startsAt, tz) === slotDay)
+    (o) => {
+      if (overlaps(o, slot)) return true;
+      const occupiedDays = localDayKeysForWindow(o.startsAt, o.endsAt, tz);
+      return occupiedDays.some((day) => slotDays.has(day));
+    }
   );
 }
 
@@ -363,11 +412,17 @@ function recordAssignment(
   state: AssignmentState,
   assigneeId: string,
   isNightForRestRule: boolean,
-  isLateButNotNight: boolean
+  isLateButNotNight: boolean,
+  slotDayKeys: string[]
 ) {
   state.assignedCounts.set(assigneeId, getCount(state.assignedCounts, assigneeId) + 1);
   state.previousAssigneeId = assigneeId;
-  state.assignedToday.add(assigneeId);
+
+  const currentKeys = state.assignedDayKeysByUser.get(assigneeId) ?? new Set<string>();
+  for (const dayKey of slotDayKeys) {
+    currentKeys.add(dayKey);
+  }
+  state.assignedDayKeysByUser.set(assigneeId, currentKeys);
 
   if (isNightForRestRule) {
     state.nightCounts.set(assigneeId, getCount(state.nightCounts, assigneeId) + 1);
@@ -430,7 +485,7 @@ export function generateShifts(
     previousAssigneeId: prior.previousAssigneeId ?? null,
     previousNightAssigneeId: prior.previousNightAssigneeId ?? null,
     previousLateAssigneeId: null,
-    assignedToday: new Set(),
+    assignedDayKeysByUser: new Map(),
     lastNightAssigneeId: prior.lastNightAssigneeId ?? null,
     twoAgoNightAssigneeId: prior.twoAgoNightAssigneeId ?? null,
   };
@@ -456,7 +511,7 @@ export function generateShifts(
    *   A may work again, but should avoid another rest-rule slot if enough people exist.
    */
   if (policy.timeSlots && policy.timeSlots.length > 0) {
-    const days = eachDayOfInterval({ start: rangeStart, end: subDays(rangeEnd, 1) });
+    const days = eachUtcDayInRange(rangeStart, rangeEnd);
 
     // Move preferred base by 1 per day so everyone rotates through slot types.
     let dayBaseIdx = startingIndex % participants.length;
@@ -487,9 +542,6 @@ export function generateShifts(
       if (slotsForDay.length === 0) continue;
 
       const lateSlotIndex = slotsForDay.length >= 2 ? slotsForDay.length - 1 : -1;
-
-      // Reset same-day tracking at the start of each local schedule day.
-      state.assignedToday = new Set();
 
       /**
        * hardExclude:
@@ -533,8 +585,12 @@ export function generateShifts(
           endsAt = tzDateTime(nextDay, slot.endHour, slot.endMinute, tz);
         }
 
-        // Skip slots that start before the requested rangeStart.
-        if (isBefore(startsAt, rangeStart)) continue;
+        // Skip slots that belong to local days strictly before the local rangeStart day.
+        const slotStartDay = localDayKey(startsAt, tz);
+        const rangeStartDay = localDayKey(rangeStart, tz);
+        if (slotStartDay < rangeStartDay) continue;
+        // If slot is on the local start day but already ended before rangeStart, skip it.
+        if (slotStartDay === rangeStartDay && !isAfter(endsAt, rangeStart)) continue;
 
         // Stop if the slot starts after the requested rangeEnd.
         if (!isBefore(startsAt, rangeEnd)) break;
@@ -544,6 +600,7 @@ export function generateShifts(
 
         const isNightForRestRule = isRestRuleSlot(slot, overnight);
         const isLateButNotNight = !isNightForRestRule && slotI === lateSlotIndex;
+        const slotDayKeys = localDayKeysForWindow(startsAt, endsAt, tz);
 
         const preferredIdx = (dayBaseIdx + slotI) % participants.length;
 
@@ -554,8 +611,12 @@ export function generateShifts(
          */
         const currentHardExclude = new Set(restDayExclude);
 
-        for (const uid of state.assignedToday) {
-          currentHardExclude.add(uid);
+        for (const participant of participants) {
+          const assignedDayKeys = state.assignedDayKeysByUser.get(participant.userId);
+          if (!assignedDayKeys) continue;
+          if (slotDayKeys.some((dayKey) => assignedDayKeys.has(dayKey))) {
+            currentHardExclude.add(participant.userId);
+          }
         }
 
         /**
@@ -590,7 +651,13 @@ export function generateShifts(
           endsAt,
         });
 
-        recordAssignment(state, participant.userId, isNightForRestRule, isLateButNotNight);
+        recordAssignment(
+          state,
+          participant.userId,
+          isNightForRestRule,
+          isLateButNotNight,
+          slotDayKeys
+        );
 
         if (isNightForRestRule) {
           dayNightAssigneeId = participant.userId;
@@ -679,7 +746,13 @@ export function generateShifts(
         endsAt,
       });
 
-      recordAssignment(state, participant.userId, false, false);
+      recordAssignment(
+        state,
+        participant.userId,
+        false,
+        false,
+        localDayKeysForWindow(startsAt, endsAt, tz)
+      );
 
       idx = (idx + 1) % participants.length;
 
@@ -729,7 +802,13 @@ export function generateShifts(
       endsAt,
     });
 
-    recordAssignment(state, participant.userId, false, false);
+    recordAssignment(
+      state,
+      participant.userId,
+      false,
+      false,
+      localDayKeysForWindow(startsAt, endsAt, tz)
+    );
 
     idx = (idx + 1) % participants.length;
 

@@ -5,7 +5,7 @@ import {
   ParticipantSlot,
   PolicyConfig,
   PriorState,
-  localDayKey,
+  localDayKeysForWindow,
 } from "@/lib/rotation/engine";
 import { validateAutoScheduleOneShiftPerDay } from "@/lib/rotation/auto-schedule-validation";
 import { AUTO_SCHEDULE_WARNING_MESSAGE } from "@/lib/rotation/auto-schedule-warning";
@@ -73,6 +73,15 @@ function overlaps(a: { startsAt: Date; endsAt: Date }, b: { startsAt: Date; ends
   return a.startsAt < b.endsAt && a.endsAt > b.startsAt;
 }
 
+function hasSharedLocalDay(
+  a: { startsAt: Date; endsAt: Date },
+  b: { startsAt: Date; endsAt: Date },
+  timezone: string
+): boolean {
+  const aDays = new Set(localDayKeysForWindow(a.startsAt, a.endsAt, timezone));
+  return localDayKeysForWindow(b.startsAt, b.endsAt, timezone).some((day) => aDays.has(day));
+}
+
 function collectRelaxedWarningIndices(
   generatedShifts: GeneratedShift[],
   existingShifts: ShiftWindow[],
@@ -97,12 +106,10 @@ function collectRelaxedWarningIndices(
 
   for (const item of orderedGenerated) {
     const generated = item.shift;
-    const day = localDayKey(generated.startsAt, timezone);
     const existingForAssignee = existingByAssignee.get(generated.assigneeId) ?? [];
 
     for (const existing of existingForAssignee) {
-      const existingDay = localDayKey(existing.startsAt, timezone);
-      if (existingDay === day || overlaps(existing, generated)) {
+      if (overlaps(existing, generated) || hasSharedLocalDay(existing, generated, timezone)) {
         warningIndices.add(item.index);
         break;
       }
@@ -110,8 +117,7 @@ function collectRelaxedWarningIndices(
 
     const priorForAssignee = generatedByAssignee.get(generated.assigneeId) ?? [];
     for (const prior of priorForAssignee) {
-      const priorDay = localDayKey(prior.shift.startsAt, timezone);
-      if (priorDay === day || overlaps(prior.shift, generated)) {
+      if (overlaps(prior.shift, generated) || hasSharedLocalDay(prior.shift, generated, timezone)) {
         warningIndices.add(item.index);
         warningIndices.add(prior.index);
       }
@@ -241,16 +247,14 @@ export function generateAutoShiftsWithoutConflict(
   const fallback = bestFallback;
 
   return {
-    shifts: fallback.shifts.map((shift) => ({
+    shifts: fallback.shifts.map((shift, index) => ({
       ...shift,
-      // Fallback means strict one-shift-per-day constraints could not be satisfied.
-      // Mark all generated shifts so warning is visually obvious in calendar UI.
-      hasWarning: true,
+      hasWarning: fallback.warningIndices.has(index),
     })),
     warning: {
       code: "AUTO_SCHEDULE_INSUFFICIENT_PEOPLE",
       message: AUTO_SCHEDULE_WARNING_MESSAGE,
-      affectedShifts: fallback.shifts.length,
+      affectedShifts: fallback.warningIndices.size,
       attemptErrors,
     },
   };

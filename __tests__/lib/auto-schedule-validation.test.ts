@@ -26,6 +26,27 @@ describe("validateAutoScheduleOneShiftPerDay", () => {
     expect(violation?.code).toBe("AUTO_SAME_DAY_DUPLICATE");
   });
 
+  it("flags overnight + next-day generated shifts for the same person", () => {
+    const violation = validateAutoScheduleOneShiftPerDay({
+      generatedShifts: [
+        {
+          assigneeId: "u1",
+          startsAt: new Date("2026-01-01T20:00:00Z"),
+          endsAt: new Date("2026-01-02T08:00:00Z"),
+        },
+        {
+          assigneeId: "u1",
+          startsAt: new Date("2026-01-02T10:00:00Z"),
+          endsAt: new Date("2026-01-02T18:00:00Z"),
+        },
+      ],
+      existingShifts: [],
+      timezone: "UTC",
+    });
+
+    expect(violation?.code).toBe("AUTO_SAME_DAY_DUPLICATE");
+  });
+
   it("flags generated shifts that collide with existing shifts by day", () => {
     const violation = validateAutoScheduleOneShiftPerDay({
       generatedShifts: [

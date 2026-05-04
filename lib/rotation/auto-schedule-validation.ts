@@ -1,4 +1,4 @@
-import { localDayKey } from "@/lib/rotation/engine";
+import { localDayKey, localDayKeysForWindow } from "@/lib/rotation/engine";
 
 type ShiftWindow = {
   id?: string;
@@ -29,21 +29,32 @@ function overlaps(a: { startsAt: Date; endsAt: Date }, b: { startsAt: Date; ends
   return a.startsAt < b.endsAt && a.endsAt > b.startsAt;
 }
 
+function hasSharedLocalDay(
+  a: { startsAt: Date; endsAt: Date },
+  b: { startsAt: Date; endsAt: Date },
+  tz: string
+): boolean {
+  const aDays = new Set(localDayKeysForWindow(a.startsAt, a.endsAt, tz));
+  return localDayKeysForWindow(b.startsAt, b.endsAt, tz).some((day) => aDays.has(day));
+}
+
 export function validateAutoScheduleOneShiftPerDay(input: ValidationInput): AutoScheduleViolation | null {
   const tz = input.timezone;
 
-  const seen = new Map<string, ShiftWindow>();
+  // Generated shifts must not share any touched local day for the same user.
+  const seenGenerated = new Map<string, ShiftWindow>();
   for (const shift of input.generatedShifts) {
-    const day = localDayKey(shift.startsAt, tz);
-    const key = `${shift.assigneeId}|${day}`;
-    const previous = seen.get(key);
-    if (previous) {
-      return {
-        code: "AUTO_SAME_DAY_DUPLICATE",
-        message: `Không thể chia lịch tự động: ${shift.assigneeId} có hơn 1 ca trong ngày ${day}.`,
-      };
+    const touchedDays = localDayKeysForWindow(shift.startsAt, shift.endsAt, tz);
+    for (const day of touchedDays) {
+      const key = `${shift.assigneeId}|${day}`;
+      if (seenGenerated.has(key)) {
+        return {
+          code: "AUTO_SAME_DAY_DUPLICATE",
+          message: `Khong the chia lich tu dong: ${shift.assigneeId} co hon 1 ca trong ngay ${day}.`,
+        };
+      }
+      seenGenerated.set(key, shift);
     }
-    seen.set(key, shift);
   }
 
   const ignoreSet = new Set(input.ignoreExistingShiftIds ?? []);
@@ -56,14 +67,15 @@ export function validateAutoScheduleOneShiftPerDay(input: ValidationInput): Auto
   }
 
   for (const generated of input.generatedShifts) {
-    const day = localDayKey(generated.startsAt, tz);
+    const generatedDays = localDayKeysForWindow(generated.startsAt, generated.endsAt, tz);
+    const firstGeneratedDay = generatedDays[0] ?? localDayKey(generated.startsAt, tz);
     const sameUserExisting = existingByAssignee.get(generated.assigneeId) ?? [];
+
     for (const existing of sameUserExisting) {
-      const existingDay = localDayKey(existing.startsAt, tz);
-      if (existingDay === day || overlaps(existing, generated)) {
+      if (overlaps(existing, generated) || hasSharedLocalDay(existing, generated, tz)) {
         return {
           code: "AUTO_CONFLICT_EXISTING_SHIFT",
-          message: `Không thể chia lịch tự động: ${generated.assigneeId} đã có ca khác trong ngày ${day}.`,
+          message: `Khong the chia lich tu dong: ${generated.assigneeId} da co ca khac trong ngay ${firstGeneratedDay}.`,
         };
       }
     }
@@ -78,10 +90,14 @@ export function pruneAutoScheduleConflicts(input: ValidationInput): PruneResult 
 
   const existingByAssignee = new Map<string, ShiftWindow[]>();
   const existingDayKeys = new Set<string>();
+
   for (const shift of input.existingShifts) {
     if (shift.id && ignoreSet.has(shift.id)) continue;
-    const day = localDayKey(shift.startsAt, tz);
-    existingDayKeys.add(`${shift.assigneeId}|${day}`);
+
+    for (const day of localDayKeysForWindow(shift.startsAt, shift.endsAt, tz)) {
+      existingDayKeys.add(`${shift.assigneeId}|${day}`);
+    }
+
     const list = existingByAssignee.get(shift.assigneeId) ?? [];
     list.push(shift);
     existingByAssignee.set(shift.assigneeId, list);
@@ -92,22 +108,20 @@ export function pruneAutoScheduleConflicts(input: ValidationInput): PruneResult 
   const accepted: ShiftWindow[] = [];
 
   for (const shift of sorted) {
-    const day = localDayKey(shift.startsAt, tz);
-    const key = `${shift.assigneeId}|${day}`;
-    if (generatedSeenDay.has(key)) continue;
-    if (existingDayKeys.has(key)) continue;
+    const shiftDayKeys = localDayKeysForWindow(shift.startsAt, shift.endsAt, tz).map(
+      (day) => `${shift.assigneeId}|${day}`
+    );
+
+    if (shiftDayKeys.some((key) => generatedSeenDay.has(key))) continue;
+    if (shiftDayKeys.some((key) => existingDayKeys.has(key))) continue;
 
     const sameUserExisting = existingByAssignee.get(shift.assigneeId) ?? [];
-    let hasOverlap = false;
-    for (const existing of sameUserExisting) {
-      if (overlaps(existing, shift)) {
-        hasOverlap = true;
-        break;
-      }
-    }
+    const hasOverlap = sameUserExisting.some((existing) => overlaps(existing, shift));
     if (hasOverlap) continue;
 
-    generatedSeenDay.add(key);
+    for (const key of shiftDayKeys) {
+      generatedSeenDay.add(key);
+    }
     accepted.push(shift);
   }
 

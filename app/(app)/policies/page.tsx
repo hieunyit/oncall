@@ -68,7 +68,7 @@ export default async function PoliciesPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(340px,1fr))]">
           {policies.map((policy) => (
             <div
               key={policy.id}

@@ -102,6 +102,26 @@ enum IntegrationType {
   GRAFANA
 }
 
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IncidentStatus {
+  OPEN
+  INVESTIGATING
+  MITIGATED
+  RESOLVED
+  CLOSED
+}
+
+enum IncidentAttachmentKind {
+  IMAGE
+  EXCEL
+}
+
 // ─── Auth.js tables ──────────────────────────────────────────────────────────
 
 model Account {
@@ -178,6 +198,10 @@ model User {
   notificationRules      UserNotificationRule[]
   acknowledgedAlerts     Alert[]              @relation("AlertAcknowledger")
   createdRunbooks        Runbook[]            @relation("RunbookAuthor")
+  createdIncidents       Incident[]           @relation("IncidentCreator")
+  assignedIncidents      Incident[]           @relation("IncidentAssignee")
+  uploadedIncidentFiles  IncidentAttachment[] @relation("IncidentAttachmentUploader")
+  incidentLifecycleEvents IncidentLifecycleEvent[] @relation("IncidentLifecycleActor")
 
   @@map("users")
 }
@@ -196,6 +220,7 @@ model Team {
   escalationPolicies   EscalationPolicy[]
   alertIntegrations    AlertIntegration[]
   runbooks             Runbook[]
+  incidents            Incident[]
 
   @@map("teams")
 }
@@ -240,6 +265,7 @@ model RotationPolicy {
   escalationPolicy  EscalationPolicy? @relation(fields: [escalationPolicyId], references: [id], onDelete: SetNull)
   scheduleBatches   ScheduleBatch[]
   shifts            Shift[]
+  incidents         Incident[]
 
   @@map("rotation_policies")
 }
@@ -286,6 +312,7 @@ model Shift {
   swapRequestsAsOriginal SwapRequest[] @relation("SwapOriginalShift")
   swapRequestsAsTarget   SwapRequest[] @relation("SwapTargetShift")
   tasks            ShiftTask[]
+  incidents        Incident[]
 
   @@index([policyId, startsAt, endsAt])
   @@index([assigneeId, startsAt])
@@ -494,6 +521,75 @@ model Alert {
   @@index([integrationId, triggeredAt])
   @@index([status])
   @@map("alerts")
+}
+
+model Incident {
+  id            String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  teamId        String           @map("team_id") @db.Uuid
+  policyId      String?          @map("policy_id") @db.Uuid
+  shiftId       String?          @map("shift_id") @db.Uuid
+  title         String
+  description   String?          @db.Text
+  severity      IncidentSeverity @default(MEDIUM)
+  status        IncidentStatus   @default(OPEN)
+  occurredAt    DateTime         @map("occurred_at")
+  resolvedAt    DateTime?        @map("resolved_at")
+  createdById   String           @map("created_by_id") @db.Uuid
+  assigneeId    String?          @map("assignee_id") @db.Uuid
+  impactSummary String?          @map("impact_summary") @db.Text
+  rootCause     String?          @map("root_cause") @db.Text
+  actionItems   String?          @map("action_items") @db.Text
+  metadataJson  Json             @default("{}") @map("metadata_json")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  team           Team                    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  policy         RotationPolicy?         @relation(fields: [policyId], references: [id], onDelete: SetNull)
+  shift          Shift?                  @relation(fields: [shiftId], references: [id], onDelete: SetNull)
+  createdBy      User                    @relation("IncidentCreator", fields: [createdById], references: [id])
+  assignee       User?                   @relation("IncidentAssignee", fields: [assigneeId], references: [id])
+  attachments    IncidentAttachment[]
+  lifecycleEvents IncidentLifecycleEvent[]
+
+  @@index([teamId, occurredAt])
+  @@index([status, severity])
+  @@index([policyId])
+  @@index([shiftId])
+  @@map("incidents")
+}
+
+model IncidentAttachment {
+  id          String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  incidentId  String                 @map("incident_id") @db.Uuid
+  fileName    String                 @map("file_name")
+  storagePath String                 @map("storage_path")
+  contentType String                 @map("content_type")
+  sizeBytes   Int                    @map("size_bytes")
+  kind        IncidentAttachmentKind
+  uploadedById String                @map("uploaded_by_id") @db.Uuid
+  createdAt   DateTime               @default(now()) @map("created_at")
+
+  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  uploadedBy User     @relation("IncidentAttachmentUploader", fields: [uploadedById], references: [id])
+
+  @@index([incidentId])
+  @@map("incident_attachments")
+}
+
+model IncidentLifecycleEvent {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  incidentId   String         @map("incident_id") @db.Uuid
+  fromStatus   IncidentStatus? @map("from_status")
+  toStatus     IncidentStatus @map("to_status")
+  note         String?        @db.Text
+  changedById  String         @map("changed_by_id") @db.Uuid
+  createdAt    DateTime       @default(now()) @map("created_at")
+
+  incident  Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  changedBy User     @relation("IncidentLifecycleActor", fields: [changedById], references: [id])
+
+  @@index([incidentId, createdAt])
+  @@map("incident_lifecycle_events")
 }
 
 model ShiftTask {

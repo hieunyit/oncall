@@ -51,7 +51,7 @@ export default async function NewPolicyPage({ searchParams }: PageProps) {
   }));
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="mx-auto w-full max-w-[1400px] space-y-6">
       <h1 className="text-2xl font-bold text-gray-900">Tạo chính sách xoay vòng</h1>
       <PolicyForm teams={teams} defaultTeamId={teamId} escalationPolicies={escalationPolicies} />
     </div>

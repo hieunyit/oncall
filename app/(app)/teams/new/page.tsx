@@ -16,7 +16,7 @@ export default async function NewTeamPage() {
   if (currentUser?.systemRole !== "ADMIN") redirect("/teams");
 
   return (
-    <div className="max-w-lg mx-auto space-y-6">
+    <div className="mx-auto w-full max-w-[1200px] space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-gray-900">Tạo nhóm trực</h1>
         <p className="text-sm text-gray-500 mt-1">Nhóm trực là đơn vị tổ chức cho lịch trực và cảnh báo.</p>

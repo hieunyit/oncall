@@ -72,6 +72,69 @@ function formatDuration(start: Date, end: Date): string {
   return `${h}g ${m}p`;
 }
 
+function localDayKeyInBrowser(date: Date): string {
+  return new Intl.DateTimeFormat("en-CA").format(date);
+}
+
+function localDayKeysForWindowInBrowser(startsAt: Date, endsAt: Date): string[] {
+  if (!(endsAt > startsAt)) return [localDayKeyInBrowser(startsAt)];
+
+  const keys: string[] = [];
+  const seen = new Set<string>();
+  const cursor = new Date(startsAt);
+  cursor.setHours(0, 0, 0, 0);
+
+  let guard = 0;
+  while (cursor.getTime() < endsAt.getTime() && guard < 400) {
+    const day = localDayKeyInBrowser(cursor);
+    if (!seen.has(day)) {
+      seen.add(day);
+      keys.push(day);
+    }
+    cursor.setDate(cursor.getDate() + 1);
+    guard++;
+  }
+
+  const endProbe = new Date(endsAt.getTime() - 1);
+  const tailKey = localDayKeyInBrowser(endProbe < startsAt ? startsAt : endProbe);
+  if (!seen.has(tailKey)) {
+    keys.push(tailKey);
+  }
+
+  return keys;
+}
+
+function collectSameDayDuplicateShiftIds(shifts: ShiftBlock[]): Set<string> {
+  const dayUserCounts = new Map<string, number>();
+  const touchedDayKeysByShift = new Map<string, string[]>();
+
+  for (const shift of shifts) {
+    const dayKeys = localDayKeysForWindowInBrowser(shift.startsAt, shift.endsAt);
+    touchedDayKeysByShift.set(shift.id, dayKeys);
+
+    for (const dayKey of dayKeys) {
+      const key = `${shift.assigneeId}|${dayKey}`;
+      dayUserCounts.set(key, (dayUserCounts.get(key) ?? 0) + 1);
+    }
+  }
+
+  const duplicateDayUserKeys = new Set(
+    [...dayUserCounts.entries()]
+      .filter(([, count]) => count > 1)
+      .map(([key]) => key)
+  );
+
+  const duplicateShiftIds = new Set<string>();
+  for (const shift of shifts) {
+    const dayKeys = touchedDayKeysByShift.get(shift.id) ?? [];
+    if (dayKeys.some((dayKey) => duplicateDayUserKeys.has(`${shift.assigneeId}|${dayKey}`))) {
+      duplicateShiftIds.add(shift.id);
+    }
+  }
+
+  return duplicateShiftIds;
+}
+
 export function ScheduleView({
   monthStart,
   shifts,
@@ -124,10 +187,13 @@ export function ScheduleView({
   // Stats computed client-side from shifts
   const now = new Date();
   const weekFromNow = addDays(now, 7);
+  const sameDayDuplicateShiftIds = useMemo(() => collectSameDayDuplicateShiftIds(shifts), [shifts]);
   const onCallNow = shifts.some((s) => s.isMe && s.startsAt <= now && s.endsAt > now);
   const upcomingCount = shifts.filter((s) => s.isMe && s.startsAt >= now && s.startsAt <= weekFromNow).length;
   const pendingCount = shifts.filter((s) => s.isMe && s.confirmationStatus === "PENDING").length;
-  const warningCount = shifts.filter((s) => hasAutoScheduleWarning(s.notes)).length;
+  const warningCount = shifts.filter(
+    (s) => hasAutoScheduleWarning(s.notes) || sameDayDuplicateShiftIds.has(s.id)
+  ).length;
   const openDayDetails = useCallback((day: Date, dayShifts: ShiftBlock[]) => {
     const sorted = [...dayShifts].sort(
       (a, b) => a.startsAt.getTime() - b.startsAt.getTime() || a.endsAt.getTime() - b.endsAt.getTime()

@@ -94,6 +94,18 @@ export function MonthCalendar({
     );
   }
 
+  function getDuplicateAssigneeIds(dayShifts: ShiftBlock[]): Set<string> {
+    const counts = new Map<string, number>();
+    for (const shift of dayShifts) {
+      counts.set(shift.assigneeId, (counts.get(shift.assigneeId) ?? 0) + 1);
+    }
+    return new Set(
+      [...counts.entries()]
+        .filter(([, count]) => count > 1)
+        .map(([assigneeId]) => assigneeId)
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       {/* Day of week headers */}
@@ -121,14 +133,17 @@ export function MonthCalendar({
             const inMonth = isSameMonth(day, monthStart);
             const isWeekend = di >= 5;
             const dayShifts = getShiftsForDay(day);
+            const duplicateAssigneeIds = getDuplicateAssigneeIds(dayShifts);
             const dayKey = day.toISOString();
             const isExpanded = expandedDays.has(dayKey);
             const visibleShifts = isExpanded ? dayShifts : dayShifts.slice(0, 4);
             const dayWarningCount = dayShifts.filter((shift) =>
-              Boolean(getAutoScheduleWarningMessage(shift.notes))
+              Boolean(getAutoScheduleWarningMessage(shift.notes)) ||
+              duplicateAssigneeIds.has(shift.assigneeId)
             ).length;
             const visibleWarningCount = visibleShifts.filter((shift) =>
-              Boolean(getAutoScheduleWarningMessage(shift.notes))
+              Boolean(getAutoScheduleWarningMessage(shift.notes)) ||
+              duplicateAssigneeIds.has(shift.assigneeId)
             ).length;
             const hiddenWarningCount = Math.max(dayWarningCount - visibleWarningCount, 0);
 
@@ -190,6 +205,10 @@ export function MonthCalendar({
                     const allChecklistDone = hasChecklist && shift.checklistDone === shift.checklistTotal;
                     const isSwap = shift.source === "SWAP";
                     const autoWarningMessage = getAutoScheduleWarningMessage(shift.notes);
+                    const sameDayDuplicate = duplicateAssigneeIds.has(shift.assigneeId);
+                    const peopleWarningMessage =
+                      autoWarningMessage ?? (sameDayDuplicate ? "Mot nguoi bi xep nhieu hon 1 ca trong ngay." : null);
+                    const hasPeopleWarning = Boolean(peopleWarningMessage);
 
                     return (
                       <div
@@ -214,18 +233,18 @@ export function MonthCalendar({
                             ? `⚠ Chồng chéo chính sách! ${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`
                             : checklistIncomplete
                               ? `! Checklist chưa hoàn thành · ${shift.assigneeName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`
-                              : autoWarningMessage
-                                ? `⚠ ${autoWarningMessage} · ${shift.assigneeName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`
+                              : hasPeopleWarning
+                                ? `⚠ ${peopleWarningMessage} · ${shift.assigneeName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`
                                 : `${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`
                         }
                       >
                         {conflict && <span className="shrink-0 text-[10px]">⚠</span>}
                         {!conflict && checklistIncomplete && <span className="shrink-0 text-[10px]">!</span>}
-                        {!conflict && !checklistIncomplete && autoWarningMessage && <span className="shrink-0 text-[10px] text-amber-200">⚠</span>}
-                        {!conflict && !checklistIncomplete && !autoWarningMessage && isSwap && <span className="shrink-0 text-[10px]">⇄</span>}
-                        {!conflict && !checklistIncomplete && !autoWarningMessage && !isSwap && confirmed && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-green-300" />}
-                        {!conflict && !checklistIncomplete && !autoWarningMessage && !isSwap && declined && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-red-300" />}
-                        {!conflict && !checklistIncomplete && !autoWarningMessage && !isSwap && pending && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-yellow-200" />}
+                        {!conflict && !checklistIncomplete && hasPeopleWarning && <span className="shrink-0 text-[10px] text-amber-200">⚠</span>}
+                        {!conflict && !checklistIncomplete && !hasPeopleWarning && isSwap && <span className="shrink-0 text-[10px]">⇄</span>}
+                        {!conflict && !checklistIncomplete && !hasPeopleWarning && !isSwap && confirmed && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-green-300" />}
+                        {!conflict && !checklistIncomplete && !hasPeopleWarning && !isSwap && declined && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-red-300" />}
+                        {!conflict && !checklistIncomplete && !hasPeopleWarning && !isSwap && pending && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-yellow-200" />}
                         <span className="truncate">{shift.assigneeName}</span>
                         {hasChecklist && (
                           <span className={`text-[9px] shrink-0 ml-auto ${allChecklistDone ? "text-green-300" : checklistIncomplete ? "text-orange-200 font-bold" : "opacity-70"}`}>

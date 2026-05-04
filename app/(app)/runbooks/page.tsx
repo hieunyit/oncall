@@ -43,7 +43,7 @@ export default async function RunbooksPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="mx-auto w-full max-w-[1400px] space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Runbook</h1>

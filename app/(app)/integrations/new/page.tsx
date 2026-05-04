@@ -27,7 +27,7 @@ export default async function NewIntegrationPage() {
   if (teams.length === 0) redirect("/integrations");
 
   return (
-    <div className="max-w-lg mx-auto space-y-6">
+    <div className="mx-auto w-full max-w-[1200px] space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-gray-900">Tạo Alert Integration</h1>
         <p className="text-sm text-gray-500 mt-1">

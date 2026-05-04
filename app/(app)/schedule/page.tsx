@@ -5,6 +5,7 @@ import { ShiftStatus, TeamRole } from "@/app/generated/prisma/client";
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, parse } from "date-fns";
 import { ScheduleView } from "./schedule-view";
 import type { ShiftBlock } from "./schedule-view";
+import { IncidentControlPanel } from "./incident-control-panel";
 
 interface PageProps {
   searchParams: Promise<{ month?: string; teamId?: string }>;
@@ -76,6 +77,19 @@ export default async function SchedulePage({ searchParams }: PageProps) {
     where: isAdmin ? {} : { members: { some: { userId: currentUser.id } } },
     select: { id: true, name: true },
     orderBy: { name: "asc" },
+  });
+
+  const policyOptions = await prisma.rotationPolicy.findMany({
+    where: {
+      isActive: true,
+      ...(teamId
+        ? { teamId }
+        : isAdmin
+          ? {}
+          : { teamId: { in: myTeams.map((team) => team.id) } }),
+    },
+    select: { id: true, name: true, teamId: true },
+    orderBy: [{ teamId: "asc" }, { name: "asc" }],
   });
 
   const teamMembersRaw = await prisma.teamMember.findMany({
@@ -160,8 +174,131 @@ export default async function SchedulePage({ searchParams }: PageProps) {
     checklistDone: doneMap[s.id] ?? 0,
   }));
 
+  let incidentModuleEnabled = true;
+  let initialIncidents: Array<{
+    id: string;
+    teamId: string;
+    title: string;
+    description: string | null;
+    severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+    status: "OPEN" | "INVESTIGATING" | "MITIGATED" | "RESOLVED" | "CLOSED";
+    occurredAt: string;
+    resolvedAt: string | null;
+    createdAt: string;
+    team: { id: string; name: string };
+    policy: { id: string; name: string } | null;
+    createdBy: { id: string; fullName: string };
+    assignee: { id: string; fullName: string } | null;
+    attachments: Array<{
+      id: string;
+      fileName: string;
+      storagePath: string;
+      contentType: string;
+      sizeBytes: number;
+      kind: "IMAGE" | "EXCEL";
+      createdAt: string;
+    }>;
+    lifecycleEvents: Array<{
+      id: string;
+      fromStatus: "OPEN" | "INVESTIGATING" | "MITIGATED" | "RESOLVED" | "CLOSED" | null;
+      toStatus: "OPEN" | "INVESTIGATING" | "MITIGATED" | "RESOLVED" | "CLOSED";
+      note: string | null;
+      createdAt: string;
+      changedBy: { id: string; fullName: string };
+    }>;
+  }> = [];
+
+  try {
+    const incidents = await prisma.incident.findMany({
+      where: {
+        occurredAt: { gte: rangeStart, lte: rangeEnd },
+        ...(teamId
+          ? { teamId }
+          : isAdmin
+            ? {}
+            : { teamId: { in: myTeams.map((team) => team.id) } }),
+      },
+      include: {
+        team: { select: { id: true, name: true } },
+        policy: { select: { id: true, name: true } },
+        createdBy: { select: { id: true, fullName: true } },
+        assignee: { select: { id: true, fullName: true } },
+        attachments: {
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            fileName: true,
+            storagePath: true,
+            contentType: true,
+            sizeBytes: true,
+            kind: true,
+            createdAt: true,
+          },
+        },
+        lifecycleEvents: {
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            fromStatus: true,
+            toStatus: true,
+            note: true,
+            createdAt: true,
+            changedBy: { select: { id: true, fullName: true } },
+          },
+        },
+      },
+      orderBy: [{ occurredAt: "desc" }, { createdAt: "desc" }],
+      take: 500,
+    });
+
+    initialIncidents = incidents.map((incident) => ({
+      id: incident.id,
+      teamId: incident.teamId,
+      title: incident.title,
+      description: incident.description ?? null,
+      severity: incident.severity,
+      status: incident.status,
+      occurredAt: incident.occurredAt.toISOString(),
+      resolvedAt: incident.resolvedAt ? incident.resolvedAt.toISOString() : null,
+      createdAt: incident.createdAt.toISOString(),
+      team: incident.team,
+      policy: incident.policy ? { id: incident.policy.id, name: incident.policy.name } : null,
+      createdBy: incident.createdBy,
+      assignee: incident.assignee ? { id: incident.assignee.id, fullName: incident.assignee.fullName } : null,
+      attachments: incident.attachments.map((attachment) => ({
+        id: attachment.id,
+        fileName: attachment.fileName,
+        storagePath: attachment.storagePath,
+        contentType: attachment.contentType,
+        sizeBytes: attachment.sizeBytes,
+        kind: attachment.kind,
+        createdAt: attachment.createdAt.toISOString(),
+      })),
+      lifecycleEvents: incident.lifecycleEvents.map((event) => ({
+        id: event.id,
+        fromStatus: event.fromStatus,
+        toStatus: event.toStatus,
+        note: event.note ?? null,
+        createdAt: event.createdAt.toISOString(),
+        changedBy: event.changedBy,
+      })),
+    }));
+  } catch {
+    incidentModuleEnabled = false;
+  }
+
   return (
     <div className="space-y-5">
+      <IncidentControlPanel
+        enabled={incidentModuleEnabled}
+        initialIncidents={initialIncidents}
+        rangeStartIso={rangeStart.toISOString()}
+        rangeEndIso={rangeEnd.toISOString()}
+        defaultTeamId={teamId}
+        teams={myTeams}
+        policies={policyOptions}
+        timezone="Asia/Ho_Chi_Minh"
+      />
       <ScheduleView
         monthStart={monthStart}
         shifts={shiftBlocks}

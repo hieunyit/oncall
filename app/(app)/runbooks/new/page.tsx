@@ -33,7 +33,7 @@ export default async function NewRunbookPage({
   });
 
   return (
-    <div className="max-w-3xl space-y-5">
+    <div className="mx-auto w-full max-w-[1400px] space-y-5">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Tạo runbook mới</h1>
         <p className="text-sm text-gray-500 mt-0.5">Tài liệu hướng dẫn xử lý sự cố cho nhóm</p>

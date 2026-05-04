@@ -71,7 +71,7 @@ export default async function TeamsPage() {
           <p className="text-gray-400 text-sm">Bạn chưa thuộc nhóm nào.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(320px,1fr))]">
           {teams.map((team) => {
             const myRole = team.members[0]?.role;
             return (

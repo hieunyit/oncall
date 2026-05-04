@@ -33,7 +33,7 @@ export default async function EditEscalationPage({
   });
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="mx-auto w-full max-w-[1200px] space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-gray-900">Chỉnh sửa Escalation Chain</h1>
         <p className="text-sm text-gray-500 mt-1">{policy.name}</p>

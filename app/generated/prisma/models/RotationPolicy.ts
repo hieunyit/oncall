@@ -91,6 +91,7 @@ export type RotationPolicyCountAggregateOutputType = {
   reminderLeadHours: number
   maxGenerateWeeks: number
   timeSlots: number
+  participantUserIds: number
   timezone: number
   checklistRequired: number
   templateTasks: number
@@ -166,6 +167,7 @@ export type RotationPolicyCountAggregateInputType = {
   reminderLeadHours?: true
   maxGenerateWeeks?: true
   timeSlots?: true
+  participantUserIds?: true
   timezone?: true
   checklistRequired?: true
   templateTasks?: true
@@ -274,6 +276,7 @@ export type RotationPolicyGroupByOutputType = {
   reminderLeadHours: number[]
   maxGenerateWeeks: number
   timeSlots: runtime.JsonValue | null
+  participantUserIds: runtime.JsonValue
   timezone: string
   checklistRequired: boolean
   templateTasks: runtime.JsonValue
@@ -318,6 +321,7 @@ export type RotationPolicyWhereInput = {
   reminderLeadHours?: Prisma.IntNullableListFilter<"RotationPolicy">
   maxGenerateWeeks?: Prisma.IntFilter<"RotationPolicy"> | number
   timeSlots?: Prisma.JsonNullableFilter<"RotationPolicy">
+  participantUserIds?: Prisma.JsonFilter<"RotationPolicy">
   timezone?: Prisma.StringFilter<"RotationPolicy"> | string
   checklistRequired?: Prisma.BoolFilter<"RotationPolicy"> | boolean
   templateTasks?: Prisma.JsonFilter<"RotationPolicy">
@@ -328,6 +332,7 @@ export type RotationPolicyWhereInput = {
   escalationPolicy?: Prisma.XOR<Prisma.EscalationPolicyNullableScalarRelationFilter, Prisma.EscalationPolicyWhereInput> | null
   scheduleBatches?: Prisma.ScheduleBatchListRelationFilter
   shifts?: Prisma.ShiftListRelationFilter
+  incidents?: Prisma.IncidentListRelationFilter
 }
 
 export type RotationPolicyOrderByWithRelationInput = {
@@ -343,6 +348,7 @@ export type RotationPolicyOrderByWithRelationInput = {
   reminderLeadHours?: Prisma.SortOrder
   maxGenerateWeeks?: Prisma.SortOrder
   timeSlots?: Prisma.SortOrderInput | Prisma.SortOrder
+  participantUserIds?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   checklistRequired?: Prisma.SortOrder
   templateTasks?: Prisma.SortOrder
@@ -353,6 +359,7 @@ export type RotationPolicyOrderByWithRelationInput = {
   escalationPolicy?: Prisma.EscalationPolicyOrderByWithRelationInput
   scheduleBatches?: Prisma.ScheduleBatchOrderByRelationAggregateInput
   shifts?: Prisma.ShiftOrderByRelationAggregateInput
+  incidents?: Prisma.IncidentOrderByRelationAggregateInput
 }
 
 export type RotationPolicyWhereUniqueInput = Prisma.AtLeast<{
@@ -371,6 +378,7 @@ export type RotationPolicyWhereUniqueInput = Prisma.AtLeast<{
   reminderLeadHours?: Prisma.IntNullableListFilter<"RotationPolicy">
   maxGenerateWeeks?: Prisma.IntFilter<"RotationPolicy"> | number
   timeSlots?: Prisma.JsonNullableFilter<"RotationPolicy">
+  participantUserIds?: Prisma.JsonFilter<"RotationPolicy">
   timezone?: Prisma.StringFilter<"RotationPolicy"> | string
   checklistRequired?: Prisma.BoolFilter<"RotationPolicy"> | boolean
   templateTasks?: Prisma.JsonFilter<"RotationPolicy">
@@ -381,6 +389,7 @@ export type RotationPolicyWhereUniqueInput = Prisma.AtLeast<{
   escalationPolicy?: Prisma.XOR<Prisma.EscalationPolicyNullableScalarRelationFilter, Prisma.EscalationPolicyWhereInput> | null
   scheduleBatches?: Prisma.ScheduleBatchListRelationFilter
   shifts?: Prisma.ShiftListRelationFilter
+  incidents?: Prisma.IncidentListRelationFilter
 }, "id">
 
 export type RotationPolicyOrderByWithAggregationInput = {
@@ -396,6 +405,7 @@ export type RotationPolicyOrderByWithAggregationInput = {
   reminderLeadHours?: Prisma.SortOrder
   maxGenerateWeeks?: Prisma.SortOrder
   timeSlots?: Prisma.SortOrderInput | Prisma.SortOrder
+  participantUserIds?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   checklistRequired?: Prisma.SortOrder
   templateTasks?: Prisma.SortOrder
@@ -425,6 +435,7 @@ export type RotationPolicyScalarWhereWithAggregatesInput = {
   reminderLeadHours?: Prisma.IntNullableListFilter<"RotationPolicy">
   maxGenerateWeeks?: Prisma.IntWithAggregatesFilter<"RotationPolicy"> | number
   timeSlots?: Prisma.JsonNullableWithAggregatesFilter<"RotationPolicy">
+  participantUserIds?: Prisma.JsonWithAggregatesFilter<"RotationPolicy">
   timezone?: Prisma.StringWithAggregatesFilter<"RotationPolicy"> | string
   checklistRequired?: Prisma.BoolWithAggregatesFilter<"RotationPolicy"> | boolean
   templateTasks?: Prisma.JsonWithAggregatesFilter<"RotationPolicy">
@@ -444,6 +455,7 @@ export type RotationPolicyCreateInput = {
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -454,6 +466,7 @@ export type RotationPolicyCreateInput = {
   escalationPolicy?: Prisma.EscalationPolicyCreateNestedOneWithoutRotationPoliciesInput
   scheduleBatches?: Prisma.ScheduleBatchCreateNestedManyWithoutPolicyInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutPolicyInput
+  incidents?: Prisma.IncidentCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyUncheckedCreateInput = {
@@ -469,6 +482,7 @@ export type RotationPolicyUncheckedCreateInput = {
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -477,6 +491,7 @@ export type RotationPolicyUncheckedCreateInput = {
   updatedAt?: Date | string
   scheduleBatches?: Prisma.ScheduleBatchUncheckedCreateNestedManyWithoutPolicyInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutPolicyInput
+  incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyUpdateInput = {
@@ -490,6 +505,7 @@ export type RotationPolicyUpdateInput = {
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -500,6 +516,7 @@ export type RotationPolicyUpdateInput = {
   escalationPolicy?: Prisma.EscalationPolicyUpdateOneWithoutRotationPoliciesNestedInput
   scheduleBatches?: Prisma.ScheduleBatchUpdateManyWithoutPolicyNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutPolicyNestedInput
+  incidents?: Prisma.IncidentUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyUncheckedUpdateInput = {
@@ -515,6 +532,7 @@ export type RotationPolicyUncheckedUpdateInput = {
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -523,6 +541,7 @@ export type RotationPolicyUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   scheduleBatches?: Prisma.ScheduleBatchUncheckedUpdateManyWithoutPolicyNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutPolicyNestedInput
+  incidents?: Prisma.IncidentUncheckedUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyCreateManyInput = {
@@ -538,6 +557,7 @@ export type RotationPolicyCreateManyInput = {
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -557,6 +577,7 @@ export type RotationPolicyUpdateManyMutationInput = {
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -578,6 +599,7 @@ export type RotationPolicyUncheckedUpdateManyInput = {
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -617,6 +639,7 @@ export type RotationPolicyCountOrderByAggregateInput = {
   reminderLeadHours?: Prisma.SortOrder
   maxGenerateWeeks?: Prisma.SortOrder
   timeSlots?: Prisma.SortOrder
+  participantUserIds?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   checklistRequired?: Prisma.SortOrder
   templateTasks?: Prisma.SortOrder
@@ -680,6 +703,11 @@ export type RotationPolicySumOrderByAggregateInput = {
 export type RotationPolicyScalarRelationFilter = {
   is?: Prisma.RotationPolicyWhereInput
   isNot?: Prisma.RotationPolicyWhereInput
+}
+
+export type RotationPolicyNullableScalarRelationFilter = {
+  is?: Prisma.RotationPolicyWhereInput | null
+  isNot?: Prisma.RotationPolicyWhereInput | null
 }
 
 export type RotationPolicyCreateNestedManyWithoutTeamInput = {
@@ -807,6 +835,22 @@ export type RotationPolicyUncheckedUpdateManyWithoutEscalationPolicyNestedInput 
   deleteMany?: Prisma.RotationPolicyScalarWhereInput | Prisma.RotationPolicyScalarWhereInput[]
 }
 
+export type RotationPolicyCreateNestedOneWithoutIncidentsInput = {
+  create?: Prisma.XOR<Prisma.RotationPolicyCreateWithoutIncidentsInput, Prisma.RotationPolicyUncheckedCreateWithoutIncidentsInput>
+  connectOrCreate?: Prisma.RotationPolicyCreateOrConnectWithoutIncidentsInput
+  connect?: Prisma.RotationPolicyWhereUniqueInput
+}
+
+export type RotationPolicyUpdateOneWithoutIncidentsNestedInput = {
+  create?: Prisma.XOR<Prisma.RotationPolicyCreateWithoutIncidentsInput, Prisma.RotationPolicyUncheckedCreateWithoutIncidentsInput>
+  connectOrCreate?: Prisma.RotationPolicyCreateOrConnectWithoutIncidentsInput
+  upsert?: Prisma.RotationPolicyUpsertWithoutIncidentsInput
+  disconnect?: Prisma.RotationPolicyWhereInput | boolean
+  delete?: Prisma.RotationPolicyWhereInput | boolean
+  connect?: Prisma.RotationPolicyWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RotationPolicyUpdateToOneWithWhereWithoutIncidentsInput, Prisma.RotationPolicyUpdateWithoutIncidentsInput>, Prisma.RotationPolicyUncheckedUpdateWithoutIncidentsInput>
+}
+
 export type RotationPolicyCreateWithoutTeamInput = {
   id?: string
   name: string
@@ -818,6 +862,7 @@ export type RotationPolicyCreateWithoutTeamInput = {
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -827,6 +872,7 @@ export type RotationPolicyCreateWithoutTeamInput = {
   escalationPolicy?: Prisma.EscalationPolicyCreateNestedOneWithoutRotationPoliciesInput
   scheduleBatches?: Prisma.ScheduleBatchCreateNestedManyWithoutPolicyInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutPolicyInput
+  incidents?: Prisma.IncidentCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyUncheckedCreateWithoutTeamInput = {
@@ -841,6 +887,7 @@ export type RotationPolicyUncheckedCreateWithoutTeamInput = {
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -849,6 +896,7 @@ export type RotationPolicyUncheckedCreateWithoutTeamInput = {
   updatedAt?: Date | string
   scheduleBatches?: Prisma.ScheduleBatchUncheckedCreateNestedManyWithoutPolicyInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutPolicyInput
+  incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyCreateOrConnectWithoutTeamInput = {
@@ -893,6 +941,7 @@ export type RotationPolicyScalarWhereInput = {
   reminderLeadHours?: Prisma.IntNullableListFilter<"RotationPolicy">
   maxGenerateWeeks?: Prisma.IntFilter<"RotationPolicy"> | number
   timeSlots?: Prisma.JsonNullableFilter<"RotationPolicy">
+  participantUserIds?: Prisma.JsonFilter<"RotationPolicy">
   timezone?: Prisma.StringFilter<"RotationPolicy"> | string
   checklistRequired?: Prisma.BoolFilter<"RotationPolicy"> | boolean
   templateTasks?: Prisma.JsonFilter<"RotationPolicy">
@@ -912,6 +961,7 @@ export type RotationPolicyCreateWithoutScheduleBatchesInput = {
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -921,6 +971,7 @@ export type RotationPolicyCreateWithoutScheduleBatchesInput = {
   team: Prisma.TeamCreateNestedOneWithoutRotationPoliciesInput
   escalationPolicy?: Prisma.EscalationPolicyCreateNestedOneWithoutRotationPoliciesInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutPolicyInput
+  incidents?: Prisma.IncidentCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyUncheckedCreateWithoutScheduleBatchesInput = {
@@ -936,6 +987,7 @@ export type RotationPolicyUncheckedCreateWithoutScheduleBatchesInput = {
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -943,6 +995,7 @@ export type RotationPolicyUncheckedCreateWithoutScheduleBatchesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutPolicyInput
+  incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyCreateOrConnectWithoutScheduleBatchesInput = {
@@ -972,6 +1025,7 @@ export type RotationPolicyUpdateWithoutScheduleBatchesInput = {
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -981,6 +1035,7 @@ export type RotationPolicyUpdateWithoutScheduleBatchesInput = {
   team?: Prisma.TeamUpdateOneRequiredWithoutRotationPoliciesNestedInput
   escalationPolicy?: Prisma.EscalationPolicyUpdateOneWithoutRotationPoliciesNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutPolicyNestedInput
+  incidents?: Prisma.IncidentUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyUncheckedUpdateWithoutScheduleBatchesInput = {
@@ -996,6 +1051,7 @@ export type RotationPolicyUncheckedUpdateWithoutScheduleBatchesInput = {
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -1003,6 +1059,7 @@ export type RotationPolicyUncheckedUpdateWithoutScheduleBatchesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutPolicyNestedInput
+  incidents?: Prisma.IncidentUncheckedUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyCreateWithoutShiftsInput = {
@@ -1016,6 +1073,7 @@ export type RotationPolicyCreateWithoutShiftsInput = {
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -1025,6 +1083,7 @@ export type RotationPolicyCreateWithoutShiftsInput = {
   team: Prisma.TeamCreateNestedOneWithoutRotationPoliciesInput
   escalationPolicy?: Prisma.EscalationPolicyCreateNestedOneWithoutRotationPoliciesInput
   scheduleBatches?: Prisma.ScheduleBatchCreateNestedManyWithoutPolicyInput
+  incidents?: Prisma.IncidentCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyUncheckedCreateWithoutShiftsInput = {
@@ -1040,6 +1099,7 @@ export type RotationPolicyUncheckedCreateWithoutShiftsInput = {
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -1047,6 +1107,7 @@ export type RotationPolicyUncheckedCreateWithoutShiftsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   scheduleBatches?: Prisma.ScheduleBatchUncheckedCreateNestedManyWithoutPolicyInput
+  incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyCreateOrConnectWithoutShiftsInput = {
@@ -1076,6 +1137,7 @@ export type RotationPolicyUpdateWithoutShiftsInput = {
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -1085,6 +1147,7 @@ export type RotationPolicyUpdateWithoutShiftsInput = {
   team?: Prisma.TeamUpdateOneRequiredWithoutRotationPoliciesNestedInput
   escalationPolicy?: Prisma.EscalationPolicyUpdateOneWithoutRotationPoliciesNestedInput
   scheduleBatches?: Prisma.ScheduleBatchUpdateManyWithoutPolicyNestedInput
+  incidents?: Prisma.IncidentUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyUncheckedUpdateWithoutShiftsInput = {
@@ -1100,6 +1163,7 @@ export type RotationPolicyUncheckedUpdateWithoutShiftsInput = {
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -1107,6 +1171,7 @@ export type RotationPolicyUncheckedUpdateWithoutShiftsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   scheduleBatches?: Prisma.ScheduleBatchUncheckedUpdateManyWithoutPolicyNestedInput
+  incidents?: Prisma.IncidentUncheckedUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyCreateWithoutEscalationPolicyInput = {
@@ -1120,6 +1185,7 @@ export type RotationPolicyCreateWithoutEscalationPolicyInput = {
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -1129,6 +1195,7 @@ export type RotationPolicyCreateWithoutEscalationPolicyInput = {
   team: Prisma.TeamCreateNestedOneWithoutRotationPoliciesInput
   scheduleBatches?: Prisma.ScheduleBatchCreateNestedManyWithoutPolicyInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutPolicyInput
+  incidents?: Prisma.IncidentCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyUncheckedCreateWithoutEscalationPolicyInput = {
@@ -1143,6 +1210,7 @@ export type RotationPolicyUncheckedCreateWithoutEscalationPolicyInput = {
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -1151,6 +1219,7 @@ export type RotationPolicyUncheckedCreateWithoutEscalationPolicyInput = {
   updatedAt?: Date | string
   scheduleBatches?: Prisma.ScheduleBatchUncheckedCreateNestedManyWithoutPolicyInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutPolicyInput
+  incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyCreateOrConnectWithoutEscalationPolicyInput = {
@@ -1179,6 +1248,118 @@ export type RotationPolicyUpdateManyWithWhereWithoutEscalationPolicyInput = {
   data: Prisma.XOR<Prisma.RotationPolicyUpdateManyMutationInput, Prisma.RotationPolicyUncheckedUpdateManyWithoutEscalationPolicyInput>
 }
 
+export type RotationPolicyCreateWithoutIncidentsInput = {
+  id?: string
+  name: string
+  cadence: $Enums.CadenceKind
+  cronExpression?: string | null
+  shiftDurationHours: number
+  handoverOffsetMinutes?: number
+  confirmationDueHours?: number
+  reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
+  maxGenerateWeeks?: number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  timezone?: string
+  checklistRequired?: boolean
+  templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  team: Prisma.TeamCreateNestedOneWithoutRotationPoliciesInput
+  escalationPolicy?: Prisma.EscalationPolicyCreateNestedOneWithoutRotationPoliciesInput
+  scheduleBatches?: Prisma.ScheduleBatchCreateNestedManyWithoutPolicyInput
+  shifts?: Prisma.ShiftCreateNestedManyWithoutPolicyInput
+}
+
+export type RotationPolicyUncheckedCreateWithoutIncidentsInput = {
+  id?: string
+  teamId: string
+  escalationPolicyId?: string | null
+  name: string
+  cadence: $Enums.CadenceKind
+  cronExpression?: string | null
+  shiftDurationHours: number
+  handoverOffsetMinutes?: number
+  confirmationDueHours?: number
+  reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
+  maxGenerateWeeks?: number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  timezone?: string
+  checklistRequired?: boolean
+  templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  scheduleBatches?: Prisma.ScheduleBatchUncheckedCreateNestedManyWithoutPolicyInput
+  shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutPolicyInput
+}
+
+export type RotationPolicyCreateOrConnectWithoutIncidentsInput = {
+  where: Prisma.RotationPolicyWhereUniqueInput
+  create: Prisma.XOR<Prisma.RotationPolicyCreateWithoutIncidentsInput, Prisma.RotationPolicyUncheckedCreateWithoutIncidentsInput>
+}
+
+export type RotationPolicyUpsertWithoutIncidentsInput = {
+  update: Prisma.XOR<Prisma.RotationPolicyUpdateWithoutIncidentsInput, Prisma.RotationPolicyUncheckedUpdateWithoutIncidentsInput>
+  create: Prisma.XOR<Prisma.RotationPolicyCreateWithoutIncidentsInput, Prisma.RotationPolicyUncheckedCreateWithoutIncidentsInput>
+  where?: Prisma.RotationPolicyWhereInput
+}
+
+export type RotationPolicyUpdateToOneWithWhereWithoutIncidentsInput = {
+  where?: Prisma.RotationPolicyWhereInput
+  data: Prisma.XOR<Prisma.RotationPolicyUpdateWithoutIncidentsInput, Prisma.RotationPolicyUncheckedUpdateWithoutIncidentsInput>
+}
+
+export type RotationPolicyUpdateWithoutIncidentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  cadence?: Prisma.EnumCadenceKindFieldUpdateOperationsInput | $Enums.CadenceKind
+  cronExpression?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shiftDurationHours?: Prisma.IntFieldUpdateOperationsInput | number
+  handoverOffsetMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
+  reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
+  maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  team?: Prisma.TeamUpdateOneRequiredWithoutRotationPoliciesNestedInput
+  escalationPolicy?: Prisma.EscalationPolicyUpdateOneWithoutRotationPoliciesNestedInput
+  scheduleBatches?: Prisma.ScheduleBatchUpdateManyWithoutPolicyNestedInput
+  shifts?: Prisma.ShiftUpdateManyWithoutPolicyNestedInput
+}
+
+export type RotationPolicyUncheckedUpdateWithoutIncidentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  teamId?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationPolicyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  cadence?: Prisma.EnumCadenceKindFieldUpdateOperationsInput | $Enums.CadenceKind
+  cronExpression?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shiftDurationHours?: Prisma.IntFieldUpdateOperationsInput | number
+  handoverOffsetMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
+  reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
+  maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  scheduleBatches?: Prisma.ScheduleBatchUncheckedUpdateManyWithoutPolicyNestedInput
+  shifts?: Prisma.ShiftUncheckedUpdateManyWithoutPolicyNestedInput
+}
+
 export type RotationPolicyCreateManyTeamInput = {
   id?: string
   escalationPolicyId?: string | null
@@ -1191,6 +1372,7 @@ export type RotationPolicyCreateManyTeamInput = {
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -1210,6 +1392,7 @@ export type RotationPolicyUpdateWithoutTeamInput = {
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -1219,6 +1402,7 @@ export type RotationPolicyUpdateWithoutTeamInput = {
   escalationPolicy?: Prisma.EscalationPolicyUpdateOneWithoutRotationPoliciesNestedInput
   scheduleBatches?: Prisma.ScheduleBatchUpdateManyWithoutPolicyNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutPolicyNestedInput
+  incidents?: Prisma.IncidentUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyUncheckedUpdateWithoutTeamInput = {
@@ -1233,6 +1417,7 @@ export type RotationPolicyUncheckedUpdateWithoutTeamInput = {
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -1241,6 +1426,7 @@ export type RotationPolicyUncheckedUpdateWithoutTeamInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   scheduleBatches?: Prisma.ScheduleBatchUncheckedUpdateManyWithoutPolicyNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutPolicyNestedInput
+  incidents?: Prisma.IncidentUncheckedUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyUncheckedUpdateManyWithoutTeamInput = {
@@ -1255,6 +1441,7 @@ export type RotationPolicyUncheckedUpdateManyWithoutTeamInput = {
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -1275,6 +1462,7 @@ export type RotationPolicyCreateManyEscalationPolicyInput = {
   reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -1294,6 +1482,7 @@ export type RotationPolicyUpdateWithoutEscalationPolicyInput = {
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -1303,6 +1492,7 @@ export type RotationPolicyUpdateWithoutEscalationPolicyInput = {
   team?: Prisma.TeamUpdateOneRequiredWithoutRotationPoliciesNestedInput
   scheduleBatches?: Prisma.ScheduleBatchUpdateManyWithoutPolicyNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutPolicyNestedInput
+  incidents?: Prisma.IncidentUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyUncheckedUpdateWithoutEscalationPolicyInput = {
@@ -1317,6 +1507,7 @@ export type RotationPolicyUncheckedUpdateWithoutEscalationPolicyInput = {
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -1325,6 +1516,7 @@ export type RotationPolicyUncheckedUpdateWithoutEscalationPolicyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   scheduleBatches?: Prisma.ScheduleBatchUncheckedUpdateManyWithoutPolicyNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutPolicyNestedInput
+  incidents?: Prisma.IncidentUncheckedUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyUncheckedUpdateManyWithoutEscalationPolicyInput = {
@@ -1339,6 +1531,7 @@ export type RotationPolicyUncheckedUpdateManyWithoutEscalationPolicyInput = {
   reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
   maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
   timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -1355,11 +1548,13 @@ export type RotationPolicyUncheckedUpdateManyWithoutEscalationPolicyInput = {
 export type RotationPolicyCountOutputType = {
   scheduleBatches: number
   shifts: number
+  incidents: number
 }
 
 export type RotationPolicyCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   scheduleBatches?: boolean | RotationPolicyCountOutputTypeCountScheduleBatchesArgs
   shifts?: boolean | RotationPolicyCountOutputTypeCountShiftsArgs
+  incidents?: boolean | RotationPolicyCountOutputTypeCountIncidentsArgs
 }
 
 /**
@@ -1386,6 +1581,13 @@ export type RotationPolicyCountOutputTypeCountShiftsArgs<ExtArgs extends runtime
   where?: Prisma.ShiftWhereInput
 }
 
+/**
+ * RotationPolicyCountOutputType without action
+ */
+export type RotationPolicyCountOutputTypeCountIncidentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.IncidentWhereInput
+}
+
 
 export type RotationPolicySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1400,6 +1602,7 @@ export type RotationPolicySelect<ExtArgs extends runtime.Types.Extensions.Intern
   reminderLeadHours?: boolean
   maxGenerateWeeks?: boolean
   timeSlots?: boolean
+  participantUserIds?: boolean
   timezone?: boolean
   checklistRequired?: boolean
   templateTasks?: boolean
@@ -1410,6 +1613,7 @@ export type RotationPolicySelect<ExtArgs extends runtime.Types.Extensions.Intern
   escalationPolicy?: boolean | Prisma.RotationPolicy$escalationPolicyArgs<ExtArgs>
   scheduleBatches?: boolean | Prisma.RotationPolicy$scheduleBatchesArgs<ExtArgs>
   shifts?: boolean | Prisma.RotationPolicy$shiftsArgs<ExtArgs>
+  incidents?: boolean | Prisma.RotationPolicy$incidentsArgs<ExtArgs>
   _count?: boolean | Prisma.RotationPolicyCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["rotationPolicy"]>
 
@@ -1426,6 +1630,7 @@ export type RotationPolicySelectCreateManyAndReturn<ExtArgs extends runtime.Type
   reminderLeadHours?: boolean
   maxGenerateWeeks?: boolean
   timeSlots?: boolean
+  participantUserIds?: boolean
   timezone?: boolean
   checklistRequired?: boolean
   templateTasks?: boolean
@@ -1449,6 +1654,7 @@ export type RotationPolicySelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   reminderLeadHours?: boolean
   maxGenerateWeeks?: boolean
   timeSlots?: boolean
+  participantUserIds?: boolean
   timezone?: boolean
   checklistRequired?: boolean
   templateTasks?: boolean
@@ -1472,6 +1678,7 @@ export type RotationPolicySelectScalar = {
   reminderLeadHours?: boolean
   maxGenerateWeeks?: boolean
   timeSlots?: boolean
+  participantUserIds?: boolean
   timezone?: boolean
   checklistRequired?: boolean
   templateTasks?: boolean
@@ -1480,12 +1687,13 @@ export type RotationPolicySelectScalar = {
   updatedAt?: boolean
 }
 
-export type RotationPolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "teamId" | "escalationPolicyId" | "name" | "cadence" | "cronExpression" | "shiftDurationHours" | "handoverOffsetMinutes" | "confirmationDueHours" | "reminderLeadHours" | "maxGenerateWeeks" | "timeSlots" | "timezone" | "checklistRequired" | "templateTasks" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["rotationPolicy"]>
+export type RotationPolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "teamId" | "escalationPolicyId" | "name" | "cadence" | "cronExpression" | "shiftDurationHours" | "handoverOffsetMinutes" | "confirmationDueHours" | "reminderLeadHours" | "maxGenerateWeeks" | "timeSlots" | "participantUserIds" | "timezone" | "checklistRequired" | "templateTasks" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["rotationPolicy"]>
 export type RotationPolicyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   team?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
   escalationPolicy?: boolean | Prisma.RotationPolicy$escalationPolicyArgs<ExtArgs>
   scheduleBatches?: boolean | Prisma.RotationPolicy$scheduleBatchesArgs<ExtArgs>
   shifts?: boolean | Prisma.RotationPolicy$shiftsArgs<ExtArgs>
+  incidents?: boolean | Prisma.RotationPolicy$incidentsArgs<ExtArgs>
   _count?: boolean | Prisma.RotationPolicyCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type RotationPolicyIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1504,6 +1712,7 @@ export type $RotationPolicyPayload<ExtArgs extends runtime.Types.Extensions.Inte
     escalationPolicy: Prisma.$EscalationPolicyPayload<ExtArgs> | null
     scheduleBatches: Prisma.$ScheduleBatchPayload<ExtArgs>[]
     shifts: Prisma.$ShiftPayload<ExtArgs>[]
+    incidents: Prisma.$IncidentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1518,6 +1727,7 @@ export type $RotationPolicyPayload<ExtArgs extends runtime.Types.Extensions.Inte
     reminderLeadHours: number[]
     maxGenerateWeeks: number
     timeSlots: runtime.JsonValue | null
+    participantUserIds: runtime.JsonValue
     timezone: string
     checklistRequired: boolean
     templateTasks: runtime.JsonValue
@@ -1922,6 +2132,7 @@ export interface Prisma__RotationPolicyClient<T, Null = never, ExtArgs extends r
   escalationPolicy<T extends Prisma.RotationPolicy$escalationPolicyArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RotationPolicy$escalationPolicyArgs<ExtArgs>>): Prisma.Prisma__EscalationPolicyClient<runtime.Types.Result.GetResult<Prisma.$EscalationPolicyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   scheduleBatches<T extends Prisma.RotationPolicy$scheduleBatchesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RotationPolicy$scheduleBatchesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ScheduleBatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   shifts<T extends Prisma.RotationPolicy$shiftsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RotationPolicy$shiftsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  incidents<T extends Prisma.RotationPolicy$incidentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RotationPolicy$incidentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IncidentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1963,6 +2174,7 @@ export interface RotationPolicyFieldRefs {
   readonly reminderLeadHours: Prisma.FieldRef<"RotationPolicy", 'Int[]'>
   readonly maxGenerateWeeks: Prisma.FieldRef<"RotationPolicy", 'Int'>
   readonly timeSlots: Prisma.FieldRef<"RotationPolicy", 'Json'>
+  readonly participantUserIds: Prisma.FieldRef<"RotationPolicy", 'Json'>
   readonly timezone: Prisma.FieldRef<"RotationPolicy", 'String'>
   readonly checklistRequired: Prisma.FieldRef<"RotationPolicy", 'Boolean'>
   readonly templateTasks: Prisma.FieldRef<"RotationPolicy", 'Json'>
@@ -2434,6 +2646,30 @@ export type RotationPolicy$shiftsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.ShiftScalarFieldEnum | Prisma.ShiftScalarFieldEnum[]
+}
+
+/**
+ * RotationPolicy.incidents
+ */
+export type RotationPolicy$incidentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Incident
+   */
+  select?: Prisma.IncidentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Incident
+   */
+  omit?: Prisma.IncidentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.IncidentInclude<ExtArgs> | null
+  where?: Prisma.IncidentWhereInput
+  orderBy?: Prisma.IncidentOrderByWithRelationInput | Prisma.IncidentOrderByWithRelationInput[]
+  cursor?: Prisma.IncidentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.IncidentScalarFieldEnum | Prisma.IncidentScalarFieldEnum[]
 }
 
 /**

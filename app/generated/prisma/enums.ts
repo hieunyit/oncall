@@ -141,3 +141,32 @@ export const IntegrationType = {
 } as const
 
 export type IntegrationType = (typeof IntegrationType)[keyof typeof IntegrationType]
+
+
+export const IncidentSeverity = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+  CRITICAL: 'CRITICAL'
+} as const
+
+export type IncidentSeverity = (typeof IncidentSeverity)[keyof typeof IncidentSeverity]
+
+
+export const IncidentStatus = {
+  OPEN: 'OPEN',
+  INVESTIGATING: 'INVESTIGATING',
+  MITIGATED: 'MITIGATED',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED'
+} as const
+
+export type IncidentStatus = (typeof IncidentStatus)[keyof typeof IncidentStatus]
+
+
+export const IncidentAttachmentKind = {
+  IMAGE: 'IMAGE',
+  EXCEL: 'EXCEL'
+} as const
+
+export type IncidentAttachmentKind = (typeof IncidentAttachmentKind)[keyof typeof IncidentAttachmentKind]

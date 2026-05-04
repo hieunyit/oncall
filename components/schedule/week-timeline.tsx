@@ -67,6 +67,38 @@ function getHourMarks(numDays: number): number[] {
   return [0, 12];                              // every 12h for 2-week view
 }
 
+function localDayKeyInBrowser(date: Date): string {
+  return new Intl.DateTimeFormat("en-CA").format(date);
+}
+
+function localDayKeysForWindowInBrowser(startsAt: Date, endsAt: Date): string[] {
+  if (!(endsAt > startsAt)) return [localDayKeyInBrowser(startsAt)];
+
+  const keys: string[] = [];
+  const seen = new Set<string>();
+  const cursor = new Date(startsAt);
+  cursor.setHours(0, 0, 0, 0);
+
+  let guard = 0;
+  while (cursor.getTime() < endsAt.getTime() && guard < 400) {
+    const key = localDayKeyInBrowser(cursor);
+    if (!seen.has(key)) {
+      seen.add(key);
+      keys.push(key);
+    }
+    cursor.setDate(cursor.getDate() + 1);
+    guard++;
+  }
+
+  const endProbe = new Date(endsAt.getTime() - 1);
+  const tailKey = localDayKeyInBrowser(endProbe < startsAt ? startsAt : endProbe);
+  if (!seen.has(tailKey)) {
+    keys.push(tailKey);
+  }
+
+  return keys;
+}
+
 export function WeekTimeline({
   weekStart,
   numDays,
@@ -82,6 +114,24 @@ export function WeekTimeline({
   const now = new Date();
 
   const visible = shifts.filter((s) => s.startsAt < weekEnd && s.endsAt > weekStart);
+  const touchedDayKeysByShift = new Map<string, string[]>();
+  const dayUserCounts = new Map<string, number>();
+
+  for (const shift of visible) {
+    const dayKeys = localDayKeysForWindowInBrowser(shift.startsAt, shift.endsAt);
+    touchedDayKeysByShift.set(shift.id, dayKeys);
+
+    for (const dayKey of dayKeys) {
+      const key = `${shift.assigneeId}|${dayKey}`;
+      dayUserCounts.set(key, (dayUserCounts.get(key) ?? 0) + 1);
+    }
+  }
+
+  const duplicateDayUserKeys = new Set(
+    [...dayUserCounts.entries()]
+      .filter(([, count]) => count > 1)
+      .map(([key]) => key)
+  );
 
   const seenUsers = new Set<string>();
   const userOrder: string[] = [];
@@ -104,6 +154,11 @@ export function WeekTimeline({
         other.startsAt < shift.endsAt &&
         other.endsAt > shift.startsAt
     );
+  }
+
+  function hasSameDayDuplicate(shift: ShiftBlock): boolean {
+    const dayKeys = touchedDayKeysByShift.get(shift.id) ?? [];
+    return dayKeys.some((dayKey) => duplicateDayUserKeys.has(`${shift.assigneeId}|${dayKey}`));
   }
 
   const days = Array.from({ length: numDays }, (_, i) => addDays(weekStart, i));
@@ -276,6 +331,10 @@ export function WeekTimeline({
                 const pending = shift.confirmationStatus === "PENDING";
                 const isSwap = shift.source === "SWAP";
                 const autoWarningMessage = getAutoScheduleWarningMessage(shift.notes);
+                const sameDayDuplicate = hasSameDayDuplicate(shift);
+                const peopleWarningMessage =
+                  autoWarningMessage ?? (sameDayDuplicate ? "Mot nguoi bi xep nhieu hon 1 ca trong ngay." : null);
+                const hasPeopleWarning = Boolean(peopleWarningMessage);
                 const checklistIncomplete =
                   shift.checklistRequired &&
                   (shift.checklistTotal === 0 || (shift.checklistDone ?? 0) < (shift.checklistTotal ?? 0));
@@ -300,15 +359,15 @@ export function WeekTimeline({
                         ? `⚠ Chồng chéo chính sách! ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
                         : checklistIncomplete
                           ? `! Checklist chưa hoàn thành · ${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
-                          : autoWarningMessage
-                            ? `⚠ ${autoWarningMessage} · ${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
+                          : hasPeopleWarning
+                            ? `⚠ ${peopleWarningMessage} · ${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
                             : `${shift.assigneeName} · ${shift.policyName}${isSwap ? " · Đổi ca" : ""} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
                     }
                   >
                     {conflict && <span className="shrink-0 text-[11px]">⚠</span>}
                     {!conflict && checklistIncomplete && <span className="shrink-0 text-[11px]">!</span>}
-                    {!conflict && !checklistIncomplete && autoWarningMessage && <span className="shrink-0 text-[11px] text-amber-200">⚠</span>}
-                    {!conflict && !checklistIncomplete && !autoWarningMessage && isSwap && <span className="shrink-0 text-[11px]">⇄</span>}
+                    {!conflict && !checklistIncomplete && hasPeopleWarning && <span className="shrink-0 text-[11px] text-amber-200">⚠</span>}
+                    {!conflict && !checklistIncomplete && !hasPeopleWarning && isSwap && <span className="shrink-0 text-[11px]">⇄</span>}
                     <span className="text-[11px] font-semibold text-white truncate leading-tight flex-1 flex items-center gap-1 min-w-0">
                       <span className="truncate">{shift.policyName}</span>
                       <span className="opacity-70 shrink-0 hidden sm:inline">
@@ -317,9 +376,9 @@ export function WeekTimeline({
                     </span>
                     {!conflict && (
                       <span className="shrink-0 flex items-center gap-0.5">
-                        {!autoWarningMessage && confirmed && <span className="w-1.5 h-1.5 rounded-full bg-green-300" />}
-                        {!autoWarningMessage && pending && <span className="w-1.5 h-1.5 rounded-full bg-yellow-200" />}
-                        {!autoWarningMessage && declined && <span className="w-1.5 h-1.5 rounded-full bg-red-300" />}
+                        {!hasPeopleWarning && confirmed && <span className="w-1.5 h-1.5 rounded-full bg-green-300" />}
+                        {!hasPeopleWarning && pending && <span className="w-1.5 h-1.5 rounded-full bg-yellow-200" />}
+                        {!hasPeopleWarning && declined && <span className="w-1.5 h-1.5 rounded-full bg-red-300" />}
                         {(shift.checklistTotal ?? 0) > 0 ? (
                           <span className={`text-[9px] ml-0.5 ${allChecklistDone ? "text-green-300" : checklistIncomplete ? "text-orange-200 font-bold" : "text-white/70"}`}>
                             ✓{shift.checklistDone}/{shift.checklistTotal}

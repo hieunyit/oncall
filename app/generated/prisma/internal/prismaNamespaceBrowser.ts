@@ -71,6 +71,9 @@ export const ModelName = {
   AuditLog: 'AuditLog',
   AlertIntegration: 'AlertIntegration',
   Alert: 'Alert',
+  Incident: 'Incident',
+  IncidentAttachment: 'IncidentAttachment',
+  IncidentLifecycleEvent: 'IncidentLifecycleEvent',
   ShiftTask: 'ShiftTask',
   Runbook: 'Runbook'
 } as const
@@ -187,6 +190,7 @@ export const RotationPolicyScalarFieldEnum = {
   reminderLeadHours: 'reminderLeadHours',
   maxGenerateWeeks: 'maxGenerateWeeks',
   timeSlots: 'timeSlots',
+  participantUserIds: 'participantUserIds',
   timezone: 'timezone',
   checklistRequired: 'checklistRequired',
   templateTasks: 'templateTasks',
@@ -401,6 +405,58 @@ export const AlertScalarFieldEnum = {
 } as const
 
 export type AlertScalarFieldEnum = (typeof AlertScalarFieldEnum)[keyof typeof AlertScalarFieldEnum]
+
+
+export const IncidentScalarFieldEnum = {
+  id: 'id',
+  teamId: 'teamId',
+  policyId: 'policyId',
+  shiftId: 'shiftId',
+  title: 'title',
+  description: 'description',
+  severity: 'severity',
+  status: 'status',
+  occurredAt: 'occurredAt',
+  resolvedAt: 'resolvedAt',
+  createdById: 'createdById',
+  assigneeId: 'assigneeId',
+  impactSummary: 'impactSummary',
+  rootCause: 'rootCause',
+  actionItems: 'actionItems',
+  metadataJson: 'metadataJson',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IncidentScalarFieldEnum = (typeof IncidentScalarFieldEnum)[keyof typeof IncidentScalarFieldEnum]
+
+
+export const IncidentAttachmentScalarFieldEnum = {
+  id: 'id',
+  incidentId: 'incidentId',
+  fileName: 'fileName',
+  storagePath: 'storagePath',
+  contentType: 'contentType',
+  sizeBytes: 'sizeBytes',
+  kind: 'kind',
+  uploadedById: 'uploadedById',
+  createdAt: 'createdAt'
+} as const
+
+export type IncidentAttachmentScalarFieldEnum = (typeof IncidentAttachmentScalarFieldEnum)[keyof typeof IncidentAttachmentScalarFieldEnum]
+
+
+export const IncidentLifecycleEventScalarFieldEnum = {
+  id: 'id',
+  incidentId: 'incidentId',
+  fromStatus: 'fromStatus',
+  toStatus: 'toStatus',
+  note: 'note',
+  changedById: 'changedById',
+  createdAt: 'createdAt'
+} as const
+
+export type IncidentLifecycleEventScalarFieldEnum = (typeof IncidentLifecycleEventScalarFieldEnum)[keyof typeof IncidentLifecycleEventScalarFieldEnum]
 
 
 export const ShiftTaskScalarFieldEnum = {

@@ -65,7 +65,7 @@ export default async function TeamDetailPage({
     : [];
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="mx-auto w-full max-w-[1400px] space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-500">
         <Link href="/teams" className="hover:text-gray-700">Nhóm</Link>
