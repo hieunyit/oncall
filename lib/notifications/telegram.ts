@@ -13,6 +13,11 @@ export interface TelegramApiResult<T = unknown> {
   error_code?: number;
 }
 
+export interface TelegramBotCommand {
+  command: string;
+  description: string;
+}
+
 export interface TelegramWebhookInfo {
   url: string;
   has_custom_certificate: boolean;
@@ -297,6 +302,22 @@ export async function deleteTelegramWebhook(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ drop_pending_updates: dropPendingUpdates }),
+  });
+  return parseTelegramJson<true>(res);
+}
+
+export async function setTelegramCommands(
+  commands: TelegramBotCommand[]
+): Promise<TelegramApiResult<true>> {
+  const res = await fetch(botUrl("setMyCommands"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      commands: commands.map((c) => ({
+        command: c.command.trim().toLowerCase(),
+        description: c.description.trim().slice(0, 256),
+      })),
+    }),
   });
   return parseTelegramJson<true>(res);
 }

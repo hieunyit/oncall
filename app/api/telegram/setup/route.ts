@@ -3,9 +3,11 @@ import { badRequest, forbidden, handleError, ok, unauthorized } from "@/lib/api-
 import {
   deleteTelegramWebhook,
   getTelegramWebhookInfo,
+  setTelegramCommands,
   setTelegramWebhook,
 } from "@/lib/notifications/telegram";
 import { getSessionUser } from "@/lib/rbac";
+import { TELEGRAM_BOT_COMMANDS } from "@/lib/telegram/bot-config";
 
 type TelegramSetupMode = "polling" | "webhook";
 
@@ -28,16 +30,16 @@ function validateWebhookBaseUrl(rawBaseUrl: string): string | null {
   try {
     parsed = new URL(rawBaseUrl);
   } catch {
-    return "NEXT_PUBLIC_APP_URL không phải URL hợp lệ.";
+    return "NEXT_PUBLIC_APP_URL khong phai URL hop le.";
   }
 
   if (parsed.protocol !== "https:") {
-    return "Telegram yêu cầu webhook HTTPS. Hãy cấu hình NEXT_PUBLIC_APP_URL dạng https://...";
+    return "Telegram yeu cau webhook HTTPS. Hay cau hinh NEXT_PUBLIC_APP_URL dang https://...";
   }
 
   const host = parsed.hostname.toLowerCase();
   if (host === "localhost" || host === "127.0.0.1" || host === "::1") {
-    return "Webhook không thể dùng localhost. Hãy dùng domain/public tunnel HTTPS.";
+    return "Webhook khong the dung localhost. Hay dung domain/public tunnel HTTPS.";
   }
 
   return null;
@@ -83,7 +85,7 @@ export async function POST(req: Request) {
 
     const token = readTelegramToken();
     if (!token) {
-      return badRequest("TELEGRAM_BOT_TOKEN chưa cấu hình hợp lệ.");
+      return badRequest("TELEGRAM_BOT_TOKEN chua cau hinh hop le.");
     }
 
     const mode = await parseSetupMode(req);
@@ -92,18 +94,26 @@ export async function POST(req: Request) {
       const deleted = await deleteTelegramWebhook(false);
       if (!deleted.ok) {
         return badRequest(
-          `Không thể chuyển sang polling mode: ${deleted.description ?? "Unknown error"}`,
+          `Khong the chuyen sang polling mode: ${deleted.description ?? "Unknown error"}`,
           deleted
         );
       }
 
+      const commands = await setTelegramCommands([...TELEGRAM_BOT_COMMANDS]);
+      if (!commands.ok) {
+        return badRequest(
+          `Cai command Telegram that bai: ${commands.description ?? "Unknown error"}`,
+          commands
+        );
+      }
+
       const info = await getTelegramWebhookInfo().catch(() => null);
-      return ok({ mode: "polling", deleteWebhook: deleted, webhookInfo: info });
+      return ok({ mode: "polling", deleteWebhook: deleted, commands, webhookInfo: info });
     }
 
     const rawBaseUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || process.env.AUTH_URL?.trim();
     if (!rawBaseUrl) {
-      return badRequest("Thiếu NEXT_PUBLIC_APP_URL (hoặc AUTH_URL) để đăng ký webhook.");
+      return badRequest("Thieu NEXT_PUBLIC_APP_URL (hoac AUTH_URL) de dang ky webhook.");
     }
 
     const normalizedBaseUrl = normalizeBaseUrl(rawBaseUrl);
@@ -115,13 +125,21 @@ export async function POST(req: Request) {
 
     if (!result.ok) {
       return badRequest(
-        `Đăng ký webhook thất bại: ${result.description ?? "Unknown error"}`,
+        `Dang ky webhook that bai: ${result.description ?? "Unknown error"}`,
         { webhookUrl, telegram: result }
       );
     }
 
+    const commands = await setTelegramCommands([...TELEGRAM_BOT_COMMANDS]);
+    if (!commands.ok) {
+      return badRequest(
+        `Cai command Telegram that bai: ${commands.description ?? "Unknown error"}`,
+        commands
+      );
+    }
+
     const info = await getTelegramWebhookInfo().catch(() => null);
-    return ok({ mode: "webhook", webhookUrl, setWebhook: result, webhookInfo: info });
+    return ok({ mode: "webhook", webhookUrl, setWebhook: result, commands, webhookInfo: info });
   } catch (error) {
     return handleError(error);
   }
@@ -134,13 +152,13 @@ export async function GET() {
 
     const token = readTelegramToken();
     if (!token) {
-      return badRequest("TELEGRAM_BOT_TOKEN chưa cấu hình hợp lệ.");
+      return badRequest("TELEGRAM_BOT_TOKEN chua cau hinh hop le.");
     }
 
     const info = await getTelegramWebhookInfo();
     if (!info.ok) {
       return badRequest(
-        `Không lấy được trạng thái webhook: ${info.description ?? "Unknown error"}`,
+        `Khong lay duoc trang thai webhook: ${info.description ?? "Unknown error"}`,
         info
       );
     }
