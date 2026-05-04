@@ -34,6 +34,7 @@ export function BatchList({ batches }: Props) {
   const [fromDate, setFromDate] = useState("");
   const [rescheduleLoading, setRescheduleLoading] = useState(false);
   const [rescheduleError, setRescheduleError] = useState("");
+  const [rescheduleWarning, setRescheduleWarning] = useState("");
   const [rescheduleResult, setRescheduleResult] = useState<{ removedShifts: number; newShifts: number } | null>(null);
 
   async function handleRollback(batchId: string) {
@@ -58,6 +59,7 @@ export function BatchList({ batches }: Props) {
     const defaultDate = today > new Date(batch.rangeStart) ? today : new Date(batch.rangeStart);
     setFromDate(format(defaultDate, "yyyy-MM-dd"));
     setRescheduleError("");
+    setRescheduleWarning("");
     setRescheduleResult(null);
   }
 
@@ -65,6 +67,7 @@ export function BatchList({ batches }: Props) {
     if (!rescheduleId || !fromDate) return;
     setRescheduleLoading(true);
     setRescheduleError("");
+    setRescheduleWarning("");
     setRescheduleResult(null);
 
     const res = await fetch(`/api/schedules/batches/${rescheduleId}/reschedule`, {
@@ -84,6 +87,7 @@ export function BatchList({ batches }: Props) {
     } else {
       const d = json.data ?? json;
       setRescheduleResult({ removedShifts: d.removedShifts, newShifts: d.newShifts });
+      setRescheduleWarning(d.autoWarning?.message ?? "");
       router.refresh();
     }
   }
@@ -178,6 +182,11 @@ export function BatchList({ batches }: Props) {
             {rescheduleResult && (
               <p className="text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg mb-3">
                 ✓ Đã xóa {rescheduleResult.removedShifts} ca cũ, tạo {rescheduleResult.newShifts} ca mới.
+              </p>
+            )}
+            {rescheduleWarning && (
+              <p className="text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-lg mb-3">
+                ⚠ {rescheduleWarning}
               </p>
             )}
 

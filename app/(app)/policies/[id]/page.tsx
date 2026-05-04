@@ -8,6 +8,7 @@ import { BatchList } from "./batch-list";
 import { DeletePolicyButton } from "./delete-policy-button";
 import { RescheduleButton } from "./reschedule-button";
 import { getPolicyParticipantUserIds } from "@/lib/rotation/policy-participants";
+import { getAutoScheduleWarningMessage } from "@/lib/rotation/auto-schedule-warning";
 
 export default async function PolicyDetailPage({
   params,
@@ -210,42 +211,55 @@ export default async function PolicyDetailPage({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {recentShifts.map((s) => (
-                <tr key={s.id}>
-                  <td className="px-4 py-2 text-gray-700">{s.startsAt.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}</td>
-                  <td className="px-4 py-2 text-gray-700">{s.endsAt.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}</td>
-                  <td className="px-4 py-2 font-medium text-gray-900">{s.assignee.fullName}</td>
-                  <td className="px-4 py-2">
-                    {s.source === "SWAP" ? (
-                      <span className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium bg-indigo-100 text-indigo-700">
-                        <span>⇄</span>
-                        <span>Đổi ca</span>
+              {recentShifts.map((s) => {
+                const autoWarningMessage = getAutoScheduleWarningMessage(s.notes);
+                return (
+                  <tr key={s.id}>
+                    <td className="px-4 py-2 text-gray-700">{s.startsAt.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}</td>
+                    <td className="px-4 py-2 text-gray-700">{s.endsAt.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}</td>
+                    <td className="px-4 py-2 font-medium text-gray-900">{s.assignee.fullName}</td>
+                    <td className="px-4 py-2">
+                      <div className="inline-flex items-center gap-1.5 flex-wrap">
+                        {s.source === "SWAP" ? (
+                          <span className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium bg-indigo-100 text-indigo-700">
+                            <span>⇄</span>
+                            <span>Đổi ca</span>
+                          </span>
+                        ) : s.source === "OVERRIDE" ? (
+                          <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-amber-100 text-amber-700">
+                            Override
+                          </span>
+                        ) : s.source === "MANUAL" ? (
+                          <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-blue-100 text-blue-700">
+                            Gán tay
+                          </span>
+                        ) : (
+                          <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-gray-100 text-gray-500">
+                            Tự động
+                          </span>
+                        )}
+                        {autoWarningMessage && (
+                          <span
+                            title={autoWarningMessage}
+                            className="text-xs px-1.5 py-0.5 rounded font-medium bg-amber-100 text-amber-700"
+                          >
+                            ⚠ Thiếu người
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-2">
+                      <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                        s.confirmation?.status === "CONFIRMED" ? "bg-green-100 text-green-700" :
+                        s.confirmation?.status === "PENDING" ? "bg-yellow-100 text-yellow-700" :
+                        "bg-gray-100 text-gray-500"
+                      }`}>
+                        {s.confirmation?.status ?? "—"}
                       </span>
-                    ) : s.source === "OVERRIDE" ? (
-                      <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-amber-100 text-amber-700">
-                        Override
-                      </span>
-                    ) : s.source === "MANUAL" ? (
-                      <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-blue-100 text-blue-700">
-                        Gán tay
-                      </span>
-                    ) : (
-                      <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-gray-100 text-gray-500">
-                        Tự động
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2">
-                    <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
-                      s.confirmation?.status === "CONFIRMED" ? "bg-green-100 text-green-700" :
-                      s.confirmation?.status === "PENDING" ? "bg-yellow-100 text-yellow-700" :
-                      "bg-gray-100 text-gray-500"
-                    }`}>
-                      {s.confirmation?.status ?? "—"}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { addDays, format, isSameDay, isSameMonth, startOfDay, startOfMonth, startOfWeek, endOfMonth, endOfWeek } from "date-fns";
 import { getUserColor } from "./week-timeline";
+import { getAutoScheduleWarningMessage } from "@/lib/rotation/auto-schedule-warning";
 
 interface ShiftBlock {
   id: string;
@@ -18,6 +19,7 @@ interface ShiftBlock {
   isMe: boolean;
   isOverride?: boolean;
   source?: string;
+  notes?: string | null;
   checklistRequired?: boolean;
   checklistTotal?: number;
   checklistDone?: number;
@@ -169,6 +171,7 @@ export function MonthCalendar({
                       (shift.checklistTotal === 0 || (shift.checklistDone ?? 0) < (shift.checklistTotal ?? 0));
                     const allChecklistDone = hasChecklist && shift.checklistDone === shift.checklistTotal;
                     const isSwap = shift.source === "SWAP";
+                    const autoWarningMessage = getAutoScheduleWarningMessage(shift.notes);
 
                     return (
                       <div
@@ -193,15 +196,18 @@ export function MonthCalendar({
                             ? `⚠ Chồng chéo chính sách! ${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`
                             : checklistIncomplete
                               ? `! Checklist chưa hoàn thành · ${shift.assigneeName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`
-                              : `${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`
+                              : autoWarningMessage
+                                ? `⚠ ${autoWarningMessage} · ${shift.assigneeName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`
+                                : `${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`
                         }
                       >
                         {conflict && <span className="shrink-0 text-[10px]">⚠</span>}
                         {!conflict && checklistIncomplete && <span className="shrink-0 text-[10px]">!</span>}
-                        {!conflict && !checklistIncomplete && isSwap && <span className="shrink-0 text-[10px]">⇄</span>}
-                        {!conflict && !checklistIncomplete && !isSwap && confirmed && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-green-300" />}
-                        {!conflict && !checklistIncomplete && !isSwap && declined && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-red-300" />}
-                        {!conflict && !checklistIncomplete && !isSwap && pending && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-yellow-200" />}
+                        {!conflict && !checklistIncomplete && autoWarningMessage && <span className="shrink-0 text-[10px] text-amber-200">⚠</span>}
+                        {!conflict && !checklistIncomplete && !autoWarningMessage && isSwap && <span className="shrink-0 text-[10px]">⇄</span>}
+                        {!conflict && !checklistIncomplete && !autoWarningMessage && !isSwap && confirmed && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-green-300" />}
+                        {!conflict && !checklistIncomplete && !autoWarningMessage && !isSwap && declined && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-red-300" />}
+                        {!conflict && !checklistIncomplete && !autoWarningMessage && !isSwap && pending && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-yellow-200" />}
                         <span className="truncate">{shift.assigneeName}</span>
                         {hasChecklist && (
                           <span className={`text-[9px] shrink-0 ml-auto ${allChecklistDone ? "text-green-300" : checklistIncomplete ? "text-orange-200 font-bold" : "opacity-70"}`}>

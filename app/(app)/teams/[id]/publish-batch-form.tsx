@@ -44,6 +44,7 @@ export function PublishBatchForm({ policyId, policyName: _policyName }: Props) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
   const [mode, setMode] = useState<"AUTO" | "MANUAL">("AUTO");
 
   const today = new Date();
@@ -163,6 +164,7 @@ export function PublishBatchForm({ policyId, policyName: _policyName }: Props) {
   async function handlePublishAuto() {
     setLoading(true);
     setError(null);
+    setWarning(null);
 
     const res = await fetch("/api/schedules/batches", {
       method: "POST",
@@ -177,12 +179,22 @@ export function PublishBatchForm({ policyId, policyName: _policyName }: Props) {
         rangeEnd: new Date(`${rangeEnd}T23:59:59`).toISOString(),
       }),
     });
+    const json = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      const d = await res.json().catch(() => ({}));
-      setError(d.error ?? "Failed to publish schedule.");
+      setError((json as { error?: string }).error ?? "Failed to publish schedule.");
     } else {
-      setOpen(false);
+      const payload = json as {
+        data?: { autoWarning?: { message?: string } };
+        autoWarning?: { message?: string };
+      };
+      const autoWarningMessage =
+        payload.data?.autoWarning?.message ?? payload.autoWarning?.message;
+      if (autoWarningMessage) {
+        setWarning(autoWarningMessage);
+      } else {
+        setOpen(false);
+      }
       router.refresh();
     }
     setLoading(false);
@@ -217,6 +229,7 @@ export function PublishBatchForm({ policyId, policyName: _policyName }: Props) {
 
     setLoading(true);
     setError(null);
+    setWarning(null);
 
     const sortedByStart = [...assignments].sort(
       (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
@@ -258,6 +271,7 @@ export function PublishBatchForm({ policyId, policyName: _policyName }: Props) {
   async function switchMode(nextMode: "AUTO" | "MANUAL") {
     setMode(nextMode);
     setError(null);
+    setWarning(null);
 
     if (nextMode === "MANUAL") {
       await loadPolicyContext();
@@ -433,6 +447,7 @@ export function PublishBatchForm({ policyId, policyName: _policyName }: Props) {
         </div>
       )}
 
+      {warning && <span className="text-xs text-amber-700">{warning}</span>}
       {error && <span className="text-xs text-red-600">{error}</span>}
     </div>
   );

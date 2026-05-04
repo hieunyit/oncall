@@ -2,6 +2,7 @@
 
 import { addDays, format, differenceInMinutes, isSameDay } from "date-fns";
 import { vi } from "date-fns/locale";
+import { getAutoScheduleWarningMessage } from "@/lib/rotation/auto-schedule-warning";
 
 interface ShiftBlock {
   id: string;
@@ -13,6 +14,7 @@ interface ShiftBlock {
   startsAt: Date;
   endsAt: Date;
   source?: string;
+  notes?: string | null;
   confirmationStatus?: string | null;
   isMe: boolean;
   isOverride?: boolean;
@@ -273,6 +275,7 @@ export function WeekTimeline({
                 const declined = shift.confirmationStatus === "DECLINED";
                 const pending = shift.confirmationStatus === "PENDING";
                 const isSwap = shift.source === "SWAP";
+                const autoWarningMessage = getAutoScheduleWarningMessage(shift.notes);
                 const checklistIncomplete =
                   shift.checklistRequired &&
                   (shift.checklistTotal === 0 || (shift.checklistDone ?? 0) < (shift.checklistTotal ?? 0));
@@ -297,12 +300,15 @@ export function WeekTimeline({
                         ? `⚠ Chồng chéo chính sách! ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
                         : checklistIncomplete
                           ? `! Checklist chưa hoàn thành · ${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
-                          : `${shift.assigneeName} · ${shift.policyName}${isSwap ? " · Đổi ca" : ""} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
+                          : autoWarningMessage
+                            ? `⚠ ${autoWarningMessage} · ${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
+                            : `${shift.assigneeName} · ${shift.policyName}${isSwap ? " · Đổi ca" : ""} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
                     }
                   >
                     {conflict && <span className="shrink-0 text-[11px]">⚠</span>}
                     {!conflict && checklistIncomplete && <span className="shrink-0 text-[11px]">!</span>}
-                    {!conflict && !checklistIncomplete && isSwap && <span className="shrink-0 text-[11px]">⇄</span>}
+                    {!conflict && !checklistIncomplete && autoWarningMessage && <span className="shrink-0 text-[11px] text-amber-200">⚠</span>}
+                    {!conflict && !checklistIncomplete && !autoWarningMessage && isSwap && <span className="shrink-0 text-[11px]">⇄</span>}
                     <span className="text-[11px] font-semibold text-white truncate leading-tight flex-1 flex items-center gap-1 min-w-0">
                       <span className="truncate">{shift.policyName}</span>
                       <span className="opacity-70 shrink-0 hidden sm:inline">
@@ -311,9 +317,9 @@ export function WeekTimeline({
                     </span>
                     {!conflict && (
                       <span className="shrink-0 flex items-center gap-0.5">
-                        {confirmed && <span className="w-1.5 h-1.5 rounded-full bg-green-300" />}
-                        {pending && <span className="w-1.5 h-1.5 rounded-full bg-yellow-200" />}
-                        {declined && <span className="w-1.5 h-1.5 rounded-full bg-red-300" />}
+                        {!autoWarningMessage && confirmed && <span className="w-1.5 h-1.5 rounded-full bg-green-300" />}
+                        {!autoWarningMessage && pending && <span className="w-1.5 h-1.5 rounded-full bg-yellow-200" />}
+                        {!autoWarningMessage && declined && <span className="w-1.5 h-1.5 rounded-full bg-red-300" />}
                         {(shift.checklistTotal ?? 0) > 0 ? (
                           <span className={`text-[9px] ml-0.5 ${allChecklistDone ? "text-green-300" : checklistIncomplete ? "text-orange-200 font-bold" : "text-white/70"}`}>
                             ✓{shift.checklistDone}/{shift.checklistTotal}

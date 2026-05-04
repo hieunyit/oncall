@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 export function RescheduleButton({ policyId }: { policyId: string }) {
   const router = useRouter();
   const [state, setState] = useState<"idle" | "loading" | "ok" | "err">("idle");
-  const [result, setResult] = useState<{ removedShifts: number; newShifts: number } | null>(null);
+  const [result, setResult] = useState<{ removedShifts: number; newShifts: number; warning?: string | null } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleClick() {
@@ -20,7 +20,11 @@ export function RescheduleButton({ policyId }: { policyId: string }) {
         setState("err");
       } else {
         const d = json.data ?? json;
-        setResult({ removedShifts: d.removedShifts, newShifts: d.newShifts });
+        setResult({
+          removedShifts: d.removedShifts,
+          newShifts: d.newShifts,
+          warning: d.autoWarning?.message ?? null,
+        });
         setState("ok");
         router.refresh();
       }
@@ -41,9 +45,12 @@ export function RescheduleButton({ policyId }: { policyId: string }) {
         {state === "loading" ? "Đang tạo lại..." : "Tạo lại lịch từ hôm nay"}
       </button>
       {state === "ok" && result && (
-        <p className="text-xs text-green-700">
-          ✓ Đã xóa {result.removedShifts} ca cũ, tạo {result.newShifts} ca mới theo danh sách hiện tại.
-        </p>
+        <div className="space-y-1">
+          <p className="text-xs text-green-700">
+            ✓ Đã xóa {result.removedShifts} ca cũ, tạo {result.newShifts} ca mới theo danh sách hiện tại.
+          </p>
+          {result.warning && <p className="text-xs text-amber-700">⚠ {result.warning}</p>}
+        </div>
       )}
       {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
