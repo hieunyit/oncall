@@ -55,12 +55,14 @@ export interface PriorState {
    * Rule: they must not work on rangeStart day.
    */
   lastNightAssigneeId?: string | null;
+  lastNightAssigneeIds?: string[] | null;
 
   /**
    * Who did a midnight/overnight rest-rule shift two days before rangeStart.
    * Rule: they may work on rangeStart day, but should avoid midnight/overnight slots if enough people exist.
    */
   twoAgoNightAssigneeId?: string | null;
+  twoAgoNightAssigneeIds?: string[] | null;
 }
 
 /** Local YYYY-MM-DD key for a Date in the given timezone. */
@@ -179,16 +181,26 @@ interface AssignmentState {
   assignedDayKeysByUser: Map<string, Set<string>>;
 
   /**
-   * Person who worked a rest-rule slot yesterday.
-   * They should not work today.
+   * People who worked rest-rule slots yesterday.
+   * They should not work today when enough people are available.
    */
-  lastNightAssigneeId: string | null;
+  lastNightAssigneeIds: Set<string>;
 
   /**
-   * Person who worked a rest-rule slot two days ago.
-   * They may work today, but should avoid a rest-rule slot if enough people exist.
+   * People who worked rest-rule slots two days ago.
+   * They may work today, but should avoid another rest-rule slot if enough people exist.
    */
-  twoAgoNightAssigneeId: string | null;
+  twoAgoNightAssigneeIds: Set<string>;
+}
+
+interface DaySlotPlan {
+  slotI: number;
+  startsAt: Date;
+  endsAt: Date;
+  isNightForRestRule: boolean;
+  isLateButNotNight: boolean;
+  slotDayKeys: string[];
+  preferredIdx: number;
 }
 
 function getCount(map: Map<string, number>, userId: string): number {
@@ -226,6 +238,230 @@ function hasOccupiedConflict(
       return occupiedDays.some((day) => slotDays.has(day));
     }
   );
+}
+
+function normalizePriorIds(list: string[] | null | undefined, single: string | null | undefined): Set<string> {
+  const ids = new Set<string>();
+
+  for (const id of list ?? []) {
+    if (typeof id === "string" && id.length > 0) ids.add(id);
+  }
+
+  if (single && single.length > 0) ids.add(single);
+
+  return ids;
+}
+
+function seededRank(userId: string, seed: number): number {
+  let hash = seed | 0;
+  for (let i = 0; i < userId.length; i++) {
+    hash = (hash * 31 + userId.charCodeAt(i)) | 0;
+  }
+  return hash >>> 0;
+}
+
+function buildStrictCandidates(
+  plan: DaySlotPlan,
+  participants: ParticipantSlot[],
+  occupied: OccupiedMap,
+  state: AssignmentState,
+  tz: string,
+  usedToday: Set<string>,
+  restDayExclude: Set<string>,
+  nightHardExclude: Set<string>,
+  applyNightExclude: boolean
+): number[] {
+  const hardExclude = new Set(restDayExclude);
+
+  for (const uid of usedToday) {
+    hardExclude.add(uid);
+  }
+
+  for (const participant of participants) {
+    const assignedDayKeys = state.assignedDayKeysByUser.get(participant.userId);
+    if (!assignedDayKeys) continue;
+    if (plan.slotDayKeys.some((dayKey) => assignedDayKeys.has(dayKey))) {
+      hardExclude.add(participant.userId);
+    }
+  }
+
+  const ordered = getOrderedIndices(participants.length, plan.preferredIdx);
+
+  return ordered.filter((idx) => {
+    const participant = participants[idx];
+    const uid = participant.userId;
+
+    if (hardExclude.has(uid)) return false;
+    if (applyNightExclude && plan.isNightForRestRule && nightHardExclude.has(uid)) return false;
+    if (hasOccupiedConflict(uid, { startsAt: plan.startsAt, endsAt: plan.endsAt }, occupied, tz)) return false;
+
+    return true;
+  });
+}
+
+function sortStrictCandidates(
+  indices: number[],
+  participants: ParticipantSlot[],
+  plan: DaySlotPlan,
+  temporaryAssignedCounts: Map<string, number>,
+  temporaryNightCounts: Map<string, number>,
+  previousAssigneeId: string | null,
+  previousNightAssigneeId: string | null,
+  previousLateAssigneeId: string | null
+): number[] {
+  const seed = Math.floor(plan.startsAt.getTime() / 60_000);
+
+  return [...indices].sort((a, b) => {
+    const aId = participants[a].userId;
+    const bId = participants[b].userId;
+
+    const aPenalty =
+      (participants.length > 1 && aId === previousAssigneeId ? 1 : 0) +
+      (plan.isNightForRestRule && participants.length > 1 && aId === previousNightAssigneeId ? 1 : 0) +
+      (plan.isLateButNotNight && participants.length > 1 && aId === previousLateAssigneeId ? 1 : 0);
+    const bPenalty =
+      (participants.length > 1 && bId === previousAssigneeId ? 1 : 0) +
+      (plan.isNightForRestRule && participants.length > 1 && bId === previousNightAssigneeId ? 1 : 0) +
+      (plan.isLateButNotNight && participants.length > 1 && bId === previousLateAssigneeId ? 1 : 0);
+
+    if (aPenalty !== bPenalty) return aPenalty - bPenalty;
+
+    const aAssigned = temporaryAssignedCounts.get(aId) ?? 0;
+    const bAssigned = temporaryAssignedCounts.get(bId) ?? 0;
+    if (aAssigned !== bAssigned) return aAssigned - bAssigned;
+
+    if (plan.isNightForRestRule) {
+      const aNight = temporaryNightCounts.get(aId) ?? 0;
+      const bNight = temporaryNightCounts.get(bId) ?? 0;
+      if (aNight !== bNight) return aNight - bNight;
+    }
+
+    const aOrder = (a - plan.preferredIdx + participants.length) % participants.length;
+    const bOrder = (b - plan.preferredIdx + participants.length) % participants.length;
+    if (aOrder !== bOrder) return aOrder - bOrder;
+
+    return seededRank(aId, seed) - seededRank(bId, seed);
+  });
+}
+
+function assignDaySlotsStrict(
+  plans: DaySlotPlan[],
+  participants: ParticipantSlot[],
+  occupied: OccupiedMap,
+  state: AssignmentState,
+  tz: string,
+  restDayExclude: Set<string>,
+  nightHardExclude: Set<string>
+): number[] | null {
+  const tryAssignment = (applyNightExclude: boolean): number[] | null => {
+    const assignment = new Array<number>(plans.length).fill(-1);
+    const usedToday = new Set<string>();
+    const temporaryAssignedCounts = new Map(state.assignedCounts);
+    const temporaryNightCounts = new Map(state.nightCounts);
+
+    const dfs = (
+      previousAssigneeId: string | null,
+      previousNightAssigneeId: string | null,
+      previousLateAssigneeId: string | null
+    ): boolean => {
+      let nextPlanIndex = -1;
+      let nextCandidates: number[] = [];
+
+      for (let i = 0; i < plans.length; i++) {
+        if (assignment[i] !== -1) continue;
+
+        const candidates = buildStrictCandidates(
+          plans[i],
+          participants,
+          occupied,
+          state,
+          tz,
+          usedToday,
+          restDayExclude,
+          nightHardExclude,
+          applyNightExclude
+        );
+
+        if (candidates.length === 0) {
+          return false;
+        }
+
+        if (nextPlanIndex === -1 || candidates.length < nextCandidates.length) {
+          nextPlanIndex = i;
+          nextCandidates = candidates;
+        }
+      }
+
+      if (nextPlanIndex === -1) return true;
+
+      const plan = plans[nextPlanIndex];
+      const orderedCandidates = sortStrictCandidates(
+        nextCandidates,
+        participants,
+        plan,
+        temporaryAssignedCounts,
+        temporaryNightCounts,
+        previousAssigneeId,
+        previousNightAssigneeId,
+        previousLateAssigneeId
+      );
+
+      for (const participantIdx of orderedCandidates) {
+        const uid = participants[participantIdx].userId;
+        assignment[nextPlanIndex] = participantIdx;
+        usedToday.add(uid);
+
+        temporaryAssignedCounts.set(uid, (temporaryAssignedCounts.get(uid) ?? 0) + 1);
+
+        let nextPreviousAssigneeId: string | null = uid;
+        let nextPreviousNightAssigneeId = previousNightAssigneeId;
+        let nextPreviousLateAssigneeId = previousLateAssigneeId;
+
+        if (plan.isNightForRestRule) {
+          temporaryNightCounts.set(uid, (temporaryNightCounts.get(uid) ?? 0) + 1);
+          nextPreviousNightAssigneeId = uid;
+        } else if (plan.isLateButNotNight) {
+          nextPreviousLateAssigneeId = uid;
+        }
+
+        if (
+          dfs(
+            nextPreviousAssigneeId,
+            nextPreviousNightAssigneeId,
+            nextPreviousLateAssigneeId
+          )
+        ) {
+          return true;
+        }
+
+        assignment[nextPlanIndex] = -1;
+        usedToday.delete(uid);
+
+        temporaryAssignedCounts.set(uid, (temporaryAssignedCounts.get(uid) ?? 1) - 1);
+        if ((temporaryAssignedCounts.get(uid) ?? 0) <= 0) {
+          temporaryAssignedCounts.delete(uid);
+        }
+
+        if (plan.isNightForRestRule) {
+          temporaryNightCounts.set(uid, (temporaryNightCounts.get(uid) ?? 1) - 1);
+          if ((temporaryNightCounts.get(uid) ?? 0) <= 0) {
+            temporaryNightCounts.delete(uid);
+          }
+        }
+      }
+
+      return false;
+    };
+
+    const solved = dfs(
+      state.previousAssigneeId,
+      state.previousNightAssigneeId,
+      state.previousLateAssigneeId
+    );
+    return solved ? assignment : null;
+  };
+
+  return tryAssignment(true) ?? tryAssignment(false);
 }
 
 function selectParticipant(
@@ -478,6 +714,11 @@ export function generateShifts(
   const occupied = options?.occupied ?? new Map();
   const prior = options?.priorState ?? {};
   const strictAssignment = options?.strictAssignment ?? false;
+  const priorLastNightIds = normalizePriorIds(prior.lastNightAssigneeIds, prior.lastNightAssigneeId);
+  const priorTwoAgoNightIds = normalizePriorIds(
+    prior.twoAgoNightAssigneeIds,
+    prior.twoAgoNightAssigneeId
+  );
 
   const state: AssignmentState = {
     assignedCounts: new Map(),
@@ -486,8 +727,8 @@ export function generateShifts(
     previousNightAssigneeId: prior.previousNightAssigneeId ?? null,
     previousLateAssigneeId: null,
     assignedDayKeysByUser: new Map(),
-    lastNightAssigneeId: prior.lastNightAssigneeId ?? null,
-    twoAgoNightAssigneeId: prior.twoAgoNightAssigneeId ?? null,
+    lastNightAssigneeIds: priorLastNightIds,
+    twoAgoNightAssigneeIds: priorTwoAgoNightIds,
   };
 
   function applyHandover(rawEnd: Date): Date {
@@ -515,12 +756,10 @@ export function generateShifts(
 
     // Move preferred base by 1 per day so everyone rotates through slot types.
     let dayBaseIdx = startingIndex % participants.length;
-
-    /**
-     * Rest-day and D+2 rules are useful only when there are enough people and enough slots.
-     * Keeping this condition avoids over-constraining very small teams.
-     */
-    const applyRestRule = participants.length >= 4 && policy.timeSlots.length >= 3;
+    const rollRestState = (nightIds: Set<string>) => {
+      state.twoAgoNightAssigneeIds = new Set(state.lastNightAssigneeIds);
+      state.lastNightAssigneeIds = new Set(nightIds);
+    };
 
     for (const day of days) {
       const dow = day.getUTCDay();
@@ -539,9 +778,13 @@ export function generateShifts(
           return aEnd - bEnd;
         });
 
-      if (slotsForDay.length === 0) continue;
+      if (slotsForDay.length === 0) {
+        rollRestState(new Set());
+        continue;
+      }
 
       const lateSlotIndex = slotsForDay.length >= 2 ? slotsForDay.length - 1 : -1;
+      const applyRestRule = participants.length > slotsForDay.length;
 
       /**
        * hardExclude:
@@ -549,8 +792,10 @@ export function generateShifts(
        */
       const restDayExclude: Set<string> = new Set();
 
-      if (applyRestRule && state.lastNightAssigneeId) {
-        restDayExclude.add(state.lastNightAssigneeId);
+      if (applyRestRule) {
+        for (const uid of state.lastNightAssigneeIds) {
+          restDayExclude.add(uid);
+        }
       }
 
       /**
@@ -560,16 +805,16 @@ export function generateShifts(
        */
       const nightHardExclude: Set<string> = new Set();
 
-      if (applyRestRule && state.twoAgoNightAssigneeId) {
-        nightHardExclude.add(state.twoAgoNightAssigneeId);
+      if (applyRestRule) {
+        for (const uid of state.twoAgoNightAssigneeIds) {
+          nightHardExclude.add(uid);
+        }
       }
 
-      // Track who works today's rest-rule slot so the state can roll forward after the day ends.
-      let dayNightAssigneeId: string | null = null;
+      const plans: DaySlotPlan[] = [];
 
       for (let slotI = 0; slotI < slotsForDay.length; slotI++) {
         const slot = slotsForDay[slotI];
-
         const startsAt = tzDateTime(day, slot.startHour, slot.startMinute, tz);
         const rawEndsAt = tzDateTime(day, slot.endHour, slot.endMinute, tz);
 
@@ -601,66 +846,113 @@ export function generateShifts(
         const isNightForRestRule = isRestRuleSlot(slot, overnight);
         const isLateButNotNight = !isNightForRestRule && slotI === lateSlotIndex;
         const slotDayKeys = localDayKeysForWindow(startsAt, endsAt, tz);
-
         const preferredIdx = (dayBaseIdx + slotI) % participants.length;
 
-        /**
-         * Combine:
-         * - rest-day exclusion from yesterday's rest-rule slot;
-         * - already-assigned-today exclusion.
-         */
-        const currentHardExclude = new Set(restDayExclude);
-
-        for (const participant of participants) {
-          const assignedDayKeys = state.assignedDayKeysByUser.get(participant.userId);
-          if (!assignedDayKeys) continue;
-          if (slotDayKeys.some((dayKey) => assignedDayKeys.has(dayKey))) {
-            currentHardExclude.add(participant.userId);
-          }
-        }
-
-        /**
-         * Apply D+2 night exclusion only on rest-rule slots.
-         * On normal slots, the person can work again on D+2.
-         */
-        const effectiveNightExclude = isNightForRestRule ? nightHardExclude : new Set<string>();
-
-        const participant = selectParticipant(
-          participants,
-          preferredIdx,
-          { startsAt, endsAt },
+        plans.push({
+          slotI,
+          startsAt,
+          endsAt,
           isNightForRestRule,
           isLateButNotNight,
-          occupied,
-          state,
-          tz,
-          currentHardExclude,
-          effectiveNightExclude,
-          strictAssignment
-        );
-        if (!participant) {
-          throw new Error(
-            `UNASSIGNABLE_SLOT:${startsAt.toISOString()}`
+          slotDayKeys,
+          preferredIdx,
+        });
+      }
+
+      if (plans.length === 0) {
+        rollRestState(new Set());
+        continue;
+      }
+
+      const strictAssignments = strictAssignment
+        ? assignDaySlotsStrict(
+            plans,
+            participants,
+            occupied,
+            state,
+            tz,
+            restDayExclude,
+            nightHardExclude
+          )
+        : null;
+
+      if (strictAssignment && !strictAssignments) {
+        throw new Error(`UNASSIGNABLE_SLOT:${plans[0].startsAt.toISOString()}`);
+      }
+
+      const dayNightAssigneeIds = new Set<string>();
+
+      for (let planIndex = 0; planIndex < plans.length; planIndex++) {
+        const plan = plans[planIndex];
+
+        let participant: ParticipantSlot | null = null;
+
+        if (strictAssignments) {
+          const assignedIdx = strictAssignments[planIndex];
+          if (assignedIdx < 0 || assignedIdx >= participants.length) {
+            throw new Error(`UNASSIGNABLE_SLOT:${plan.startsAt.toISOString()}`);
+          }
+          participant = participants[assignedIdx];
+        } else {
+          /**
+           * Combine:
+           * - rest-day exclusion from yesterday's rest-rule slot;
+           * - already-assigned-today exclusion.
+           */
+          const currentHardExclude = new Set(restDayExclude);
+
+          for (const participantSlot of participants) {
+            const assignedDayKeys = state.assignedDayKeysByUser.get(participantSlot.userId);
+            if (!assignedDayKeys) continue;
+            if (plan.slotDayKeys.some((dayKey) => assignedDayKeys.has(dayKey))) {
+              currentHardExclude.add(participantSlot.userId);
+            }
+          }
+
+          /**
+           * Apply D+2 night exclusion only on rest-rule slots.
+           * On normal slots, the person can work again on D+2.
+           */
+          const effectiveNightExclude = plan.isNightForRestRule
+            ? nightHardExclude
+            : new Set<string>();
+
+          participant = selectParticipant(
+            participants,
+            plan.preferredIdx,
+            { startsAt: plan.startsAt, endsAt: plan.endsAt },
+            plan.isNightForRestRule,
+            plan.isLateButNotNight,
+            occupied,
+            state,
+            tz,
+            currentHardExclude,
+            effectiveNightExclude,
+            strictAssignment
           );
+        }
+
+        if (!participant) {
+          throw new Error(`UNASSIGNABLE_SLOT:${plan.startsAt.toISOString()}`);
         }
 
         shifts.push({
           assigneeId: participant.userId,
           backupId: participant.backupId,
-          startsAt,
-          endsAt,
+          startsAt: plan.startsAt,
+          endsAt: plan.endsAt,
         });
 
         recordAssignment(
           state,
           participant.userId,
-          isNightForRestRule,
-          isLateButNotNight,
-          slotDayKeys
+          plan.isNightForRestRule,
+          plan.isLateButNotNight,
+          plan.slotDayKeys
         );
 
-        if (isNightForRestRule) {
-          dayNightAssigneeId = participant.userId;
+        if (plan.isNightForRestRule) {
+          dayNightAssigneeIds.add(participant.userId);
         }
       }
 
@@ -668,15 +960,14 @@ export function generateShifts(
        * Roll rest-rule state forward by one day:
        *
        * Before:
-       *   lastNightAssigneeId = person from yesterday
-       *   twoAgoNightAssigneeId = person from two days ago
+       *   lastNightAssigneeIds = people from yesterday
+       *   twoAgoNightAssigneeIds = people from two days ago
        *
        * After:
-       *   twoAgoNightAssigneeId = old yesterday person
-       *   lastNightAssigneeId = today's rest-rule person
+       *   twoAgoNightAssigneeIds = old yesterday people
+       *   lastNightAssigneeIds = today's rest-rule people
        */
-      state.twoAgoNightAssigneeId = state.lastNightAssigneeId;
-      state.lastNightAssigneeId = dayNightAssigneeId;
+      rollRestState(dayNightAssigneeIds);
 
       dayBaseIdx = (dayBaseIdx + 1) % participants.length;
     }

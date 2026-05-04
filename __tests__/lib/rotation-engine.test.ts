@@ -302,6 +302,47 @@ describe("generateShifts", () => {
     }
   });
 
+  it("5 participants / 4 slots: strict auto assignment fills all slots without same-day duplicates", () => {
+    const policy4slot = {
+      ...basePolicy,
+      cadence: CadenceKind.DAILY,
+      shiftDurationHours: 24,
+      timezone: "UTC",
+      timeSlots: [
+        { label: "S0", startHour: 0, startMinute: 0, endHour: 8, endMinute: 0 },
+        { label: "S1", startHour: 8, startMinute: 0, endHour: 12, endMinute: 0 },
+        { label: "S2", startHour: 12, startMinute: 0, endHour: 16, endMinute: 0 },
+        { label: "S3", startHour: 16, startMinute: 0, endHour: 24, endMinute: 0 },
+      ],
+    };
+    const five = [
+      { userId: "u1" },
+      { userId: "u2" },
+      { userId: "u3" },
+      { userId: "u4" },
+      { userId: "u5" },
+    ];
+    const start = new Date("2026-01-01T00:00:00Z");
+    const end = new Date("2026-01-08T00:00:00Z"); // 7 days
+
+    const shifts = generateShifts(policy4slot, five, start, end, 0, {
+      strictAssignment: true,
+    });
+    expect(shifts).toHaveLength(28);
+
+    const byDay = new Map<string, typeof shifts>();
+    for (const shift of shifts) {
+      const key = shift.startsAt.toISOString().slice(0, 10);
+      byDay.set(key, [...(byDay.get(key) ?? []), shift]);
+    }
+
+    for (const [, dayShifts] of byDay) {
+      expect(dayShifts).toHaveLength(4);
+      const assignees = dayShifts.map((s) => s.assigneeId);
+      expect(new Set(assignees).size).toBe(assignees.length);
+    }
+  });
+
   it("D+2 rule: night-shift person cannot work the night slot two days later (4+ people, 3 slots)", () => {
     const policy3slot = {
       ...basePolicy,

@@ -37,13 +37,17 @@ export async function GET(req: NextRequest) {
     const params = req.nextUrl.searchParams;
     const teamId = params.get("teamId");
     const policyId = params.get("policyId");
+    const shiftId = params.get("shiftId");
     const limit = Number.parseInt(params.get("limit") ?? "300", 10);
+    const hasExplicitRange = params.has("start") || params.has("end");
 
     const now = new Date();
-    const rangeStart = parseDateParam(params.get("start")) ?? startOfMonth(now);
-    const rangeEnd = parseDateParam(params.get("end")) ?? endOfMonth(now);
+    const rangeStart =
+      parseDateParam(params.get("start")) ?? (shiftId && !hasExplicitRange ? null : startOfMonth(now));
+    const rangeEnd =
+      parseDateParam(params.get("end")) ?? (shiftId && !hasExplicitRange ? null : endOfMonth(now));
 
-    if (rangeEnd < rangeStart) {
+    if (rangeStart && rangeEnd && rangeEnd < rangeStart) {
       return badRequest("end phải lớn hơn hoặc bằng start");
     }
 
@@ -58,8 +62,9 @@ export async function GET(req: NextRequest) {
 
     const incidents = await prisma.incident.findMany({
       where: {
-        occurredAt: { gte: rangeStart, lte: rangeEnd },
+        ...(rangeStart && rangeEnd ? { occurredAt: { gte: rangeStart, lte: rangeEnd } } : {}),
         ...(policyId ? { policyId } : {}),
+        ...(shiftId ? { shiftId } : {}),
         ...(teamId
           ? { teamId }
           : scope.isAdmin
@@ -73,8 +78,8 @@ export async function GET(req: NextRequest) {
 
     return ok({
       incidents,
-      rangeStart,
-      rangeEnd,
+      rangeStart: rangeStart ?? null,
+      rangeEnd: rangeEnd ?? null,
       count: incidents.length,
     });
   } catch (error) {

@@ -9,6 +9,7 @@ import { MonthNav } from "@/components/schedule/month-nav";
 import { WeekTimeline } from "@/components/schedule/week-timeline";
 import { OverrideShiftModal } from "./override-shift-modal";
 import { getAutoScheduleWarningMessage, hasAutoScheduleWarning } from "@/lib/rotation/auto-schedule-warning";
+import { ShiftIncidentsPanel } from "./shift-incidents-panel";
 
 export interface ShiftBlock {
   id: string;
@@ -45,6 +46,12 @@ interface Team {
   name: string;
 }
 
+interface PolicyOption {
+  id: string;
+  name: string;
+  teamId: string;
+}
+
 type ViewMode = "week" | "2week" | "month";
 
 interface Props {
@@ -55,6 +62,8 @@ interface Props {
   teamMembers: TeamMember[];
   myTeams: Team[];
   teamId?: string;
+  policyId?: string;
+  policyOptions: PolicyOption[];
 }
 
 const CONFIRMATION_STATUS: Record<string, { label: string; className: string }> = {
@@ -143,6 +152,8 @@ export function ScheduleView({
   teamMembers,
   myTeams,
   teamId,
+  policyId,
+  policyOptions,
 }: Props) {
   const [view, setView] = useState<ViewMode>("month");
   const [highlightMe, setHighlightMe] = useState(false);
@@ -253,6 +264,7 @@ export function ScheduleView({
                 const url = new URL(window.location.href);
                 if (e.target.value) url.searchParams.set("teamId", e.target.value);
                 else url.searchParams.delete("teamId");
+                url.searchParams.delete("policyId");
                 window.location.href = url.toString();
               }}
               className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700"
@@ -261,6 +273,29 @@ export function ScheduleView({
               {myTeams.map((t) => (
                 <option key={t.id} value={t.id}>{t.name}</option>
               ))}
+            </select>
+          )}
+
+          {/* Policy filter */}
+          {policyOptions.length > 0 && (
+            <select
+              defaultValue={policyId ?? ""}
+              onChange={(e) => {
+                const url = new URL(window.location.href);
+                if (e.target.value) url.searchParams.set("policyId", e.target.value);
+                else url.searchParams.delete("policyId");
+                window.location.href = url.toString();
+              }}
+              className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700"
+            >
+              <option value="">Tất cả chính sách</option>
+              {policyOptions
+                .filter((policy) => !teamId || policy.teamId === teamId)
+                .map((policy) => (
+                  <option key={policy.id} value={policy.id}>
+                    {policy.name}
+                  </option>
+                ))}
             </select>
           )}
 
@@ -544,6 +579,7 @@ function ShiftDetailModal({
   onClose,
   isManager,
   currentUserId,
+  teamMembers,
   onOverride,
 }: {
   shift: ShiftBlock;
@@ -1063,6 +1099,18 @@ function ShiftDetailModal({
             )}
           </div>
         )}
+
+        <div className="px-5 py-4 border-b border-gray-100">
+          <ShiftIncidentsPanel
+            shiftId={shift.id}
+            teamId={shift.teamId}
+            policyId={shift.policyId}
+            assigneeId={shift.assigneeId}
+            startsAt={shift.startsAt}
+            teamMembers={teamMembers ?? []}
+            canManage={isMe || Boolean(isManager)}
+          />
+        </div>
 
         {/* Checklist */}
         <div className="px-5 py-4">

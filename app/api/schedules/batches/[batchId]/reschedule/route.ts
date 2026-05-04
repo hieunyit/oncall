@@ -345,6 +345,14 @@ async function buildPriorState(
 
   // Night shift on the day immediately before cutoff (rest-day rule: they skip cutoff day)
   const dayBeforeKey = localDayKey(subDays(cutoff, 1), tz);
+  const nightYesterdayIds = [...new Set(
+    recentShifts
+      .filter(
+        (s) => localDayKey(s.startsAt, tz) === dayBeforeKey && isNightShiftTime(s.startsAt, s.endsAt, tz)
+      )
+      .map((s) => s.assigneeId)
+  )];
+
   const nightYesterday = recentShifts.find(
     (s) => localDayKey(s.startsAt, tz) === dayBeforeKey && isNightShiftTime(s.startsAt, s.endsAt, tz)
   );
@@ -352,6 +360,16 @@ async function buildPriorState(
 
   // Night shift two days before cutoff (D+2 rule: they skip the night slot on cutoff day)
   const twoDaysBeforeKey = localDayKey(subDays(cutoff, 2), tz);
+  const nightTwoDaysAgoIds = [...new Set(
+    recentShifts
+      .filter(
+        (s) =>
+          localDayKey(s.startsAt, tz) === twoDaysBeforeKey &&
+          isNightShiftTime(s.startsAt, s.endsAt, tz)
+      )
+      .map((s) => s.assigneeId)
+  )];
+
   const nightTwoDaysAgo = recentShifts.find(
     (s) =>
       localDayKey(s.startsAt, tz) === twoDaysBeforeKey &&
@@ -367,5 +385,7 @@ async function buildPriorState(
     previousNightAssigneeId,
     lastNightAssigneeId,
     twoAgoNightAssigneeId,
+    lastNightAssigneeIds: nightYesterdayIds,
+    twoAgoNightAssigneeIds: nightTwoDaysAgoIds,
   };
 }

@@ -421,6 +421,16 @@ async function buildPriorState(
   const previousNightAssigneeId = lastNightShift?.assigneeId ?? null;
 
   const dayBeforeKey = localDayKey(subDays(rangeStart, 1), tz);
+  const nightYesterdayIds = [...new Set(
+    recentShifts
+      .filter(
+        (s) =>
+          localDayKey(s.startsAt, tz) === dayBeforeKey &&
+          isNightShiftTime(s.startsAt, s.endsAt, tz)
+      )
+      .map((s) => s.assigneeId)
+  )];
+
   const nightYesterday = recentShifts.find(
     (s) =>
       localDayKey(s.startsAt, tz) === dayBeforeKey &&
@@ -428,6 +438,16 @@ async function buildPriorState(
   );
 
   const twoDaysBeforeKey = localDayKey(subDays(rangeStart, 2), tz);
+  const nightTwoDaysAgoIds = [...new Set(
+    recentShifts
+      .filter(
+        (s) =>
+          localDayKey(s.startsAt, tz) === twoDaysBeforeKey &&
+          isNightShiftTime(s.startsAt, s.endsAt, tz)
+      )
+      .map((s) => s.assigneeId)
+  )];
+
   const nightTwoDaysAgo = recentShifts.find(
     (s) =>
       localDayKey(s.startsAt, tz) === twoDaysBeforeKey &&
@@ -439,5 +459,7 @@ async function buildPriorState(
     previousNightAssigneeId,
     lastNightAssigneeId: nightYesterday?.assigneeId ?? null,
     twoAgoNightAssigneeId: nightTwoDaysAgo?.assigneeId ?? null,
+    lastNightAssigneeIds: nightYesterdayIds,
+    twoAgoNightAssigneeIds: nightTwoDaysAgoIds,
   };
 }
