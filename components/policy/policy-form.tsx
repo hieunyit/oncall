@@ -50,6 +50,21 @@ interface PolicyFormProps {
 
 const MINUTES = Array.from({ length: 60 }, (_, m) => m);
 
+function csvEscape(value: string): string {
+  return `"${value.replace(/"/g, "\"\"")}"`;
+}
+
+function triggerFileDownload(blob: Blob, fileName: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
 export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], initialData }: PolicyFormProps) {
   const router = useRouter();
   const isEdit = !!initialData;
@@ -97,6 +112,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
   const [rescheduling, setRescheduling] = useState(false);
   const [rescheduleResult, setRescheduleResult] = useState<{ removedShifts: number; newShifts: number } | null>(null);
   const [rescheduleError, setRescheduleError] = useState<string | null>(null);
+  const [importCsvFile, setImportCsvFile] = useState<File | null>(null);
 
   function set(field: string, value: string | number) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -155,6 +171,44 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
         return { ...slot, daysOfWeek: next.length === 7 ? [] : next };
       })
     );
+  }
+
+  function downloadCsvImportTemplate() {
+    const headers = [
+      "startDate",
+      "startTime",
+      "endDate",
+      "endTime",
+      "assignee",
+      "backup",
+      "notes",
+    ];
+    const sampleRows = [
+      [
+        "2026-06-01",
+        "08:00",
+        "2026-06-01",
+        "20:00",
+        "member1@example.com",
+        "member2@example.com",
+        "Ca ngày",
+      ],
+      [
+        "2026-06-01",
+        "20:00",
+        "2026-06-02",
+        "08:00",
+        "member2@example.com",
+        "member3@example.com",
+        "Ca đêm",
+      ],
+    ];
+    const csv = [
+      headers.join(","),
+      ...sampleRows.map((row) => row.map((value) => csvEscape(value)).join(",")),
+    ].join("\r\n");
+    const blob = new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8;" });
+    triggerFileDownload(blob, "mau-import-ca-truc.csv");
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -220,7 +274,72 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
       }
       setLoading(false);
     } else {
-      router.push(`/policies/${data.data.id}`);
+      const createdPolicyId = data?.data?.id as string | undefined;
+      if (!createdPolicyId) {
+        setError("Không nhận được policy id sau khi tạo chính sách");
+        setLoading(false);
+        return;
+      }
+
+      if (importCsvFile) {
+        const importForm = new FormData();
+        importForm.append("policyId", createdPolicyId);
+        importForm.append("file", importCsvFile);
+
+        const importRes = await fetch("/api/schedules/import", {
+          method: "POST",
+          body: importForm,
+        });
+        const importPayload = await importRes.json().catch(() => ({}));
+
+        if (!importRes.ok) {
+          const message =
+            importPayload && typeof importPayload === "object" && "error" in importPayload
+              ? String((importPayload as { error?: unknown }).error ?? "")
+              : "Import CSV thất bại";
+          const details =
+            importPayload &&
+            typeof importPayload === "object" &&
+            "details" in importPayload &&
+            Array.isArray((importPayload as { details?: unknown }).details)
+              ? ((importPayload as { details?: Array<{ line?: number; message?: string }> }).details ?? [])
+                  .slice(0, 5)
+                  .map((item) => {
+                    if (!item) return null;
+                    if (!item.message) return null;
+                    return `Dòng ${item.line ?? "?"}: ${item.message}`;
+                  })
+                  .filter((line): line is string => Boolean(line))
+                  .join("\n")
+              : "";
+
+          alert(
+            details
+              ? `Tạo chính sách thành công nhưng import ca thất bại:\n${message}\n${details}`
+              : `Tạo chính sách thành công nhưng import ca thất bại:\n${message}`
+          );
+          router.push(`/policies/${createdPolicyId}`);
+          return;
+        }
+
+        const importedCount =
+          importPayload &&
+          typeof importPayload === "object" &&
+          "data" in importPayload &&
+          importPayload.data &&
+          typeof importPayload.data === "object" &&
+          "importedShiftCount" in importPayload.data
+            ? Number((importPayload.data as { importedShiftCount?: unknown }).importedShiftCount ?? 0)
+            : 0;
+
+        alert(
+          importedCount > 0
+            ? `Tạo chính sách và import thành công ${importedCount} ca trực.`
+            : "Tạo chính sách và import thành công."
+        );
+      }
+
+      router.push(`/policies/${createdPolicyId}`);
     }
   }
 
@@ -396,6 +515,38 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
           className="input"
         />
       </Field>
+
+      {!isEdit && (
+        <Field label="Import ca trực từ CSV (tùy chọn)">
+          <div className="rounded-lg border border-gray-200 p-3 space-y-2 bg-gray-50/60">
+            <p className="text-xs text-gray-600">
+              Định dạng bắt buộc theo cột tách riêng:{" "}
+              <code className="text-[11px]">startDate,startTime,endDate,endTime,assignee,backup,notes</code>
+            </p>
+            <p className="text-xs text-gray-500">
+              `startDate/endDate`: `yyyy-MM-dd` hoặc `dd/MM/yyyy`; `startTime/endTime`: `HH:mm`
+            </p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={downloadCsvImportTemplate}
+                className="text-xs px-2.5 py-1.5 border border-gray-300 rounded bg-white text-gray-700 hover:bg-gray-100"
+              >
+                Tải mẫu CSV
+              </button>
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                onChange={(e) => setImportCsvFile(e.target.files?.[0] ?? null)}
+                className="text-xs text-gray-700 file:mr-2 file:rounded file:border file:border-gray-300 file:bg-white file:px-2 file:py-1 file:text-xs file:text-gray-700 hover:file:bg-gray-100"
+              />
+              {importCsvFile && (
+                <span className="text-xs text-gray-600">Đã chọn: {importCsvFile.name}</span>
+              )}
+            </div>
+          </div>
+        </Field>
+      )}
 
       <Field label="Chu kỳ">
         <select value={form.cadence} onChange={(e) => set("cadence", e.target.value)} className="input">

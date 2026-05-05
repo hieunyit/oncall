@@ -16,9 +16,9 @@ import { scheduleAllRemindersForBatchSafe } from "@/lib/queue/scheduler";
 import { notifyAssigneesScheduleUpdated } from "@/lib/notifications/notify-assignees";
 import { writeAuditLog } from "@/lib/audit";
 import {
+  combineScheduleDateTime,
   normalizeScheduleIdentity,
   parseScheduleCsv,
-  parseScheduleDateTime,
 } from "@/lib/schedule/csv-import";
 import {
   filterTeamMembersByPolicySelection,
@@ -216,15 +216,23 @@ export async function POST(req: NextRequest) {
     const shiftDrafts: ShiftDraft[] = [];
 
     for (const row of parsed.rows) {
-      const startsAt = parseScheduleDateTime(row.startsAtText);
+      const startsAt = combineScheduleDateTime(row.startDateText, row.startTimeText);
       if (!startsAt) {
-        pushError(rowErrors, row.line, `startsAt "${row.startsAtText}" không đúng định dạng`);
+        pushError(
+          rowErrors,
+          row.line,
+          `startDate/startTime "${row.startDateText} ${row.startTimeText}" không đúng định dạng`
+        );
         continue;
       }
 
-      const endsAt = parseScheduleDateTime(row.endsAtText);
+      const endsAt = combineScheduleDateTime(row.endDateText, row.endTimeText);
       if (!endsAt) {
-        pushError(rowErrors, row.line, `endsAt "${row.endsAtText}" không đúng định dạng`);
+        pushError(
+          rowErrors,
+          row.line,
+          `endDate/endTime "${row.endDateText} ${row.endTimeText}" không đúng định dạng`
+        );
         continue;
       }
 

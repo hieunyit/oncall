@@ -1,9 +1,18 @@
-export type ScheduleCsvField = "startsAt" | "endsAt" | "assignee" | "backup" | "notes";
+export type ScheduleCsvField =
+  | "startDate"
+  | "startTime"
+  | "endDate"
+  | "endTime"
+  | "assignee"
+  | "backup"
+  | "notes";
 
 export type ScheduleCsvRow = {
   line: number;
-  startsAtText: string;
-  endsAtText: string;
+  startDateText: string;
+  startTimeText: string;
+  endDateText: string;
+  endTimeText: string;
   assigneeText: string;
   backupText: string | null;
   notes: string | null;
@@ -20,26 +29,42 @@ type ParseCsvResult = {
   unclosedQuote: boolean;
 };
 
-const REQUIRED_FIELDS: ScheduleCsvField[] = ["startsAt", "endsAt", "assignee"];
+const REQUIRED_FIELDS: ScheduleCsvField[] = [
+  "startDate",
+  "startTime",
+  "endDate",
+  "endTime",
+  "assignee",
+];
 
 const HEADER_ALIASES: Record<ScheduleCsvField, string[]> = {
-  startsAt: [
-    "startsat",
-    "start",
-    "from",
-    "batdau",
-    "thoigianbatdau",
-    "gio bat dau",
-    "gio batdau",
+  startDate: [
+    "startdate",
+    "ngaybatdau",
+    "batdaungay",
+    "ngaybatdauca",
+    "startday",
   ],
-  endsAt: [
-    "endsat",
-    "end",
-    "to",
-    "ketthuc",
-    "thoigianketthuc",
-    "gio ket thuc",
-    "gio ketthuc",
+  startTime: [
+    "starttime",
+    "giobatdau",
+    "batdaugio",
+    "giobatdauca",
+    "starthour",
+  ],
+  endDate: [
+    "enddate",
+    "ngayketthuc",
+    "ketthucngay",
+    "ngayketthucca",
+    "endday",
+  ],
+  endTime: [
+    "endtime",
+    "gioketthuc",
+    "ketthucgio",
+    "gioketthucca",
+    "endhour",
   ],
   assignee: [
     "assignee",
@@ -47,8 +72,7 @@ const HEADER_ALIASES: Record<ScheduleCsvField, string[]> = {
     "email",
     "emailassignee",
     "nguoitruc",
-    "nguoitruc",
-    "nguoi truc",
+    "nguoiphutrach",
   ],
   backup: [
     "backup",
@@ -56,9 +80,8 @@ const HEADER_ALIASES: Record<ScheduleCsvField, string[]> = {
     "emailbackup",
     "duphong",
     "nguoiduphong",
-    "nguoi du phong",
   ],
-  notes: ["notes", "note", "ghichu", "ghi chu"],
+  notes: ["notes", "note", "ghichu"],
 };
 
 function normalizeText(value: string): string {
@@ -135,47 +158,56 @@ function detectHeaderField(rawHeader: string): ScheduleCsvField | null {
   return null;
 }
 
-export function parseScheduleDateTime(value: string): Date | null {
+export function parseScheduleDate(value: string): Date | null {
   const input = value.trim();
   if (!input) return null;
 
-  const isoLike = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2})?([.]\d{1,3})?([zZ]|[+-]\d{2}:\d{2})?$/;
-  if (isoLike.test(input)) {
-    const normalized = input.includes(" ") ? input.replace(" ", "T") : input;
-    const parsed = new Date(normalized);
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-  }
-
-  const ymd = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/;
+  const ymd = /^(\d{4})-(\d{2})-(\d{2})$/;
   const ymdMatch = input.match(ymd);
   if (ymdMatch) {
-    const [, year, month, day, hour, minute, second] = ymdMatch;
-    return new Date(
-      Number(year),
-      Number(month) - 1,
-      Number(day),
-      Number(hour),
-      Number(minute),
-      Number(second ?? "0")
-    );
+    const [, year, month, day] = ymdMatch;
+    const date = new Date(Number(year), Number(month) - 1, Number(day), 0, 0, 0, 0);
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
-  const dmy = /^(\d{2})\/(\d{2})\/(\d{4})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/;
+  const dmy = /^(\d{2})\/(\d{2})\/(\d{4})$/;
   const dmyMatch = input.match(dmy);
   if (dmyMatch) {
-    const [, day, month, year, hour, minute, second] = dmyMatch;
-    return new Date(
-      Number(year),
-      Number(month) - 1,
-      Number(day),
-      Number(hour),
-      Number(minute),
-      Number(second ?? "0")
-    );
+    const [, day, month, year] = dmyMatch;
+    const date = new Date(Number(year), Number(month) - 1, Number(day), 0, 0, 0, 0);
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
-  const parsed = new Date(input);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
+  return null;
+}
+
+export function parseScheduleTime(value: string): { hour: number; minute: number; second: number } | null {
+  const input = value.trim();
+  if (!input) return null;
+
+  const timePattern = /^(\d{2}):(\d{2})(?::(\d{2}))?$/;
+  const match = input.match(timePattern);
+  if (!match) return null;
+
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  const second = Number(match[3] ?? "0");
+
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59 || second < 0 || second > 59) {
+    return null;
+  }
+
+  return { hour, minute, second };
+}
+
+export function combineScheduleDateTime(dateText: string, timeText: string): Date | null {
+  const date = parseScheduleDate(dateText);
+  const time = parseScheduleTime(timeText);
+  if (!date || !time) return null;
+
+  const combined = new Date(date);
+  combined.setHours(time.hour, time.minute, time.second, 0);
+  return Number.isNaN(combined.getTime()) ? null : combined;
 }
 
 export function parseScheduleCsv(content: string): {
@@ -232,19 +264,27 @@ export function parseScheduleCsv(content: string): {
     if (!row || isRowEmpty(row)) continue;
 
     const line = index + 1;
-    const startsAtText = (row[fieldIndexes.startsAt!] ?? "").trim();
-    const endsAtText = (row[fieldIndexes.endsAt!] ?? "").trim();
+    const startDateText = (row[fieldIndexes.startDate!] ?? "").trim();
+    const startTimeText = (row[fieldIndexes.startTime!] ?? "").trim();
+    const endDateText = (row[fieldIndexes.endDate!] ?? "").trim();
+    const endTimeText = (row[fieldIndexes.endTime!] ?? "").trim();
     const assigneeText = (row[fieldIndexes.assignee!] ?? "").trim();
     const backupTextRaw =
       fieldIndexes.backup !== undefined ? (row[fieldIndexes.backup] ?? "").trim() : "";
     const notesRaw =
       fieldIndexes.notes !== undefined ? (row[fieldIndexes.notes] ?? "").trim() : "";
 
-    if (!startsAtText) {
-      errors.push({ line, field: "startsAt", message: "Thiếu startsAt" });
+    if (!startDateText) {
+      errors.push({ line, field: "startDate", message: "Thiếu startDate" });
     }
-    if (!endsAtText) {
-      errors.push({ line, field: "endsAt", message: "Thiếu endsAt" });
+    if (!startTimeText) {
+      errors.push({ line, field: "startTime", message: "Thiếu startTime" });
+    }
+    if (!endDateText) {
+      errors.push({ line, field: "endDate", message: "Thiếu endDate" });
+    }
+    if (!endTimeText) {
+      errors.push({ line, field: "endTime", message: "Thiếu endTime" });
     }
     if (!assigneeText) {
       errors.push({ line, field: "assignee", message: "Thiếu assignee" });
@@ -252,8 +292,10 @@ export function parseScheduleCsv(content: string): {
 
     parsedRows.push({
       line,
-      startsAtText,
-      endsAtText,
+      startDateText,
+      startTimeText,
+      endDateText,
+      endTimeText,
       assigneeText,
       backupText: backupTextRaw || null,
       notes: notesRaw || null,
