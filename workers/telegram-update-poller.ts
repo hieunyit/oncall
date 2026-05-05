@@ -13,12 +13,32 @@ function parsePositiveInt(raw: string | undefined, fallback: number): number {
   return Math.floor(parsed);
 }
 
+function isPlaceholderToken(token: string): boolean {
+  return (
+    token === "your-telegram-bot-token" ||
+    token.startsWith("your-") ||
+    token === "CHANGE_ME" ||
+    token === "xxx" ||
+    !token.includes(":")
+  );
+}
+
 export function startTelegramUpdatePoller(): Closable {
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
   if (!token) {
     console.warn("[telegram-poller] TELEGRAM_BOT_TOKEN is missing. Poller is disabled.");
     return { close: async () => {} };
   }
+  if (isPlaceholderToken(token)) {
+    console.warn(
+      "[telegram-poller] TELEGRAM_BOT_TOKEN looks like a placeholder (%s). " +
+      "Get a real token from @BotFather and update your .env file. Poller is disabled.",
+      token
+    );
+    return { close: async () => {} };
+  }
+
+  console.log("[telegram-poller] Starting (poll interval: %dms).", parsePositiveInt(process.env.TELEGRAM_POLL_INTERVAL_MS, 2000));
 
   const pollIntervalMs = parsePositiveInt(process.env.TELEGRAM_POLL_INTERVAL_MS, 2000);
   const pollLimit = parsePositiveInt(process.env.TELEGRAM_POLL_LIMIT, 100);
