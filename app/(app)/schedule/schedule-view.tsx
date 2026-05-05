@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   format,
   addDays,
@@ -207,6 +207,7 @@ export function ScheduleView({
   policyId,
   policyOptions,
 }: Props) {
+  const router = useRouter();
   const [view, setView] = useState<ViewMode>("month");
   const [highlightMe, setHighlightMe] = useState(false);
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
@@ -219,6 +220,8 @@ export function ScheduleView({
   const [overrideShift, setOverrideShift] = useState<ShiftBlock | null>(null);
   const [selectedShift, setSelectedShift] = useState<ShiftBlock | null>(null);
   const [selectedDay, setSelectedDay] = useState<{ date: Date; shifts: ShiftBlock[] } | null>(null);
+  const [importingCsv, setImportingCsv] = useState(false);
+  const importFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const numDays = view === "2week" ? 14 : 7;
 
@@ -413,8 +416,126 @@ export function ScheduleView({
     triggerFileDownload(blob, `${exportFilePrefix}.xls`);
   }, [exportFilePrefix, exportRows]);
 
+  const handleDownloadImportTemplate = useCallback(() => {
+    const headers = ["startsAt", "endsAt", "assignee", "backup", "notes"];
+    const sampleRows = [
+      [
+        "2026-06-01 08:00",
+        "2026-06-01 20:00",
+        "member1@example.com",
+        "member2@example.com",
+        "Ca ngày",
+      ],
+      [
+        "2026-06-01 20:00",
+        "2026-06-02 08:00",
+        "member2@example.com",
+        "member3@example.com",
+        "Ca đêm",
+      ],
+    ];
+
+    const csv = [headers.join(","), ...sampleRows.map((row) => row.map(csvEscape).join(","))].join("\r\n");
+    const blob = new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8;" });
+    triggerFileDownload(blob, "mau-import-lich-truc.csv");
+  }, []);
+
+  const handleOpenImportPicker = useCallback(() => {
+    if (!policyId) {
+      alert("Vui lòng chọn chính sách trước khi import CSV.");
+      return;
+    }
+    importFileInputRef.current?.click();
+  }, [policyId]);
+
+  const handleImportCsvFile = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const input = event.target;
+      const file = input.files?.[0];
+      if (!file) return;
+
+      if (!policyId) {
+        alert("Vui lòng chọn chính sách trước khi import CSV.");
+        input.value = "";
+        return;
+      }
+
+      setImportingCsv(true);
+      try {
+        const formData = new FormData();
+        formData.append("policyId", policyId);
+        formData.append("file", file);
+
+        const response = await fetch("/api/schedules/import", {
+          method: "POST",
+          body: formData,
+        });
+        const payload = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          const fallback = "Import CSV thất bại";
+          const message =
+            payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string"
+              ? payload.error
+              : fallback;
+
+          const detailsText =
+            payload &&
+            typeof payload === "object" &&
+            "details" in payload &&
+            Array.isArray(payload.details)
+              ? payload.details
+                  .slice(0, 5)
+                  .map((detail: unknown) => {
+                    if (!detail || typeof detail !== "object") return null;
+                    const line = "line" in detail ? String((detail as { line?: unknown }).line) : "?";
+                    const detailMessage =
+                      "message" in detail ? String((detail as { message?: unknown }).message) : "";
+                    return detailMessage ? `Dòng ${line}: ${detailMessage}` : null;
+                  })
+                  .filter((line: string | null): line is string => Boolean(line))
+                  .join("\n")
+              : "";
+
+          alert(detailsText ? `${message}\n${detailsText}` : message);
+          return;
+        }
+
+        const importedCount =
+          payload &&
+          typeof payload === "object" &&
+          "data" in payload &&
+          payload.data &&
+          typeof payload.data === "object" &&
+          "importedShiftCount" in payload.data &&
+          typeof payload.data.importedShiftCount === "number"
+            ? payload.data.importedShiftCount
+            : null;
+
+        alert(
+          importedCount != null
+            ? `Import CSV thành công ${importedCount} ca trực.`
+            : "Import CSV thành công."
+        );
+        router.refresh();
+      } finally {
+        setImportingCsv(false);
+        input.value = "";
+      }
+    },
+    [policyId, router]
+  );
+
   return (
     <>
+      <input
+        ref={importFileInputRef}
+        type="file"
+        accept=".csv,text/csv"
+        className="hidden"
+        onChange={handleImportCsvFile}
+      />
+
       {/* Stats bar */}
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl border border-indigo-100">
         <div className="flex items-center gap-2">
@@ -542,6 +663,23 @@ export function ScheduleView({
           </button>
 
           <div className="flex items-center gap-2">
+            {isManager && (
+              <>
+                <button
+                  onClick={handleDownloadImportTemplate}
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                >
+                  Mẫu import CSV
+                </button>
+                <button
+                  onClick={handleOpenImportPicker}
+                  disabled={importingCsv}
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {importingCsv ? "Đang import..." : "Import CSV"}
+                </button>
+              </>
+            )}
             <button
               onClick={handleExportCsv}
               disabled={exportRows.length === 0}
