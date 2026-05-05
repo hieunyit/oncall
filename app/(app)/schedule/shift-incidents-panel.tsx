@@ -39,18 +39,18 @@ type IncidentItem = {
 };
 
 const STATUS_LABELS: Record<IncidentStatus, string> = {
-  OPEN: "Moi mo",
-  INVESTIGATING: "Dang dieu tra",
-  MITIGATED: "Da giam thieu",
-  RESOLVED: "Da khac phuc",
-  CLOSED: "Dong",
+  OPEN: "Mới mở",
+  INVESTIGATING: "Đang điều tra",
+  MITIGATED: "Đã giảm thiểu",
+  RESOLVED: "Đã khắc phục",
+  CLOSED: "Đóng",
 };
 
 const SEVERITY_LABELS: Record<IncidentSeverity, string> = {
-  LOW: "Thap",
-  MEDIUM: "Trung binh",
+  LOW: "Thấp",
+  MEDIUM: "Trung bình",
   HIGH: "Cao",
-  CRITICAL: "Nghiem trong",
+  CRITICAL: "Nghiêm trọng",
 };
 
 const ATTACHMENT_KIND_LABELS: Record<IncidentAttachment["kind"], string> = {
@@ -158,12 +158,12 @@ export function ShiftIncidentsPanel({
       const res = await fetch(`/api/incidents?${params.toString()}`);
       const payload = await res.json();
       if (!res.ok) {
-        throw new Error(payload.error ?? "Khong the tai incident");
+        throw new Error(payload.error ?? "Không thể tải incident");
       }
       const incidentList = (payload.data?.incidents ?? payload.incidents ?? []) as IncidentItem[];
       setIncidents(incidentList);
     } catch (fetchError) {
-      setError(fetchError instanceof Error ? fetchError.message : "Khong the tai incident");
+      setError(fetchError instanceof Error ? fetchError.message : "Không thể tải incident");
       setIncidents([]);
     } finally {
       setLoading(false);
@@ -208,12 +208,12 @@ export function ShiftIncidentsPanel({
       });
       const createPayload = await createRes.json();
       if (!createRes.ok) {
-        throw new Error(createPayload.error ?? "Khong the tao incident");
+        throw new Error(createPayload.error ?? "Không thể tạo incident");
       }
 
       const createdIncidentId = createPayload.data?.id ?? createPayload.id;
       if (!createdIncidentId) {
-        throw new Error("Khong lay duoc incident id");
+        throw new Error("Không lấy được incident id");
       }
 
       if (createFiles && createFiles.length > 0) {
@@ -225,7 +225,7 @@ export function ShiftIncidentsPanel({
         });
         const uploadPayload = await uploadRes.json();
         if (!uploadRes.ok) {
-          throw new Error(uploadPayload.error ?? "Tai file incident that bai");
+          throw new Error(uploadPayload.error ?? "Tải file incident thất bại");
         }
       }
 
@@ -243,7 +243,7 @@ export function ShiftIncidentsPanel({
       });
       await fetchIncidents();
     } catch (createError) {
-      setError(createError instanceof Error ? createError.message : "Khong the tao incident");
+      setError(createError instanceof Error ? createError.message : "Không thể tạo incident");
     } finally {
       setBusy(false);
     }
@@ -268,12 +268,12 @@ export function ShiftIncidentsPanel({
       });
       const payload = await res.json();
       if (!res.ok) {
-        throw new Error(payload.error ?? "Khong the cap nhat incident");
+        throw new Error(payload.error ?? "Không thể cập nhật incident");
       }
       await fetchIncidents();
       setStatusNoteDraft((prev) => ({ ...prev, [incident.id]: "" }));
     } catch (updateError) {
-      setError(updateError instanceof Error ? updateError.message : "Khong the cap nhat incident");
+      setError(updateError instanceof Error ? updateError.message : "Không thể cập nhật incident");
     } finally {
       setUpdatingId(null);
     }
@@ -283,9 +283,9 @@ export function ShiftIncidentsPanel({
     <section className="rounded-xl border border-slate-200 bg-white p-3 space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h3 className="text-sm font-semibold text-slate-900">Incident theo ca truc</h3>
+          <h3 className="text-sm font-semibold text-slate-900">Incident theo ca trực</h3>
           <p className="text-xs text-slate-500">
-            {stats.total} incident · {stats.open} dang mo · {stats.critical} critical
+            {stats.total} incident · {stats.open} đang mở · {stats.critical} critical
           </p>
         </div>
         {canCreate && (
@@ -294,14 +294,14 @@ export function ShiftIncidentsPanel({
             onClick={() => setOpenCreate(true)}
             className="rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-slate-800"
           >
-            + Tao incident
+            + Tạo incident
           </button>
         )}
       </div>
 
       {!canCreate && (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-2 text-xs text-amber-700">
-          Chi nguoi dang truc ca nay moi duoc tao incident/report.
+          Chỉ người đang trực ca này mới được tạo incident/report.
         </p>
       )}
 
@@ -312,10 +312,10 @@ export function ShiftIncidentsPanel({
       )}
 
       {loading ? (
-        <p className="text-xs text-slate-500">Dang tai incident...</p>
+        <p className="text-xs text-slate-500">Đang tải incident...</p>
       ) : incidents.length === 0 ? (
         <div className="rounded-lg border border-dashed border-slate-300 px-3 py-4 text-xs text-slate-500">
-          Chua co incident nao gan voi ca truc nay.
+          Chưa có incident nào gắn với ca trực này.
         </div>
       ) : (
         <div className="space-y-2">
@@ -415,7 +415,7 @@ export function ShiftIncidentsPanel({
                       onChange={(e) =>
                         setStatusNoteDraft((prev) => ({ ...prev, [incident.id]: e.target.value }))
                       }
-                      placeholder="Ghi chu chuyen trang thai..."
+                      placeholder="Ghi chú chuyển trạng thái..."
                       className="input text-xs"
                     />
                     <button
@@ -424,19 +424,19 @@ export function ShiftIncidentsPanel({
                       disabled={isUpdating}
                       className="rounded-lg border border-slate-300 px-2 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
                     >
-                      {isUpdating ? "Dang luu..." : "Cap nhat"}
+                      {isUpdating ? "Đang lưu..." : "Cập nhật"}
                     </button>
                   </div>
                 )}
 
                 {incident.lifecycleEvents.length > 0 && (
                   <div className="mt-2 border-t border-slate-100 pt-2">
-                    <p className="text-[10px] uppercase tracking-wide text-slate-500">Vong doi</p>
+                    <p className="text-[10px] uppercase tracking-wide text-slate-500">Vòng đời</p>
                     <div className="mt-1 space-y-1">
                       {incident.lifecycleEvents.slice(-3).map((event) => (
                         <p key={event.id} className="text-[11px] text-slate-600">
                           {format(new Date(event.createdAt), "HH:mm dd/MM")} ·{" "}
-                          {event.fromStatus ? STATUS_LABELS[event.fromStatus] : "Khoi tao"} {"->"}{" "}
+                          {event.fromStatus ? STATUS_LABELS[event.fromStatus] : "Khởi tạo"} {"->"}{" "}
                           {STATUS_LABELS[event.toStatus]} · {event.changedBy.fullName}
                           {event.note ? ` · ${event.note}` : ""}
                         </p>
@@ -457,29 +457,29 @@ export function ShiftIncidentsPanel({
             className="w-full max-w-xl rounded-xl border border-slate-200 bg-white p-4 shadow-2xl"
           >
             <div className="mb-3 flex items-center justify-between">
-              <h4 className="text-base font-semibold text-slate-900">Tao incident cho ca truc</h4>
+              <h4 className="text-base font-semibold text-slate-900">Tạo incident cho ca trực</h4>
               <button
                 type="button"
                 onClick={() => setOpenCreate(false)}
                 className="rounded border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:bg-slate-50"
               >
-                Dong
+                Đóng
               </button>
             </div>
 
             <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <label className="mb-1 block text-xs font-medium text-slate-600">Tieu de</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600">Tiêu đề</label>
                 <input
                   value={createForm.title}
                   onChange={(e) => setCreateForm((prev) => ({ ...prev, title: e.target.value }))}
                   className="input text-sm"
-                  placeholder="Vi du: Loi API gay timeout dien rong"
+                  placeholder="Ví dụ: Lỗi API gây timeout diện rộng"
                   required
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">Muc do</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600">Mức độ</label>
                 <select
                   value={createForm.severity}
                   onChange={(e) =>
@@ -498,7 +498,7 @@ export function ShiftIncidentsPanel({
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">Thoi diem xay ra</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600">Thời điểm xảy ra</label>
                 <input
                   type="datetime-local"
                   value={createForm.occurredAt}
@@ -508,13 +508,13 @@ export function ShiftIncidentsPanel({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">Nguoi phu trach</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600">Người phụ trách</label>
                 <select
                   value={createForm.assigneeId}
                   onChange={(e) => setCreateForm((prev) => ({ ...prev, assigneeId: e.target.value }))}
                   className="input text-sm"
                 >
-                  <option value="">Chua gan</option>
+                  <option value="">Chưa gán</option>
                   {teamMembers.map((member) => (
                     <option key={member.id} value={member.id}>
                       {member.fullName}
@@ -523,7 +523,7 @@ export function ShiftIncidentsPanel({
                 </select>
               </div>
               <div className="sm:col-span-2">
-                <label className="mb-1 block text-xs font-medium text-slate-600">Mo ta</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600">Mô tả</label>
                 <textarea
                   value={createForm.description}
                   onChange={(e) =>
@@ -531,7 +531,7 @@ export function ShiftIncidentsPanel({
                   }
                   rows={3}
                   className="input text-sm"
-                  placeholder="Tac dong, trieu chung, pham vi anh huong..."
+                  placeholder="Tác động, triệu chứng, phạm vi ảnh hưởng..."
                 />
               </div>
               <div className="sm:col-span-2 grid grid-cols-1 gap-2 md:grid-cols-3">
@@ -544,7 +544,7 @@ export function ShiftIncidentsPanel({
                     }
                     rows={3}
                     className="input text-sm"
-                    placeholder="Pham vi anh huong"
+                    placeholder="Phạm vi ảnh hưởng"
                   />
                 </div>
                 <div>
@@ -556,7 +556,7 @@ export function ShiftIncidentsPanel({
                     }
                     rows={3}
                     className="input text-sm"
-                    placeholder="Nguyen nhan goc"
+                    placeholder="Nguyên nhân gốc"
                   />
                 </div>
                 <div>
@@ -568,13 +568,13 @@ export function ShiftIncidentsPanel({
                     }
                     rows={3}
                     className="input text-sm"
-                    placeholder="Ke hoach xu ly"
+                    placeholder="Kế hoạch xử lý"
                   />
                 </div>
               </div>
               <div className="sm:col-span-2">
                 <label className="mb-1 block text-xs font-medium text-slate-600">
-                  Tep dinh kem (Anh, Excel/CSV, PDF, Word, TXT)
+                  Tệp đính kèm (Ảnh, Excel/CSV, PDF, Word, TXT)
                 </label>
                 <input
                   type="file"
@@ -592,14 +592,14 @@ export function ShiftIncidentsPanel({
                 onClick={() => setOpenCreate(false)}
                 className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50"
               >
-                Huy
+                Hủy
               </button>
               <button
                 type="submit"
                 disabled={busy}
                 className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800 disabled:opacity-60"
               >
-                {busy ? "Dang tao..." : "Tao incident"}
+                {busy ? "Đang tạo..." : "Tạo incident"}
               </button>
             </div>
           </form>

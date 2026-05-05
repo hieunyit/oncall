@@ -251,7 +251,7 @@ export async function POST(req: NextRequest) {
         }));
       } catch {
         return badRequest(
-          "Khong the sap xep du ca truc ma van dam bao moi nguoi chi co 1 ca trong ngay."
+          "Không thể sắp xếp đủ ca trực mà vẫn đảm bảo mỗi người chỉ có 1 ca trong ngày."
         );
       }
     }

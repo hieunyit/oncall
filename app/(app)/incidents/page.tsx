@@ -6,7 +6,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { incidentInclude } from "@/lib/incidents/query";
 
-export const metadata = { title: "Incident Tong Hop" };
+export const metadata = { title: "Incident Tổng Hợp" };
 
 interface IncidentsPageProps {
   searchParams: Promise<{
@@ -21,20 +21,20 @@ interface IncidentsPageProps {
 }
 
 const STATUS_OPTIONS: Array<{ value: IncidentStatus | "ALL"; label: string }> = [
-  { value: "ALL", label: "Tat ca trang thai" },
-  { value: "OPEN", label: "Moi mo" },
-  { value: "INVESTIGATING", label: "Dang dieu tra" },
-  { value: "MITIGATED", label: "Da giam thieu" },
-  { value: "RESOLVED", label: "Da khac phuc" },
-  { value: "CLOSED", label: "Dong" },
+  { value: "ALL", label: "Tất cả trạng thái" },
+  { value: "OPEN", label: "Mới mở" },
+  { value: "INVESTIGATING", label: "Đang điều tra" },
+  { value: "MITIGATED", label: "Đã giảm thiểu" },
+  { value: "RESOLVED", label: "Đã khắc phục" },
+  { value: "CLOSED", label: "Đóng" },
 ];
 
 const SEVERITY_OPTIONS: Array<{ value: IncidentSeverity | "ALL"; label: string }> = [
-  { value: "ALL", label: "Tat ca muc do" },
-  { value: "LOW", label: "Thap" },
-  { value: "MEDIUM", label: "Trung binh" },
+  { value: "ALL", label: "Tất cả mức độ" },
+  { value: "LOW", label: "Thấp" },
+  { value: "MEDIUM", label: "Trung bình" },
   { value: "HIGH", label: "Cao" },
-  { value: "CRITICAL", label: "Nghiem trong" },
+  { value: "CRITICAL", label: "Nghiêm trọng" },
 ];
 
 function parseDayStart(value?: string): Date | null {
@@ -202,22 +202,22 @@ export default async function IncidentsPage({ searchParams }: IncidentsPageProps
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Tong hop Incident</h1>
+            <h1 className="text-2xl font-semibold text-slate-900">Tổng hợp Incident</h1>
             <p className="mt-1 text-sm text-slate-500">
-              Theo doi incident theo ca truc, vong doi xu ly va report chi tiet.
+              Theo dõi incident theo ca trực và report chi tiết.
             </p>
           </div>
           <Link
             href="/schedule"
             className="inline-flex h-10 items-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            Ve lich truc
+            Về lịch trực
           </Link>
         </div>
 
         <form method="GET" className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-6">
           <select name="teamId" defaultValue={selectedTeamId} className="input lg:col-span-1">
-            <option value="">Tat ca team</option>
+            <option value="">Tất cả team</option>
             {teams.map((team) => (
               <option key={team.id} value={team.id}>
                 {team.name}
@@ -226,7 +226,7 @@ export default async function IncidentsPage({ searchParams }: IncidentsPageProps
           </select>
 
           <select name="policyId" defaultValue={selectedPolicyId} className="input lg:col-span-1">
-            <option value="">Tat ca chinh sach</option>
+            <option value="">Tất cả chính sách</option>
             {policies
               .filter((policy) => !selectedTeamId || policy.teamId === selectedTeamId)
               .map((policy) => (
@@ -273,29 +273,29 @@ export default async function IncidentsPage({ searchParams }: IncidentsPageProps
             type="text"
             name="q"
             defaultValue={keyword}
-            placeholder="Tim tieu de/mo ta/report..."
+            placeholder="Tìm tiêu đề/mô tả/report..."
             className="input lg:col-span-5"
           />
           <button
             type="submit"
             className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
           >
-            Loc du lieu
+            Lọc dữ liệu
           </button>
         </form>
 
         <div className="mt-4 grid grid-cols-2 gap-3 xl:grid-cols-4">
-          <SummaryCard label="Tong Incident" value={total} />
-          <SummaryCard label="Dang Mo" value={openCount} />
+          <SummaryCard label="Tổng Incident" value={total} />
+          <SummaryCard label="Đang Mở" value={openCount} />
           <SummaryCard label="Critical" value={criticalCount} />
-          <SummaryCard label="Da Xu Ly" value={resolvedCount} />
+          <SummaryCard label="Đã Xử Lý" value={resolvedCount} />
         </div>
       </section>
 
       <section className="space-y-3">
         {incidents.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-10 text-center text-sm text-slate-500">
-            Khong co incident trong bo loc da chon.
+            Không có incident trong bộ lọc đã chọn.
           </div>
         ) : (
           incidents.map((incident) => (
@@ -358,7 +358,7 @@ export default async function IncidentsPage({ searchParams }: IncidentsPageProps
 
               {incident.lifecycleEvents.length > 0 && (
                 <div className="mt-3 border-t border-slate-100 pt-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Vong Doi</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Vòng Đời</p>
                   <div className="mt-1 space-y-1">
                     {incident.lifecycleEvents.slice(-5).map((event) => (
                       <p key={event.id} className="text-xs text-slate-600">

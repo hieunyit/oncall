@@ -30,7 +30,7 @@ export async function POST(
       where: { id },
       select: { id: true, teamId: true },
     });
-    if (!incident) return badRequest("Incident khong ton tai");
+    if (!incident) return badRequest("Incident không tồn tại");
     if (!ensureTeamAccess(scope, incident.teamId)) return forbidden();
 
     const form = await req.formData();
@@ -40,11 +40,11 @@ export async function POST(
     ].filter((entry): entry is File => entry instanceof File);
 
     if (files.length === 0) {
-      return badRequest("Vui long chon it nhat mot file");
+      return badRequest("Vui lòng chọn ít nhất một file");
     }
 
     if (files.length > MAX_INCIDENT_UPLOAD_FILES) {
-      return badRequest(`Chi cho phep toi da ${MAX_INCIDENT_UPLOAD_FILES} file moi lan tai`);
+      return badRequest(`Chỉ cho phép tối đa ${MAX_INCIDENT_UPLOAD_FILES} file mỗi lần tải`);
     }
 
     const incidentDir = path.join(process.cwd(), "public", "uploads", "incidents", incident.id);
@@ -61,12 +61,12 @@ export async function POST(
 
     for (const file of files) {
       if (file.size <= 0) {
-        return badRequest(`File \"${file.name}\" trong hoac khong hop le`);
+        return badRequest(`File \"${file.name}\" trống hoặc không hợp lệ`);
       }
 
       if (file.size > MAX_INCIDENT_UPLOAD_SIZE_BYTES) {
         return badRequest(
-          `File \"${file.name}\" vuot gioi han ${Math.round(
+          `File \"${file.name}\" vượt giới hạn ${Math.round(
             MAX_INCIDENT_UPLOAD_SIZE_BYTES / 1024 / 1024
           )}MB`
         );
@@ -75,7 +75,7 @@ export async function POST(
       const kind = detectIncidentAttachmentKind(file.name, file.type);
       if (!kind) {
         return badRequest(
-          `File \"${file.name}\" khong hop le. Chi chap nhan anh, Excel/CSV, PDF, Word, TXT`
+          `File \"${file.name}\" không hợp lệ. Chỉ chấp nhận ảnh, Excel/CSV, PDF, Word, TXT`
         );
       }
 

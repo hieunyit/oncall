@@ -333,7 +333,7 @@ export function WeekTimeline({
                 const autoWarningMessage = getAutoScheduleWarningMessage(shift.notes);
                 const sameDayDuplicate = hasSameDayDuplicate(shift);
                 const peopleWarningMessage =
-                  autoWarningMessage ?? (sameDayDuplicate ? "Mot nguoi bi xep nhieu hon 1 ca trong ngay." : null);
+                  autoWarningMessage ?? (sameDayDuplicate ? "Một người bị xếp nhiều hơn 1 ca trong ngày." : null);
                 const hasPeopleWarning = Boolean(peopleWarningMessage);
                 const checklistIncomplete =
                   shift.checklistRequired &&

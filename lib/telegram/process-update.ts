@@ -1219,25 +1219,19 @@ function mapMenuShortcut(text: string):
   }
   if (
     normalized === "📅 lịch trực của tôi" ||
-    normalized === "lịch trực của tôi" ||
-    normalized === "📅 lich truc cua toi" ||
-    normalized === "lich truc cua toi"
+    normalized === "lịch trực của tôi" 
   ) {
     return "myshifts";
   }
   if (
     normalized === "🟢 ca đang trực" ||
-    normalized === "ca đang trực" ||
-    normalized === "🟢 ca dang truc" ||
-    normalized === "ca dang truc"
+    normalized === "ca đang trực"
   ) {
     return "oncall";
   }
   if (
     normalized === "🔁 đổi ca" ||
-    normalized === "đổi ca" ||
-    normalized === "🔁 doi ca" ||
-    normalized === "doi ca"
+    normalized === "đổi ca" 
   ) {
     return "swaps";
   }
@@ -1246,17 +1240,13 @@ function mapMenuShortcut(text: string):
   }
   if (
     normalized === "📝 báo cáo" ||
-    normalized === "báo cáo" ||
-    normalized === "📝 bao cao" ||
-    normalized === "bao cao"
+    normalized === "báo cáo"
   ) {
     return "report";
   }
   if (
     normalized === "🆘 hỗ trợ" ||
-    normalized === "hỗ trợ" ||
-    normalized === "🆘 ho tro" ||
-    normalized === "ho tro"
+    normalized === "hỗ trợ"
   ) {
     return "help";
   }

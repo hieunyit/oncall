@@ -180,7 +180,7 @@ export async function POST(
       autoWarning = shiftsAfterRebalance.warning;
     } catch {
       return badRequest(
-        "Khong the sap xep du ca truc sau khi cap nhat ma van dam bao moi nguoi chi co 1 ca trong ngay."
+        "Không thể sắp xếp đủ ca trực sau khi cập nhật mà vẫn đảm bảo mỗi người chỉ có 1 ca trong ngày."
       );
     }
 

@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
       parseDateParam(params.get("end")) ?? (shiftId && !hasExplicitRange ? null : endOfMonth(now));
 
     if (rangeStart && rangeEnd && rangeEnd < rangeStart) {
-      return badRequest("end phai lon hon hoac bang start");
+      return badRequest("end phải lớn hơn hoặc bằng start");
     }
 
     const scope = await getIncidentAccessScope(user.id, user.systemRole);
@@ -110,13 +110,13 @@ export async function POST(req: NextRequest) {
       },
     });
     if (!shiftForIncident || shiftForIncident.policy.teamId !== data.teamId) {
-      return badRequest("shiftId khong thuoc team da chon");
+      return badRequest("shiftId không thuộc team đã chọn");
     }
     if (shiftForIncident.assigneeId !== user.id) {
-      return forbidden("Chi nguoi truc cua ca nay moi duoc tao incident/report");
+      return forbidden("Chỉ người trực của ca này mới được tạo incident/report");
     }
     if (data.policyId && data.policyId !== shiftForIncident.policyId) {
-      return badRequest("policyId khong khop voi shiftId da chon");
+      return badRequest("policyId không khớp với shiftId đã chọn");
     }
 
     const policyIdToUse = data.policyId ?? shiftForIncident.policyId;
@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
         select: { id: true },
       });
       if (!membership) {
-        return badRequest("assigneeId phai la thanh vien cua team");
+        return badRequest("assigneeId phải là thành viên của team");
       }
     }
 
@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
           fromStatus: null,
           toStatus: createdIncident.status,
           changedById: user.id,
-          note: "Tao incident",
+          note: "Tạo incident",
         },
       });
 

@@ -1,7 +1,7 @@
 const AUTO_SCHEDULE_WARNING_TAG = "[AUTO_WARN_INSUFFICIENT_PEOPLE]";
 
 export const AUTO_SCHEDULE_WARNING_MESSAGE =
-  "Khong du nguoi de chia ca theo rang buoc 1 nguoi 1 ca trong ngay. He thong da tao lich va gan canh bao.";
+  "Không đủ người để chia ca theo ràng buộc 1 người 1 ca trong ngày. Hệ thống đã tạo lịch và gắn cảnh báo.";
 
 export function buildAutoScheduleWarningNote(baseNote?: string | null): string {
   const trimmed = baseNote?.trim();

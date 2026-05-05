@@ -184,7 +184,7 @@ export async function POST(
       autoWarning = shiftsAfterRebalance.warning;
     } catch {
       return badRequest(
-        "Khong the sap xep du ca truc khi cap nhat lich tu thoi diem hien tai."
+        "Không thể sắp xếp đủ ca trực khi cập nhật lịch từ thời điểm hiện tại."
       );
     }
 

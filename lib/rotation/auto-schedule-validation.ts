@@ -50,7 +50,7 @@ export function validateAutoScheduleOneShiftPerDay(input: ValidationInput): Auto
       if (seenGenerated.has(key)) {
         return {
           code: "AUTO_SAME_DAY_DUPLICATE",
-          message: `Khong the chia lich tu dong: ${shift.assigneeId} co hon 1 ca trong ngay ${day}.`,
+          message: `Không thể chia lịch tự động: ${shift.assigneeId} có hơn 1 ca trong ngày ${day}.`,
         };
       }
       seenGenerated.set(key, shift);
@@ -75,7 +75,7 @@ export function validateAutoScheduleOneShiftPerDay(input: ValidationInput): Auto
       if (overlaps(existing, generated) || hasSharedLocalDay(existing, generated, tz)) {
         return {
           code: "AUTO_CONFLICT_EXISTING_SHIFT",
-          message: `Khong the chia lich tu dong: ${generated.assigneeId} da co ca khac trong ngay ${firstGeneratedDay}.`,
+          message: `Không thể chia lịch tự động: ${generated.assigneeId} đã có ca khác trong ngày ${firstGeneratedDay}.`,
         };
       }
     }
