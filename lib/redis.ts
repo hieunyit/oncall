@@ -43,12 +43,13 @@ function attachRedisEventHandlers(client: Redis, label: string) {
   });
 }
 
-function createClient(label: string) {
+function createClient(label: string, opts?: Partial<ConstructorParameters<typeof Redis>[1]>) {
   const client = new Redis(redisUrl(), {
     maxRetriesPerRequest: 1,
     enableReadyCheck: true,
     lazyConnect: true,
     retryStrategy: (attempt) => Math.min(attempt * 100, 2_000),
+    ...opts,
   });
   attachRedisEventHandlers(client, label);
   return client;
@@ -77,9 +78,9 @@ export async function ensureRedisReady(client: Redis | null): Promise<boolean> {
 }
 
 export function createRedisConnection(label = "queue") {
+  // BullMQ workers use blocking commands and require maxRetriesPerRequest: null.
   if (shouldDisableRedis()) {
-    const client = createClient(`${label}:disabled`);
-    return client;
+    return createClient(`${label}:disabled`, { maxRetriesPerRequest: null });
   }
-  return createClient(label);
+  return createClient(label, { maxRetriesPerRequest: null });
 }

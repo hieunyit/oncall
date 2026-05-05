@@ -13,6 +13,12 @@ function parsePositiveInt(raw: string | undefined, fallback: number): number {
   return Math.floor(parsed);
 }
 
+function parseNonNegativeInt(raw: string | undefined, fallback: number): number {
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed < 0) return fallback;
+  return Math.floor(parsed);
+}
+
 function isPlaceholderToken(token: string): boolean {
   return (
     token === "your-telegram-bot-token" ||
@@ -38,10 +44,18 @@ export function startTelegramUpdatePoller(): Closable {
     return { close: async () => {} };
   }
 
-  console.log("[telegram-poller] Starting (poll interval: %dms).", parsePositiveInt(process.env.TELEGRAM_POLL_INTERVAL_MS, 2000));
-
-  const pollIntervalMs = parsePositiveInt(process.env.TELEGRAM_POLL_INTERVAL_MS, 2000);
+  const retryBackoffMs = parsePositiveInt(process.env.TELEGRAM_POLL_INTERVAL_MS, 2000);
+  const idleDelayMs = parseNonNegativeInt(process.env.TELEGRAM_POLL_IDLE_DELAY_MS, 150);
   const pollLimit = parsePositiveInt(process.env.TELEGRAM_POLL_LIMIT, 100);
+  const pollTimeoutSeconds = parsePositiveInt(process.env.TELEGRAM_POLL_TIMEOUT_SECONDS, 30);
+
+  console.log(
+    "[telegram-poller] Starting (timeout: %ds, limit: %d, idle delay: %dms, retry backoff: %dms).",
+    pollTimeoutSeconds,
+    pollLimit,
+    idleDelayMs,
+    retryBackoffMs
+  );
 
   let stopped = false;
   let timeoutRef: NodeJS.Timeout | null = null;
@@ -63,13 +77,16 @@ export function startTelegramUpdatePoller(): Closable {
       const res = await getTelegramUpdates({
         offset,
         limit: pollLimit,
-        timeout: 0,
+        timeout: pollTimeoutSeconds,
         allowedUpdates: ["message", "callback_query"],
       });
 
       if (!res.ok) {
         console.warn("[telegram-poller] getUpdates failed:", res.description ?? "Unknown error");
-        scheduleNextTick(pollIntervalMs);
+        if (res.error_code === 409) {
+          await deleteTelegramWebhook(false).catch(() => {});
+        }
+        scheduleNextTick(retryBackoffMs);
         return;
       }
 
@@ -88,10 +105,10 @@ export function startTelegramUpdatePoller(): Closable {
       }
 
       // If we just processed a full page, fetch again immediately to drain backlog quickly.
-      scheduleNextTick(processed >= pollLimit ? 0 : pollIntervalMs);
+      scheduleNextTick(processed >= pollLimit ? 0 : idleDelayMs);
     } catch (error) {
       console.error("[telegram-poller] unexpected poll error:", error);
-      scheduleNextTick(pollIntervalMs);
+      scheduleNextTick(retryBackoffMs);
     } finally {
       running = false;
     }

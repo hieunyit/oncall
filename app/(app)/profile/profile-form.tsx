@@ -129,15 +129,13 @@ export function ProfileForm({ user }: { user: UserProfile }) {
     }
   }
 
-  async function registerWebhook() {
+  async function enableTelegramPolling() {
     setSetupWebhookAction("polling");
     setSetupWebhook("loading");
     setSetupWebhookMessage("");
     try {
       const res = await fetch("/api/telegram/setup", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "polling" }),
       });
       const json = await res.json().catch(() => ({}));
       const data = json.data ?? {};
@@ -169,7 +167,7 @@ export function ProfileForm({ user }: { user: UserProfile }) {
     }
   }
 
-  async function checkWebhookStatus() {
+  async function checkTelegramModeStatus() {
     setSetupWebhookAction("check");
     setSetupWebhook("loading");
     setSetupWebhookMessage("");
@@ -405,7 +403,7 @@ export function ProfileForm({ user }: { user: UserProfile }) {
                 <div className="mt-2 pt-2 border-t border-blue-100 flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={registerWebhook}
+                    onClick={enableTelegramPolling}
                     disabled={setupWebhook === "loading"}
                     className="text-xs text-gray-500 underline hover:text-gray-700 disabled:opacity-50"
                   >
@@ -415,7 +413,7 @@ export function ProfileForm({ user }: { user: UserProfile }) {
                   </button>
                   <button
                     type="button"
-                    onClick={checkWebhookStatus}
+                    onClick={checkTelegramModeStatus}
                     disabled={setupWebhook === "loading"}
                     className="text-xs text-gray-500 underline hover:text-gray-700 disabled:opacity-50"
                   >
@@ -426,6 +424,12 @@ export function ProfileForm({ user }: { user: UserProfile }) {
                   {setupWebhook === "ok" && <span className="text-xs text-green-600">✓ Thành công</span>}
                   {setupWebhook === "err" && <span className="text-xs text-red-600">✗ Lỗi</span>}
                 </div>
+              )}
+              {user.systemRole === "ADMIN" && (
+                <p className="mt-1 text-[11px] text-gray-500">
+                  Bot Telegram đang nhận lệnh bằng <code>getUpdates</code> (polling). Cần chạy worker
+                  <code> npm run workers:dev</code> để xử lý lệnh liên tục.
+                </p>
               )}
               {setupWebhookMessage && (
                 <p className={`mt-1 text-xs ${setupWebhook === "err" ? "text-red-600" : "text-emerald-600"}`}>
