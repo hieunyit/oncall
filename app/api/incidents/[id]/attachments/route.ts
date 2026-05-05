@@ -11,7 +11,12 @@ import {
   MAX_INCIDENT_UPLOAD_FILES,
   MAX_INCIDENT_UPLOAD_SIZE_BYTES,
 } from "@/lib/incidents/constants";
-import { detectIncidentAttachmentKind, normalizeIncidentFileName } from "@/lib/incidents/upload";
+import {
+  detectIncidentAttachmentKind,
+  isIncidentAttachmentContentValid,
+  normalizeIncidentFileName,
+} from "@/lib/incidents/upload";
+import { INCIDENT_API_ERRORS } from "@/lib/incidents/text";
 
 export const runtime = "nodejs";
 
@@ -30,7 +35,7 @@ export async function POST(
       where: { id },
       select: { id: true, teamId: true },
     });
-    if (!incident) return badRequest("Incident không tồn tại");
+    if (!incident) return badRequest(INCIDENT_API_ERRORS.INCIDENT_NOT_FOUND);
     if (!ensureTeamAccess(scope, incident.teamId)) return forbidden();
 
     const form = await req.formData();
@@ -40,7 +45,7 @@ export async function POST(
     ].filter((entry): entry is File => entry instanceof File);
 
     if (files.length === 0) {
-      return badRequest("Vui lòng chọn ít nhất một file");
+      return badRequest(INCIDENT_API_ERRORS.PICK_FILE_REQUIRED);
     }
 
     if (files.length > MAX_INCIDENT_UPLOAD_FILES) {
@@ -86,7 +91,13 @@ export async function POST(
       const storagePath = `/uploads/incidents/${incident.id}/${diskName}`;
 
       const arrayBuffer = await file.arrayBuffer();
-      await writeFile(diskPath, Buffer.from(arrayBuffer));
+      const fileBuffer = Buffer.from(arrayBuffer);
+      if (!isIncidentAttachmentContentValid(kind, fileBuffer)) {
+        return badRequest(
+          `Nội dung file \"${file.name}\" không khớp định dạng đã khai báo`
+        );
+      }
+      await writeFile(diskPath, fileBuffer);
 
       rows.push({
         fileName: normalized,

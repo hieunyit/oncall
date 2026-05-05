@@ -2,6 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
+import {
+  INCIDENT_SEVERITY_LABELS,
+  INCIDENT_STATUS_LABELS,
+  INCIDENT_UI_ERRORS,
+} from "@/lib/incidents/text";
 
 type IncidentSeverity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 type IncidentStatus = "OPEN" | "INVESTIGATING" | "MITIGATED" | "RESOLVED" | "CLOSED";
@@ -38,20 +43,8 @@ type IncidentItem = {
   lifecycleEvents: IncidentLifecycle[];
 };
 
-const STATUS_LABELS: Record<IncidentStatus, string> = {
-  OPEN: "Mới mở",
-  INVESTIGATING: "Đang điều tra",
-  MITIGATED: "Đã giảm thiểu",
-  RESOLVED: "Đã khắc phục",
-  CLOSED: "Đóng",
-};
-
-const SEVERITY_LABELS: Record<IncidentSeverity, string> = {
-  LOW: "Thấp",
-  MEDIUM: "Trung bình",
-  HIGH: "Cao",
-  CRITICAL: "Nghiêm trọng",
-};
+const STATUS_LABELS: Record<IncidentStatus, string> = INCIDENT_STATUS_LABELS;
+const SEVERITY_LABELS: Record<IncidentSeverity, string> = INCIDENT_SEVERITY_LABELS;
 
 const ATTACHMENT_KIND_LABELS: Record<IncidentAttachment["kind"], string> = {
   IMAGE: "IMG",
@@ -158,12 +151,16 @@ export function ShiftIncidentsPanel({
       const res = await fetch(`/api/incidents?${params.toString()}`);
       const payload = await res.json();
       if (!res.ok) {
-        throw new Error(payload.error ?? "Không thể tải incident");
+        throw new Error(payload.error ?? INCIDENT_UI_ERRORS.LOAD_FAILED);
       }
       const incidentList = (payload.data?.incidents ?? payload.incidents ?? []) as IncidentItem[];
       setIncidents(incidentList);
     } catch (fetchError) {
-      setError(fetchError instanceof Error ? fetchError.message : "Không thể tải incident");
+      setError(
+        fetchError instanceof Error
+          ? fetchError.message
+          : INCIDENT_UI_ERRORS.LOAD_FAILED
+      );
       setIncidents([]);
     } finally {
       setLoading(false);
@@ -208,12 +205,12 @@ export function ShiftIncidentsPanel({
       });
       const createPayload = await createRes.json();
       if (!createRes.ok) {
-        throw new Error(createPayload.error ?? "Không thể tạo incident");
+        throw new Error(createPayload.error ?? INCIDENT_UI_ERRORS.CREATE_FAILED);
       }
 
       const createdIncidentId = createPayload.data?.id ?? createPayload.id;
       if (!createdIncidentId) {
-        throw new Error("Không lấy được incident id");
+        throw new Error(INCIDENT_UI_ERRORS.MISSING_INCIDENT_ID);
       }
 
       if (createFiles && createFiles.length > 0) {
@@ -225,7 +222,7 @@ export function ShiftIncidentsPanel({
         });
         const uploadPayload = await uploadRes.json();
         if (!uploadRes.ok) {
-          throw new Error(uploadPayload.error ?? "Tải file incident thất bại");
+          throw new Error(uploadPayload.error ?? INCIDENT_UI_ERRORS.UPLOAD_FAILED);
         }
       }
 
@@ -243,7 +240,11 @@ export function ShiftIncidentsPanel({
       });
       await fetchIncidents();
     } catch (createError) {
-      setError(createError instanceof Error ? createError.message : "Không thể tạo incident");
+      setError(
+        createError instanceof Error
+          ? createError.message
+          : INCIDENT_UI_ERRORS.CREATE_FAILED
+      );
     } finally {
       setBusy(false);
     }
@@ -268,12 +269,16 @@ export function ShiftIncidentsPanel({
       });
       const payload = await res.json();
       if (!res.ok) {
-        throw new Error(payload.error ?? "Không thể cập nhật incident");
+        throw new Error(payload.error ?? INCIDENT_UI_ERRORS.UPDATE_FAILED);
       }
       await fetchIncidents();
       setStatusNoteDraft((prev) => ({ ...prev, [incident.id]: "" }));
     } catch (updateError) {
-      setError(updateError instanceof Error ? updateError.message : "Không thể cập nhật incident");
+      setError(
+        updateError instanceof Error
+          ? updateError.message
+          : INCIDENT_UI_ERRORS.UPDATE_FAILED
+      );
     } finally {
       setUpdatingId(null);
     }

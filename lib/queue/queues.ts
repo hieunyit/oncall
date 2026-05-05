@@ -12,9 +12,28 @@ export const QUEUE_NAMES = {
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
 
+const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
+const queueConnection = isBuildPhase
+  ? null
+  : createRedisConnection("bullmq:queue");
+
+function makeBuildStubQueue(name: string) {
+  return {
+    add: async () => {
+      console.warn(
+        `[queue:${name}] queue.add was called during build phase and was skipped`
+      );
+      return null as any;
+    },
+  } as unknown as Queue;
+}
+
 function makeQueue(name: string) {
+  if (isBuildPhase || !queueConnection) {
+    return makeBuildStubQueue(name);
+  }
   return new Queue(name, {
-    connection: createRedisConnection(),
+    connection: queueConnection,
     defaultJobOptions: {
       attempts: 3,
       backoff: { type: "exponential", delay: 5000 },

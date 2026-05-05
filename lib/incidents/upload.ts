@@ -54,3 +54,53 @@ export function detectIncidentAttachmentKind(
 
   return null;
 }
+
+function startsWithSignature(buffer: Buffer, signature: number[]): boolean {
+  if (buffer.length < signature.length) return false;
+  return signature.every((byte, idx) => buffer[idx] === byte);
+}
+
+function isLikelyTextFile(buffer: Buffer): boolean {
+  if (buffer.length === 0) return true;
+  let controlBytes = 0;
+  const sample = buffer.subarray(0, Math.min(buffer.length, 4096));
+  for (const byte of sample) {
+    const isWhitespace = byte === 9 || byte === 10 || byte === 13;
+    const isPrintableAscii = byte >= 32 && byte <= 126;
+    const isUtf8Lead = byte >= 194 && byte <= 244;
+    const isUtf8Trail = byte >= 128 && byte <= 191;
+    if (!isWhitespace && !isPrintableAscii && !isUtf8Lead && !isUtf8Trail) {
+      controlBytes++;
+    }
+  }
+  return controlBytes / sample.length < 0.1;
+}
+
+export function isIncidentAttachmentContentValid(
+  kind: IncidentAttachmentKind,
+  buffer: Buffer
+): boolean {
+  if (buffer.length === 0) return false;
+
+  switch (kind) {
+    case IncidentAttachmentKind.IMAGE: {
+      const isPng = startsWithSignature(buffer, [0x89, 0x50, 0x4e, 0x47]);
+      const isJpeg = startsWithSignature(buffer, [0xff, 0xd8, 0xff]);
+      const isGif = startsWithSignature(buffer, [0x47, 0x49, 0x46, 0x38]);
+      const isWebp =
+        startsWithSignature(buffer, [0x52, 0x49, 0x46, 0x46]) &&
+        buffer.length > 12 &&
+        buffer.toString("ascii", 8, 12) === "WEBP";
+      return isPng || isJpeg || isGif || isWebp;
+    }
+    case IncidentAttachmentKind.PDF:
+      return startsWithSignature(buffer, [0x25, 0x50, 0x44, 0x46]);
+    case IncidentAttachmentKind.TEXT:
+      return isLikelyTextFile(buffer);
+    case IncidentAttachmentKind.EXCEL:
+    case IncidentAttachmentKind.WORD:
+    default:
+      // Keep extension + MIME validation for Office formats (legacy binary vs OpenXML ZIP).
+      return true;
+  }
+}

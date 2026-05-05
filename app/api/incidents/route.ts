@@ -1,12 +1,17 @@
 import { NextRequest } from "next/server";
 import { endOfMonth, startOfMonth } from "date-fns";
 import { z } from "zod";
-import { IncidentSeverity } from "@/app/generated/prisma/client";
+import {
+  IncidentSeverity,
+  IncidentStatus,
+} from "@/app/generated/prisma/client";
 import { created, badRequest, forbidden, handleError, ok, unauthorized } from "@/lib/api-response";
 import { getSessionUser } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { ensureTeamAccess, getIncidentAccessScope } from "@/lib/incidents/access";
 import { incidentInclude } from "@/lib/incidents/query";
+import { buildIncidentWhere } from "@/lib/incidents/filters";
+import { INCIDENT_API_ERRORS } from "@/lib/incidents/text";
 
 const CreateIncidentSchema = z.object({
   teamId: z.string().uuid(),
@@ -38,7 +43,16 @@ export async function GET(req: NextRequest) {
     const teamId = params.get("teamId");
     const policyId = params.get("policyId");
     const shiftId = params.get("shiftId");
+    const statusParam = params.get("status");
+    const severityParam = params.get("severity");
+    const keyword = params.get("q")?.trim() ?? "";
     const limit = Number.parseInt(params.get("limit") ?? "300", 10);
+    const pageParam = Number.parseInt(params.get("page") ?? "1", 10);
+    const pageSizeParam = Number.parseInt(params.get("pageSize") ?? "50", 10);
+    const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
+    const pageSize = Number.isFinite(pageSizeParam)
+      ? Math.min(Math.max(pageSizeParam, 1), 200)
+      : 50;
     const hasExplicitRange = params.has("start") || params.has("end");
 
     const now = new Date();
@@ -48,8 +62,19 @@ export async function GET(req: NextRequest) {
       parseDateParam(params.get("end")) ?? (shiftId && !hasExplicitRange ? null : endOfMonth(now));
 
     if (rangeStart && rangeEnd && rangeEnd < rangeStart) {
-      return badRequest("end phải lớn hơn hoặc bằng start");
+      return badRequest(INCIDENT_API_ERRORS.INVALID_RANGE);
     }
+
+    const statusFilter = Object.values(IncidentStatus).includes(
+      statusParam as IncidentStatus
+    )
+      ? (statusParam as IncidentStatus)
+      : undefined;
+    const severityFilter = Object.values(IncidentSeverity).includes(
+      severityParam as IncidentSeverity
+    )
+      ? (severityParam as IncidentSeverity)
+      : undefined;
 
     const scope = await getIncidentAccessScope(user.id, user.systemRole);
     if (!scope.isAdmin && scope.teamIds.length === 0) {
@@ -60,20 +85,33 @@ export async function GET(req: NextRequest) {
       return forbidden();
     }
 
+    const where = buildIncidentWhere({
+      rangeStart,
+      rangeEnd,
+      selectedTeamId: teamId ?? undefined,
+      isAdmin: scope.isAdmin,
+      allowedTeamIds: scope.teamIds,
+      selectedPolicyId: policyId ?? undefined,
+      statusFilter,
+      severityFilter,
+      keyword,
+      shiftId: shiftId ?? undefined,
+    });
+
+    const total = await prisma.incident.count({ where });
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const normalizedPage = Math.min(page, totalPages);
+
     const incidents = await prisma.incident.findMany({
-      where: {
-        ...(rangeStart && rangeEnd ? { occurredAt: { gte: rangeStart, lte: rangeEnd } } : {}),
-        ...(policyId ? { policyId } : {}),
-        ...(shiftId ? { shiftId } : {}),
-        ...(teamId
-          ? { teamId }
-          : scope.isAdmin
-            ? {}
-            : { teamId: { in: scope.teamIds } }),
-      },
+      where,
       include: incidentInclude,
       orderBy: [{ occurredAt: "desc" }, { createdAt: "desc" }],
-      take: Number.isFinite(limit) ? Math.min(Math.max(limit, 1), 1000) : 300,
+      skip: (normalizedPage - 1) * pageSize,
+      take: params.has("page") || params.has("pageSize")
+        ? pageSize
+        : Number.isFinite(limit)
+          ? Math.min(Math.max(limit, 1), 1000)
+          : 300,
     });
 
     return ok({
@@ -81,6 +119,10 @@ export async function GET(req: NextRequest) {
       rangeStart: rangeStart ?? null,
       rangeEnd: rangeEnd ?? null,
       count: incidents.length,
+      total,
+      page: normalizedPage,
+      pageSize,
+      totalPages,
     });
   } catch (error) {
     return handleError(error);
@@ -110,13 +152,13 @@ export async function POST(req: NextRequest) {
       },
     });
     if (!shiftForIncident || shiftForIncident.policy.teamId !== data.teamId) {
-      return badRequest("shiftId không thuộc team đã chọn");
+      return badRequest(INCIDENT_API_ERRORS.SHIFT_NOT_IN_TEAM);
     }
     if (shiftForIncident.assigneeId !== user.id) {
-      return forbidden("Chỉ người trực của ca này mới được tạo incident/report");
+      return forbidden(INCIDENT_API_ERRORS.NOT_ASSIGNEE);
     }
     if (data.policyId && data.policyId !== shiftForIncident.policyId) {
-      return badRequest("policyId không khớp với shiftId đã chọn");
+      return badRequest(INCIDENT_API_ERRORS.POLICY_SHIFT_MISMATCH);
     }
 
     const policyIdToUse = data.policyId ?? shiftForIncident.policyId;
@@ -128,7 +170,7 @@ export async function POST(req: NextRequest) {
         select: { id: true },
       });
       if (!membership) {
-        return badRequest("assigneeId phải là thành viên của team");
+        return badRequest(INCIDENT_API_ERRORS.ASSIGNEE_NOT_IN_TEAM);
       }
     }
 

@@ -1,10 +1,11 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { ShiftStatus, TeamRole } from "@/app/generated/prisma/client";
+import { TeamRole } from "@/app/generated/prisma/client";
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, parse } from "date-fns";
 import { ScheduleView } from "./schedule-view";
 import type { ShiftBlock } from "./schedule-view";
+import { buildScheduleShiftWhere } from "@/lib/schedule/filters";
 
 interface PageProps {
   searchParams: Promise<{ month?: string; teamId?: string; policyId?: string }>;
@@ -42,28 +43,28 @@ export default async function SchedulePage({ searchParams }: PageProps) {
     .map((m) => m.teamId);
   const isManager = isAdmin || managedTeamIds.length > 0;
 
-  const teamFilter =
-    teamId
-      ? { policy: { teamId } }
-      : isAdmin
-        ? {}
-        : {
-            OR: [
-              { assigneeId: currentUser.id },
-              { policy: { team: { members: { some: { userId: currentUser.id } } } } },
-            ],
-          };
-  const policyFilter = policyId ? { policyId } : {};
+  const myTeams = await prisma.team.findMany({
+    where: isAdmin ? {} : { members: { some: { userId: currentUser.id } } },
+    select: { id: true, name: true },
+    orderBy: { name: "asc" },
+  });
+
+  const selectedTeamId =
+    teamId && (isAdmin || myTeams.some((team) => team.id === teamId))
+      ? teamId
+      : undefined;
+
+  const shiftWhere = buildScheduleShiftWhere({
+    teamId: selectedTeamId,
+    policyId,
+    isAdmin,
+    currentUserId: currentUser.id,
+    rangeStart,
+    rangeEnd,
+  });
 
   const shifts = await prisma.shift.findMany({
-    where: {
-      ...teamFilter,
-      ...policyFilter,
-      startsAt: { lte: rangeEnd },
-      endsAt: { gte: rangeStart },
-      status: { in: [ShiftStatus.PUBLISHED, ShiftStatus.ACTIVE, ShiftStatus.COMPLETED] },
-      policy: { isActive: true },
-    },
+    where: shiftWhere,
     include: {
       assignee: { select: { id: true, fullName: true } },
       backup: { select: { id: true, fullName: true } },
@@ -74,17 +75,11 @@ export default async function SchedulePage({ searchParams }: PageProps) {
     orderBy: { startsAt: "asc" },
   });
 
-  const myTeams = await prisma.team.findMany({
-    where: isAdmin ? {} : { members: { some: { userId: currentUser.id } } },
-    select: { id: true, name: true },
-    orderBy: { name: "asc" },
-  });
-
   const policyOptions = await prisma.rotationPolicy.findMany({
     where: {
       isActive: true,
-      ...(teamId
-        ? { teamId }
+      ...(selectedTeamId
+        ? { teamId: selectedTeamId }
         : isAdmin
           ? {}
           : { teamId: { in: myTeams.map((team) => team.id) } }),
@@ -94,8 +89,8 @@ export default async function SchedulePage({ searchParams }: PageProps) {
   });
 
   const teamMembersRaw = await prisma.teamMember.findMany({
-    where: teamId
-      ? { teamId }
+    where: selectedTeamId
+      ? { teamId: selectedTeamId }
       : isAdmin
         ? {}
         : { teamId: { in: myTeams.map((t) => t.id) } },
@@ -183,7 +178,7 @@ export default async function SchedulePage({ searchParams }: PageProps) {
       isManager={isManager}
       teamMembers={teamMembers}
       myTeams={myTeams}
-      teamId={teamId}
+      teamId={selectedTeamId}
       policyId={policyId}
       policyOptions={policyOptions}
     />

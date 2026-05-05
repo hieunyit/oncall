@@ -6,6 +6,7 @@ import { getSessionUser } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { ensureTeamAccess, getIncidentAccessScope } from "@/lib/incidents/access";
 import { incidentInclude } from "@/lib/incidents/query";
+import { INCIDENT_API_ERRORS } from "@/lib/incidents/text";
 
 const PatchIncidentSchema = z.object({
   title: z.string().trim().min(3).max(180).optional(),
@@ -42,7 +43,7 @@ export async function GET(
       where: { id },
       include: incidentInclude,
     });
-    if (!incident) return notFound("Incident không tồn tại");
+    if (!incident) return notFound(INCIDENT_API_ERRORS.INCIDENT_NOT_FOUND);
     if (!ensureTeamAccess(scope, incident.teamId)) return forbidden();
 
     return ok(incident);
@@ -73,7 +74,7 @@ export async function PATCH(
       },
     });
 
-    if (!existing) return badRequest("Incident không tồn tại");
+    if (!existing) return badRequest(INCIDENT_API_ERRORS.INCIDENT_NOT_FOUND);
     if (!ensureTeamAccess(scope, existing.teamId)) return forbidden();
 
     if (data.assigneeId) {

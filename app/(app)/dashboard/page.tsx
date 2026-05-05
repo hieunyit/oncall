@@ -6,8 +6,17 @@ import { TZDate } from "@date-fns/tz";
 const VN_TZ = "Asia/Ho_Chi_Minh";
 const vn = (d: Date) => new TZDate(d, VN_TZ);
 import { vi } from "date-fns/locale";
-import { ShiftStatus, ConfirmationStatus, SwapStatus, DeliveryStatus, AlertStatus } from "@/app/generated/prisma/client";
+import {
+  ShiftStatus,
+  ConfirmationStatus,
+  SwapStatus,
+  DeliveryStatus,
+  AlertStatus,
+  IncidentSeverity,
+  IncidentStatus,
+} from "@/app/generated/prisma/client";
 import Link from "next/link";
+import { computeIncidentSlaSnapshot } from "@/lib/incidents/sla";
 
 export const metadata = { title: "Dashboard" };
 
@@ -31,6 +40,8 @@ export default async function DashboardPage() {
   const dayEnd = endOfDay(today);
 
   const myTeamIds = currentUser.teamMembers.map((m) => m.teamId);
+  const incidentScopeWhere =
+    currentUser.systemRole === "ADMIN" ? {} : { teamId: { in: myTeamIds } };
 
   const [
     todayShifts,
@@ -41,6 +52,9 @@ export default async function DashboardPage() {
     upcomingShifts,
     activeOnCallShifts,
     recentFiringAlerts,
+    openIncidents,
+    criticalOpenIncidents,
+    incidentSlaCandidates,
   ] = await Promise.all([
     prisma.shift.count({
       where: {
@@ -128,7 +142,69 @@ export default async function DashboardPage() {
       orderBy: { triggeredAt: "desc" },
       take: 5,
     }),
+    prisma.incident.count({
+      where: {
+        ...incidentScopeWhere,
+        status: {
+          in: [
+            IncidentStatus.OPEN,
+            IncidentStatus.INVESTIGATING,
+            IncidentStatus.MITIGATED,
+          ],
+        },
+      },
+    }),
+    prisma.incident.count({
+      where: {
+        ...incidentScopeWhere,
+        status: {
+          in: [
+            IncidentStatus.OPEN,
+            IncidentStatus.INVESTIGATING,
+            IncidentStatus.MITIGATED,
+          ],
+        },
+        severity: IncidentSeverity.CRITICAL,
+      },
+    }),
+    prisma.incident.findMany({
+      where: {
+        ...incidentScopeWhere,
+        status: {
+          in: [
+            IncidentStatus.OPEN,
+            IncidentStatus.INVESTIGATING,
+            IncidentStatus.MITIGATED,
+            IncidentStatus.RESOLVED,
+            IncidentStatus.CLOSED,
+          ],
+        },
+      },
+      select: {
+        severity: true,
+        status: true,
+        occurredAt: true,
+        resolvedAt: true,
+        lifecycleEvents: {
+          select: { toStatus: true, createdAt: true },
+          orderBy: { createdAt: "asc" },
+        },
+      },
+      orderBy: { occurredAt: "desc" },
+      take: 200,
+    }),
   ]);
+
+  const incidentSlaBreached = incidentSlaCandidates.filter((incident) => {
+    const snapshot = computeIncidentSlaSnapshot({
+      severity: incident.severity,
+      status: incident.status,
+      occurredAt: incident.occurredAt,
+      resolvedAt: incident.resolvedAt,
+      lifecycleEvents: incident.lifecycleEvents,
+    });
+    return snapshot.acknowledgedBreached || snapshot.resolvedBreached;
+  }).length;
 
   return (
     <div className="space-y-6">
@@ -138,7 +214,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
         <StatCard
           label="Ca trực hôm nay"
           value={todayShifts}
@@ -180,6 +256,39 @@ export default async function DashboardPage() {
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          }
+        />
+        <StatCard
+          label="Incident mở"
+          value={openIncidents}
+          color={openIncidents > 0 ? "orange" : "green"}
+          href="/incidents?status=OPEN"
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M10.29 3.86l-7.36 12.73A2 2 0 004.66 19.5h14.68a2 2 0 001.73-2.91L13.71 3.86a2 2 0 00-3.42 0z" />
+            </svg>
+          }
+        />
+        <StatCard
+          label="Incident critical mở"
+          value={criticalOpenIncidents}
+          color={criticalOpenIncidents > 0 ? "red" : "green"}
+          href="/incidents?severity=CRITICAL&status=OPEN"
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-8.5 4h17a1 1 0 00.89-1.45l-8.5-17a1 1 0 00-1.78 0l-8.5 17A1 1 0 003.5 19z" />
+            </svg>
+          }
+        />
+        <StatCard
+          label="SLA quá hạn (200)"
+          value={incidentSlaBreached}
+          color={incidentSlaBreached > 0 ? "red" : "green"}
+          href="/incidents"
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m9-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           }
         />

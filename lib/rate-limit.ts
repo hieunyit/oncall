@@ -1,4 +1,4 @@
-import { redis } from "@/lib/redis";
+import { ensureRedisReady, getRedis } from "@/lib/redis";
 import { NextRequest, NextResponse } from "next/server";
 
 interface RateLimitConfig {
@@ -6,6 +6,29 @@ interface RateLimitConfig {
   limit: number;
   /** Window size in seconds */
   windowSeconds: number;
+}
+
+type MemoryBucket = {
+  hits: number[];
+};
+
+const memoryBuckets = new Map<string, MemoryBucket>();
+
+function consumeInMemoryRateLimit(
+  key: string,
+  now: number,
+  windowMs: number,
+  limit: number
+) {
+  const bucket = memoryBuckets.get(key) ?? { hits: [] };
+  bucket.hits = bucket.hits.filter((ts) => ts > now - windowMs);
+  bucket.hits.push(now);
+  memoryBuckets.set(key, bucket);
+
+  const count = bucket.hits.length;
+  const remaining = Math.max(0, limit - count);
+  const resetAt = Math.ceil((now + windowMs) / 1000);
+  return { count, remaining, resetAt, backend: "memory" as const };
 }
 
 /**
@@ -21,23 +44,58 @@ export async function rateLimit(
   const key = `rl:${req.nextUrl.pathname}:${ip}`;
   const now = Date.now();
   const windowMs = config.windowSeconds * 1000;
+  const redis = getRedis();
 
-  const pipeline = redis.pipeline();
-  pipeline.zremrangebyscore(key, 0, now - windowMs);
-  pipeline.zadd(key, now, `${now}`);
-  pipeline.zcard(key);
-  pipeline.pexpire(key, windowMs);
+  let count = 0;
+  let remaining = 0;
+  let resetAt = 0;
+  let backend: "redis" | "memory" = "memory";
 
-  const results = await pipeline.exec();
-  const count = (results?.[2]?.[1] as number) ?? 0;
+  const canUseRedis = await ensureRedisReady(redis);
+  if (canUseRedis && redis) {
+    try {
+      const member = `${now}-${Math.random().toString(36).slice(2, 8)}`;
+      const pipeline = redis.pipeline();
+      pipeline.zremrangebyscore(key, 0, now - windowMs);
+      pipeline.zadd(key, now, member);
+      pipeline.zcard(key);
+      pipeline.pexpire(key, windowMs);
 
-  const remaining = Math.max(0, config.limit - count);
-  const resetAt = Math.ceil((now + windowMs) / 1000);
+      const results = await pipeline.exec();
+      count = (results?.[2]?.[1] as number) ?? 0;
+      remaining = Math.max(0, config.limit - count);
+      resetAt = Math.ceil((now + windowMs) / 1000);
+      backend = "redis";
+    } catch {
+      const memoryResult = consumeInMemoryRateLimit(
+        key,
+        now,
+        windowMs,
+        config.limit
+      );
+      count = memoryResult.count;
+      remaining = memoryResult.remaining;
+      resetAt = memoryResult.resetAt;
+      backend = memoryResult.backend;
+    }
+  } else {
+    const memoryResult = consumeInMemoryRateLimit(
+      key,
+      now,
+      windowMs,
+      config.limit
+    );
+    count = memoryResult.count;
+    remaining = memoryResult.remaining;
+    resetAt = memoryResult.resetAt;
+    backend = memoryResult.backend;
+  }
 
   const headers = {
     "X-RateLimit-Limit": config.limit.toString(),
     "X-RateLimit-Remaining": remaining.toString(),
     "X-RateLimit-Reset": resetAt.toString(),
+    "X-RateLimit-Backend": backend,
   };
 
   if (count > config.limit) {
