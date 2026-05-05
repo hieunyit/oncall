@@ -311,7 +311,7 @@ export function parseScheduleCsv(content: string): {
   }
 
   return {
-    rows: errors.length > 0 ? [] : parsedRows,
+    rows: parsedRows,
     errors,
   };
 }

@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  combineScheduleDateTime,
+  normalizeScheduleIdentity,
+  parseScheduleCsv,
+} from "@/lib/schedule/csv-import";
 
 interface TeamMemberOption {
   id: string;
@@ -46,6 +51,16 @@ interface PolicyFormProps {
     templateTasks?: string[] | null;
     participantUserIds?: string[] | null;
   };
+}
+
+interface CsvPreviewRow {
+  line: number;
+  startAtLabel: string;
+  endAtLabel: string;
+  assigneeLabel: string;
+  backupLabel: string;
+  notes: string;
+  errors: string[];
 }
 
 const MINUTES = Array.from({ length: 60 }, (_, m) => m);
@@ -113,6 +128,9 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
   const [rescheduleResult, setRescheduleResult] = useState<{ removedShifts: number; newShifts: number } | null>(null);
   const [rescheduleError, setRescheduleError] = useState<string | null>(null);
   const [importCsvFile, setImportCsvFile] = useState<File | null>(null);
+  const [csvPreviewRows, setCsvPreviewRows] = useState<CsvPreviewRow[]>([]);
+  const [csvPreviewErrors, setCsvPreviewErrors] = useState<string[]>([]);
+  const [previewingCsv, setPreviewingCsv] = useState(false);
 
   function set(field: string, value: string | number) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -137,6 +155,13 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.teamId]);
+
+  useEffect(() => {
+    if (!importCsvFile) return;
+    setUseTimeSlots(false);
+    void buildCsvPreview(importCsvFile);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [importCsvFile, form.teamId, selectedMemberIds]);
 
   function toggleMember(memberId: string) {
     setSelectedMemberIds((prev) =>
@@ -171,6 +196,152 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
         return { ...slot, daysOfWeek: next.length === 7 ? [] : next };
       })
     );
+  }
+
+  async function buildCsvPreview(file: File) {
+    setPreviewingCsv(true);
+    setCsvPreviewRows([]);
+    setCsvPreviewErrors([]);
+
+    try {
+      const csvText = await file.text();
+      const parsed = parseScheduleCsv(csvText);
+
+      const byEmail = new Map(teamMembers.map((member) => [member.email.trim().toLowerCase(), member]));
+      const byName = new Map<string, TeamMemberOption[]>();
+      for (const member of teamMembers) {
+        const key = normalizeScheduleIdentity(member.fullName);
+        const list = byName.get(key) ?? [];
+        list.push(member);
+        byName.set(key, list);
+      }
+
+      const selectedMemberIdSet = new Set(selectedMemberIds);
+      const previewRows: CsvPreviewRow[] = [];
+      const errorSet = new Set<string>();
+      const overlapCandidates = new Map<
+        string,
+        Array<{ line: number; startsAt: Date; endsAt: Date }>
+      >();
+      const dayCollisionSet = new Set<string>();
+
+      for (const error of parsed.errors) {
+        errorSet.add(`Dòng ${error.line}: ${error.message}`);
+      }
+
+      for (const row of parsed.rows) {
+        const rowErrors: string[] = [];
+        const startsAt = combineScheduleDateTime(row.startDateText, row.startTimeText);
+        const endsAt = combineScheduleDateTime(row.endDateText, row.endTimeText);
+
+        if (!startsAt) {
+          rowErrors.push("startDate/startTime không đúng định dạng");
+        }
+        if (!endsAt) {
+          rowErrors.push("endDate/endTime không đúng định dạng");
+        }
+        if (startsAt && endsAt && endsAt <= startsAt) {
+          rowErrors.push("endDate/endTime phải sau startDate/startTime");
+        }
+
+        const assigneeRaw = row.assigneeText.trim();
+        let assigneeResolved: TeamMemberOption | null = null;
+        if (assigneeRaw.includes("@")) {
+          assigneeResolved = byEmail.get(assigneeRaw.toLowerCase()) ?? null;
+        } else {
+          const matches = byName.get(normalizeScheduleIdentity(assigneeRaw)) ?? [];
+          if (matches.length === 1) {
+            assigneeResolved = matches[0];
+          } else if (matches.length > 1) {
+            rowErrors.push(`assignee "${assigneeRaw}" trùng tên, hãy dùng email`);
+          }
+        }
+
+        if (!assigneeResolved) {
+          rowErrors.push(`assignee "${assigneeRaw}" không thuộc team đã chọn`);
+        } else if (!selectedMemberIdSet.has(assigneeResolved.id)) {
+          rowErrors.push(`assignee "${assigneeRaw}" chưa nằm trong danh sách Policy members`);
+        }
+
+        if (row.backupText) {
+          const backupRaw = row.backupText.trim();
+          let backupResolved: TeamMemberOption | null = null;
+          if (backupRaw.includes("@")) {
+            backupResolved = byEmail.get(backupRaw.toLowerCase()) ?? null;
+          } else {
+            const matches = byName.get(normalizeScheduleIdentity(backupRaw)) ?? [];
+            if (matches.length === 1) {
+              backupResolved = matches[0];
+            } else if (matches.length > 1) {
+              rowErrors.push(`backup "${backupRaw}" trùng tên, hãy dùng email`);
+            }
+          }
+
+          if (!backupResolved) {
+            rowErrors.push(`backup "${backupRaw}" không thuộc team đã chọn`);
+          } else if (assigneeResolved && backupResolved.id === assigneeResolved.id) {
+            rowErrors.push("backup không được trùng assignee");
+          }
+        }
+
+        if (assigneeResolved && startsAt && endsAt) {
+          const overlapList = overlapCandidates.get(assigneeResolved.id) ?? [];
+          overlapList.push({ line: row.line, startsAt, endsAt });
+          overlapCandidates.set(assigneeResolved.id, overlapList);
+
+          const dayKey = `${assigneeResolved.id}|${startsAt.toISOString().slice(0, 10)}`;
+          if (dayCollisionSet.has(dayKey)) {
+            rowErrors.push("assignee bị trùng nhiều ca cùng ngày");
+          } else {
+            dayCollisionSet.add(dayKey);
+          }
+        }
+
+        previewRows.push({
+          line: row.line,
+          startAtLabel: `${row.startDateText} ${row.startTimeText}`,
+          endAtLabel: `${row.endDateText} ${row.endTimeText}`,
+          assigneeLabel: row.assigneeText,
+          backupLabel: row.backupText ?? "",
+          notes: row.notes ?? "",
+          errors: rowErrors,
+        });
+      }
+
+      for (const entries of overlapCandidates.values()) {
+        const sorted = [...entries].sort(
+          (a, b) => a.startsAt.getTime() - b.startsAt.getTime()
+        );
+        for (let idx = 1; idx < sorted.length; idx += 1) {
+          const previous = sorted[idx - 1];
+          const current = sorted[idx];
+          if (current.startsAt < previous.endsAt && current.endsAt > previous.startsAt) {
+            errorSet.add(`Dòng ${current.line}: assignee bị chồng thời gian giữa các ca`);
+          }
+        }
+      }
+
+      for (const row of previewRows) {
+        for (const rowError of row.errors) {
+          errorSet.add(`Dòng ${row.line}: ${rowError}`);
+        }
+      }
+
+      setCsvPreviewRows(previewRows);
+      setCsvPreviewErrors([...errorSet]);
+    } finally {
+      setPreviewingCsv(false);
+    }
+  }
+
+  function handleImportFileSelected(file: File | null) {
+    setImportCsvFile(file);
+    if (!file) {
+      setCsvPreviewRows([]);
+      setCsvPreviewErrors([]);
+      return;
+    }
+    void buildCsvPreview(file);
   }
 
   function downloadCsvImportTemplate() {
@@ -242,6 +413,24 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
       setError("Please select at least one member for this policy.");
       setLoading(false);
       return;
+    }
+
+    if (!isEdit && importCsvFile) {
+      if (previewingCsv) {
+        setError("Đang phân tích CSV, vui lòng chờ xong rồi lưu.");
+        setLoading(false);
+        return;
+      }
+      if (csvPreviewRows.length === 0) {
+        setError("File CSV chưa có dữ liệu hợp lệ để import.");
+        setLoading(false);
+        return;
+      }
+      if (csvPreviewErrors.length > 0) {
+        setError("CSV đang có lỗi. Vui lòng sửa lỗi trước khi tạo chính sách.");
+        setLoading(false);
+        return;
+      }
     }
 
     const url = isEdit ? `/api/policies/${initialData!.id}` : "/api/policies";
@@ -518,32 +707,101 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
 
       {!isEdit && (
         <Field label="Import ca trực từ CSV (tùy chọn)">
-          <div className="rounded-lg border border-gray-200 p-3 space-y-2 bg-gray-50/60">
-            <p className="text-xs text-gray-600">
+          <div className="rounded-lg border border-slate-300 bg-white p-3 space-y-3">
+            <p className="text-xs text-slate-700">
               Định dạng bắt buộc theo cột tách riêng:{" "}
-              <code className="text-[11px]">startDate,startTime,endDate,endTime,assignee,backup,notes</code>
+              <code className="text-[11px] bg-slate-100 px-1 py-0.5 rounded">
+                startDate,startTime,endDate,endTime,assignee,backup,notes
+              </code>
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-slate-600">
               `startDate/endDate`: `yyyy-MM-dd` hoặc `dd/MM/yyyy`; `startTime/endTime`: `HH:mm`
             </p>
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 type="button"
                 onClick={downloadCsvImportTemplate}
-                className="text-xs px-2.5 py-1.5 border border-gray-300 rounded bg-white text-gray-700 hover:bg-gray-100"
+                className="text-xs px-2.5 py-1.5 border border-slate-300 rounded bg-slate-900 text-white hover:bg-slate-800"
               >
                 Tải mẫu CSV
               </button>
               <input
                 type="file"
                 accept=".csv,text/csv"
-                onChange={(e) => setImportCsvFile(e.target.files?.[0] ?? null)}
-                className="text-xs text-gray-700 file:mr-2 file:rounded file:border file:border-gray-300 file:bg-white file:px-2 file:py-1 file:text-xs file:text-gray-700 hover:file:bg-gray-100"
+                onChange={(e) => handleImportFileSelected(e.target.files?.[0] ?? null)}
+                className="text-xs text-slate-700 file:mr-2 file:rounded file:border file:border-slate-300 file:bg-white file:px-2 file:py-1 file:text-xs file:text-slate-700 hover:file:bg-slate-100"
               />
               {importCsvFile && (
-                <span className="text-xs text-gray-600">Đã chọn: {importCsvFile.name}</span>
+                <button
+                  type="button"
+                  onClick={() => handleImportFileSelected(null)}
+                  className="text-xs px-2 py-1 border border-slate-300 rounded bg-white text-slate-600 hover:bg-slate-100"
+                >
+                  Bỏ file
+                </button>
               )}
             </div>
+
+            {importCsvFile && (
+              <p className="text-xs text-slate-700">Đã chọn: {importCsvFile.name}</p>
+            )}
+
+            {previewingCsv && (
+              <p className="text-xs text-indigo-700">Đang phân tích CSV...</p>
+            )}
+
+            {csvPreviewErrors.length > 0 && (
+              <div className="rounded border border-rose-200 bg-rose-50 p-2">
+                <p className="text-xs font-medium text-rose-700 mb-1">
+                  CSV có {csvPreviewErrors.length} lỗi:
+                </p>
+                <ul className="text-xs text-rose-700 space-y-0.5 max-h-40 overflow-auto">
+                  {csvPreviewErrors.slice(0, 20).map((error) => (
+                    <li key={error}>- {error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {csvPreviewRows.length > 0 && (
+              <div className="rounded border border-slate-200 overflow-hidden">
+                <div className="px-2 py-1.5 bg-slate-100 text-xs text-slate-700 font-medium">
+                  Preview {csvPreviewRows.length} dòng
+                </div>
+                <div className="overflow-auto max-h-56">
+                  <table className="w-full text-xs text-slate-700">
+                    <thead className="bg-slate-50 sticky top-0">
+                      <tr>
+                        <th className="px-2 py-1 text-left">Dòng</th>
+                        <th className="px-2 py-1 text-left">Bắt đầu</th>
+                        <th className="px-2 py-1 text-left">Kết thúc</th>
+                        <th className="px-2 py-1 text-left">Assignee</th>
+                        <th className="px-2 py-1 text-left">Backup</th>
+                        <th className="px-2 py-1 text-left">Lỗi</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {csvPreviewRows.slice(0, 100).map((row) => (
+                        <tr key={`${row.line}-${row.startAtLabel}-${row.assigneeLabel}`}>
+                          <td className="px-2 py-1 align-top">{row.line}</td>
+                          <td className="px-2 py-1 align-top">{row.startAtLabel}</td>
+                          <td className="px-2 py-1 align-top">{row.endAtLabel}</td>
+                          <td className="px-2 py-1 align-top">{row.assigneeLabel}</td>
+                          <td className="px-2 py-1 align-top">{row.backupLabel || "-"}</td>
+                          <td className="px-2 py-1 align-top">
+                            {row.errors.length === 0 ? (
+                              <span className="text-emerald-700">OK</span>
+                            ) : (
+                              <span className="text-rose-700">{row.errors.join("; ")}</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         </Field>
       )}
@@ -616,124 +874,130 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
       </Field>
 
       {/* Time slots section */}
-      <div className="border border-gray-200 rounded-lg p-4 space-y-3">
-        <div className="flex items-center gap-3">
-          <input
-            type="checkbox"
-            id="useTimeSlots"
-            checked={useTimeSlots}
-            onChange={(e) => setUseTimeSlots(e.target.checked)}
-            className="w-4 h-4 rounded border-gray-300 text-blue-600"
-          />
-          <label htmlFor="useTimeSlots" className="text-sm font-medium text-gray-700">
-            Dùng khung giờ cố định
-          </label>
-        </div>
-
-        {useTimeSlots && (
-          <div className="space-y-2">
-            <p className="text-xs text-gray-500">
-              Mỗi ngày trong khoảng tạo lịch sẽ có các ca theo khung giờ dưới đây.
-            </p>
-            {timeSlots.map((slot, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-3 space-y-2 bg-gray-50/50">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <input
-                    type="text"
-                    value={slot.label}
-                    onChange={(e) => updateSlot(index, "label", e.target.value)}
-                    placeholder="Tên ca"
-                    className="input text-sm w-28"
-                  />
-                  <div className="flex items-center gap-0.5">
-                    <select
-                      value={slot.startHour}
-                      onChange={(e) => updateSlot(index, "startHour", Number(e.target.value))}
-                      className="input text-sm w-14 text-gray-900"
-                    >
-                      {Array.from({ length: 24 }, (_, h) => (
-                        <option key={h} value={h}>{String(h).padStart(2, "0")}</option>
-                      ))}
-                    </select>
-                    <span className="text-gray-400 text-xs px-0.5">:</span>
-                    <select
-                      value={slot.startMinute}
-                      onChange={(e) => updateSlot(index, "startMinute", Number(e.target.value))}
-                      className="input text-sm w-14 text-gray-900"
-                    >
-                      {MINUTES.map((m) => (
-                        <option key={m} value={m}>{String(m).padStart(2, "0")}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <span className="text-gray-400 text-sm">–</span>
-                  <div className="flex items-center gap-0.5">
-                    <select
-                      value={slot.endHour}
-                      onChange={(e) => updateSlot(index, "endHour", Number(e.target.value))}
-                      className="input text-sm w-14 text-gray-900"
-                    >
-                      {Array.from({ length: 25 }, (_, h) => (
-                        <option key={h} value={h}>{String(h).padStart(2, "0")}</option>
-                      ))}
-                    </select>
-                    <span className="text-gray-400 text-xs px-0.5">:</span>
-                    <select
-                      value={slot.endMinute}
-                      onChange={(e) => updateSlot(index, "endMinute", Number(e.target.value))}
-                      className="input text-sm w-14 text-gray-900"
-                    >
-                      {MINUTES.map((m) => (
-                        <option key={m} value={m}>{String(m).padStart(2, "0")}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeSlot(index)}
-                    className="ml-auto text-xs px-2 py-1 text-red-500 hover:bg-red-50 rounded"
-                  >
-                    Xoá
-                  </button>
-                </div>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs text-gray-500 mr-1">Áp dụng:</span>
-                  {[
-                    { dow: 1, label: "T2" }, { dow: 2, label: "T3" }, { dow: 3, label: "T4" },
-                    { dow: 4, label: "T5" }, { dow: 5, label: "T6" }, { dow: 6, label: "T7" }, { dow: 0, label: "CN" },
-                  ].map(({ dow, label }) => {
-                    const active = !slot.daysOfWeek || slot.daysOfWeek.length === 0 || slot.daysOfWeek.includes(dow);
-                    return (
-                      <button
-                        key={dow}
-                        type="button"
-                        onClick={() => toggleSlotDay(index, dow)}
-                        className={`text-xs w-7 h-7 rounded-full font-medium transition-colors ${
-                          active
-                            ? "bg-indigo-600 text-white"
-                            : "bg-white border border-gray-300 text-gray-500 hover:border-indigo-400"
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    );
-                  })}
-                  <span className="text-xs text-gray-400 ml-1">
-                    {(!slot.daysOfWeek || slot.daysOfWeek.length === 0) ? "(mọi ngày)" : ""}
-                  </span>
-                </div>
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={addSlot}
-              className="text-xs px-3 py-1.5 bg-gray-50 border border-gray-200 text-gray-600 rounded hover:bg-gray-100"
-            >
-              + Thêm khung giờ
-            </button>
+      {!importCsvFile ? (
+        <div className="border border-gray-200 rounded-lg p-4 space-y-3">
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="useTimeSlots"
+              checked={useTimeSlots}
+              onChange={(e) => setUseTimeSlots(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-blue-600"
+            />
+            <label htmlFor="useTimeSlots" className="text-sm font-medium text-gray-700">
+              Dùng khung giờ cố định
+            </label>
           </div>
-        )}
-      </div>
+
+          {useTimeSlots && (
+            <div className="space-y-2">
+              <p className="text-xs text-gray-500">
+                Mỗi ngày trong khoảng tạo lịch sẽ có các ca theo khung giờ dưới đây.
+              </p>
+              {timeSlots.map((slot, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-3 space-y-2 bg-gray-50/50">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <input
+                      type="text"
+                      value={slot.label}
+                      onChange={(e) => updateSlot(index, "label", e.target.value)}
+                      placeholder="Tên ca"
+                      className="input text-sm w-28"
+                    />
+                    <div className="flex items-center gap-0.5">
+                      <select
+                        value={slot.startHour}
+                        onChange={(e) => updateSlot(index, "startHour", Number(e.target.value))}
+                        className="input text-sm w-14 text-gray-900"
+                      >
+                        {Array.from({ length: 24 }, (_, h) => (
+                          <option key={h} value={h}>{String(h).padStart(2, "0")}</option>
+                        ))}
+                      </select>
+                      <span className="text-gray-400 text-xs px-0.5">:</span>
+                      <select
+                        value={slot.startMinute}
+                        onChange={(e) => updateSlot(index, "startMinute", Number(e.target.value))}
+                        className="input text-sm w-14 text-gray-900"
+                      >
+                        {MINUTES.map((m) => (
+                          <option key={m} value={m}>{String(m).padStart(2, "0")}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <span className="text-gray-400 text-sm">–</span>
+                    <div className="flex items-center gap-0.5">
+                      <select
+                        value={slot.endHour}
+                        onChange={(e) => updateSlot(index, "endHour", Number(e.target.value))}
+                        className="input text-sm w-14 text-gray-900"
+                      >
+                        {Array.from({ length: 25 }, (_, h) => (
+                          <option key={h} value={h}>{String(h).padStart(2, "0")}</option>
+                        ))}
+                      </select>
+                      <span className="text-gray-400 text-xs px-0.5">:</span>
+                      <select
+                        value={slot.endMinute}
+                        onChange={(e) => updateSlot(index, "endMinute", Number(e.target.value))}
+                        className="input text-sm w-14 text-gray-900"
+                      >
+                        {MINUTES.map((m) => (
+                          <option key={m} value={m}>{String(m).padStart(2, "0")}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeSlot(index)}
+                      className="ml-auto text-xs px-2 py-1 text-red-500 hover:bg-red-50 rounded"
+                    >
+                      Xoá
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-xs text-gray-500 mr-1">Áp dụng:</span>
+                    {[
+                      { dow: 1, label: "T2" }, { dow: 2, label: "T3" }, { dow: 3, label: "T4" },
+                      { dow: 4, label: "T5" }, { dow: 5, label: "T6" }, { dow: 6, label: "T7" }, { dow: 0, label: "CN" },
+                    ].map(({ dow, label }) => {
+                      const active = !slot.daysOfWeek || slot.daysOfWeek.length === 0 || slot.daysOfWeek.includes(dow);
+                      return (
+                        <button
+                          key={dow}
+                          type="button"
+                          onClick={() => toggleSlotDay(index, dow)}
+                          className={`text-xs w-7 h-7 rounded-full font-medium transition-colors ${
+                            active
+                              ? "bg-indigo-600 text-white"
+                              : "bg-white border border-gray-300 text-gray-500 hover:border-indigo-400"
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                    <span className="text-xs text-gray-400 ml-1">
+                      {(!slot.daysOfWeek || slot.daysOfWeek.length === 0) ? "(mọi ngày)" : ""}
+                    </span>
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addSlot}
+                className="text-xs px-3 py-1.5 bg-gray-50 border border-gray-200 text-gray-600 rounded hover:bg-gray-100"
+              >
+                + Thêm khung giờ
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs text-indigo-700">
+          Đang dùng import CSV nên phần "Dùng khung giờ cố định" được ẩn.
+        </div>
+      )}
 
       {/* Checklist template section */}
       <div className="border border-gray-200 rounded-lg p-4 space-y-3">
