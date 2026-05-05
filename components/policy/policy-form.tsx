@@ -53,7 +53,6 @@ interface PolicyFormProps {
     telegramRequirePhotoOnConfirm?: boolean;
     telegramEndShiftReminderEnabled?: boolean;
     telegramRequirePhotoOnCheckout?: boolean;
-    telegramManagerImportErrorEnabled?: boolean;
   };
 }
 
@@ -131,9 +130,6 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
   );
   const [telegramRequirePhotoOnCheckout, setTelegramRequirePhotoOnCheckout] = useState(
     initialData?.telegramRequirePhotoOnCheckout ?? false
-  );
-  const [telegramManagerImportErrorEnabled, setTelegramManagerImportErrorEnabled] = useState(
-    initialData?.telegramManagerImportErrorEnabled ?? false
   );
 
   const [loading, setLoading] = useState(false);
@@ -433,7 +429,6 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
       telegramEndShiftReminderEnabled,
       telegramRequirePhotoOnCheckout:
         telegramEndShiftReminderEnabled && telegramRequirePhotoOnCheckout,
-      telegramManagerImportErrorEnabled,
     };
 
     if (selectedMemberIds.length === 0) {
@@ -901,7 +896,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
       </Field>
 
       <div className="border border-gray-200 rounded-lg p-4 space-y-3">
-        <p className="text-sm font-medium text-gray-700">Tùy chọn Telegram nâng cao</p>
+        <p className="text-sm font-medium text-gray-700">Tùy chọn xác nhận ca & Telegram</p>
         <div className="space-y-2 text-sm">
           <label className="flex items-start gap-2">
             <input
@@ -911,7 +906,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
               className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600"
             />
             <span className="text-gray-700">
-              Yêu cầu ảnh check-in khi xác nhận ca trực trên Telegram
+              Yêu cầu upload ảnh check-in khi xác nhận ca trực (Web + Telegram)
             </span>
           </label>
 
@@ -937,18 +932,6 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
             />
             <span className="text-gray-700">
               Khi nhắc hết ca, yêu cầu ảnh check-out để xác nhận kết ca
-            </span>
-          </label>
-
-          <label className="flex items-start gap-2">
-            <input
-              type="checkbox"
-              checked={telegramManagerImportErrorEnabled}
-              onChange={(e) => setTelegramManagerImportErrorEnabled(e.target.checked)}
-              className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600"
-            />
-            <span className="text-gray-700">
-              Báo lỗi import CSV quan trọng cho manager qua Telegram
             </span>
           </label>
         </div>

@@ -16,6 +16,11 @@ export async function POST(req: NextRequest) {
     return new NextResponse(null, { status: 400 });
   }
 
-  await processTelegramUpdate(update);
+  try {
+    await processTelegramUpdate(update);
+  } catch (error) {
+    // Always ack webhook to avoid Telegram retry loop when a single update fails.
+    console.error("[telegram-webhook] process update failed:", error);
+  }
   return new NextResponse(null, { status: 200 });
 }

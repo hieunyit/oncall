@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { ConfirmationStatus } from "@/app/generated/prisma/client";
 import { ConfirmActionButtons } from "./confirm-action-buttons";
+import { getPolicyTelegramOptions } from "@/lib/rotation/policy-telegram-options";
 
 export default async function ConfirmPage({
   params,
@@ -18,7 +19,7 @@ export default async function ConfirmPage({
       shift: {
         include: {
           assignee: { select: { fullName: true } },
-          policy: { select: { name: true } },
+          policy: { select: { id: true, name: true } },
         },
       },
     },
@@ -29,6 +30,7 @@ export default async function ConfirmPage({
   const { shift } = confirmation;
   const isExpired = new Date() > confirmation.dueAt;
   const alreadyResponded = confirmation.status !== ConfirmationStatus.PENDING;
+  const policyOptions = await getPolicyTelegramOptions(shift.policy.id);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -61,7 +63,10 @@ export default async function ConfirmPage({
             ⏰ Yêu cầu xác nhận này đã hết hạn.
           </div>
         ) : (
-          <ConfirmActionButtons token={token} />
+          <ConfirmActionButtons
+            token={token}
+            requireCheckInPhoto={policyOptions.requirePhotoOnConfirm}
+          />
         )}
       </div>
     </div>
@@ -94,3 +99,4 @@ function StatusMessage({ status }: { status: ConfirmationStatus }) {
   }
   return null;
 }
+

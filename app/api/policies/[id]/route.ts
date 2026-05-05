@@ -41,7 +41,6 @@ const UpdatePolicySchema = z.object({
   telegramRequirePhotoOnConfirm: z.boolean().optional(),
   telegramEndShiftReminderEnabled: z.boolean().optional(),
   telegramRequirePhotoOnCheckout: z.boolean().optional(),
-  telegramManagerImportErrorEnabled: z.boolean().optional(),
 });
 
 export async function GET(
@@ -84,7 +83,6 @@ export async function GET(
       telegramRequirePhotoOnConfirm: policyTelegramOptions.requirePhotoOnConfirm,
       telegramEndShiftReminderEnabled: policyTelegramOptions.endShiftReminderEnabled,
       telegramRequirePhotoOnCheckout: policyTelegramOptions.requirePhotoOnCheckout,
-      telegramManagerImportErrorEnabled: policyTelegramOptions.managerImportErrorEnabled,
     });
   } catch (error) {
     return handleError(error);
@@ -116,7 +114,6 @@ export async function PATCH(
       telegramRequirePhotoOnConfirm,
       telegramEndShiftReminderEnabled,
       telegramRequirePhotoOnCheckout,
-      telegramManagerImportErrorEnabled,
       ...rest
     } = UpdatePolicySchema.parse(body);
 
@@ -149,7 +146,6 @@ export async function PATCH(
       requirePhotoOnConfirm: telegramRequirePhotoOnConfirm,
       endShiftReminderEnabled: telegramEndShiftReminderEnabled,
       requirePhotoOnCheckout: telegramRequirePhotoOnCheckout,
-      managerImportErrorEnabled: telegramManagerImportErrorEnabled,
     });
 
     // checklistRequired + templateTasks require migration 4 — update via raw SQL,
@@ -188,7 +184,6 @@ export async function PATCH(
       telegramRequirePhotoOnConfirm: policyTelegramOptions.requirePhotoOnConfirm,
       telegramEndShiftReminderEnabled: policyTelegramOptions.endShiftReminderEnabled,
       telegramRequirePhotoOnCheckout: policyTelegramOptions.requirePhotoOnCheckout,
-      telegramManagerImportErrorEnabled: policyTelegramOptions.managerImportErrorEnabled,
     });
   } catch (error) {
     return handleError(error);

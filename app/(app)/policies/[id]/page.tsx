@@ -81,7 +81,6 @@ export default async function PolicyDetailPage({
   let telegramRequirePhotoOnConfirm = false;
   let telegramEndShiftReminderEnabled = false;
   let telegramRequirePhotoOnCheckout = false;
-  let telegramManagerImportErrorEnabled = false;
   try {
     const rows = await prisma.$queryRaw<Array<{
       checklist_required: boolean;
@@ -89,15 +88,13 @@ export default async function PolicyDetailPage({
       telegram_require_photo_on_confirm: boolean;
       telegram_end_shift_reminder_enabled: boolean;
       telegram_require_photo_on_checkout: boolean;
-      telegram_manager_import_error_enabled: boolean;
     }>>`
       SELECT
         checklist_required,
         template_tasks,
         telegram_require_photo_on_confirm,
         telegram_end_shift_reminder_enabled,
-        telegram_require_photo_on_checkout,
-        telegram_manager_import_error_enabled
+        telegram_require_photo_on_checkout
       FROM rotation_policies
       WHERE id = ${id}::uuid
     `;
@@ -108,7 +105,6 @@ export default async function PolicyDetailPage({
       telegramRequirePhotoOnConfirm = rows[0].telegram_require_photo_on_confirm ?? false;
       telegramEndShiftReminderEnabled = rows[0].telegram_end_shift_reminder_enabled ?? false;
       telegramRequirePhotoOnCheckout = rows[0].telegram_require_photo_on_checkout ?? false;
-      telegramManagerImportErrorEnabled = rows[0].telegram_manager_import_error_enabled ?? false;
     }
   } catch {
     // Columns not yet created — migration 4 pending
@@ -168,7 +164,6 @@ export default async function PolicyDetailPage({
               telegramRequirePhotoOnConfirm,
               telegramEndShiftReminderEnabled,
               telegramRequirePhotoOnCheckout,
-              telegramManagerImportErrorEnabled,
               participantUserIds: participantUserIds ?? policy.team.members.map((member) => member.user.id),
             }}
           />

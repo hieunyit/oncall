@@ -26,7 +26,6 @@ import {
 } from "@/lib/rotation/policy-participants";
 import { RATE_LIMITS, rateLimit } from "@/lib/rate-limit";
 import { getPolicyTelegramOptions } from "@/lib/rotation/policy-telegram-options";
-import { sendTelegramMessage } from "@/lib/notifications/telegram";
 
 const MAX_CSV_BYTES = 2 * 1024 * 1024;
 const MAX_ERRORS = 100;
@@ -142,52 +141,8 @@ async function notifyImportErrorForManagers(input: {
   headline: string;
   details?: Array<{ line?: number; message: string }>;
 }) {
-  try {
-    const policyOptions = await getPolicyTelegramOptions(input.policyId);
-    if (!policyOptions.managerImportErrorEnabled) return;
-
-    const managers = await prisma.teamMember.findMany({
-      where: {
-        teamId: input.teamId,
-        role: TeamRole.MANAGER,
-        user: { isActive: true, telegramChatId: { not: null } },
-      },
-      select: {
-        user: { select: { telegramChatId: true } },
-      },
-    });
-
-    const uniqueChatIds = [...new Set(
-      managers
-        .map((manager) => manager.user.telegramChatId?.toString() ?? "")
-        .filter((chatId) => chatId.length > 0)
-    )];
-
-    if (uniqueChatIds.length === 0) return;
-
-    const detailLines = (input.details ?? [])
-      .slice(0, 8)
-      .map((item) =>
-        item.line ? `- Dòng ${item.line}: ${item.message}` : `- ${item.message}`
-      );
-
-    const text = [
-      "⚠️ <b>Lỗi import CSV quan trọng</b>",
-      "",
-      `Chính sách: <b>${input.policyName}</b>`,
-      `Người thao tác: ${input.actorName}`,
-      `File: ${input.fileName}`,
-      "",
-      `Lỗi: ${input.headline}`,
-      ...(detailLines.length > 0 ? ["", ...detailLines] : []),
-    ].join("\n");
-
-    await Promise.allSettled(
-      uniqueChatIds.map((chatId) => sendTelegramMessage(chatId, text, "HTML"))
-    );
-  } catch {
-    // Do not fail the import API response if manager alert fails.
-  }
+  void input;
+  // Disabled by product decision: no Telegram alerts for CSV import errors.
 }
 
 export async function POST(req: NextRequest) {

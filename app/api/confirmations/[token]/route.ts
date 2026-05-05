@@ -7,11 +7,16 @@ import { writeAuditLog } from "@/lib/audit";
 import { notifyTeamChannels } from "@/lib/notifications/notify-channel";
 import { editTelegramDeliveries } from "@/lib/notifications/telegram";
 import { getPolicyTelegramOptions } from "@/lib/rotation/policy-telegram-options";
-import { hasShiftProof } from "@/lib/shift-proof/storage";
+import { hasShiftProof, saveShiftProof } from "@/lib/shift-proof/storage";
 
 const RespondSchema = z.object({
   action: z.enum(["confirm", "decline"]),
 });
+
+function isMultipartRequest(req: NextRequest): boolean {
+  const contentType = req.headers.get("content-type") ?? "";
+  return contentType.toLowerCase().includes("multipart/form-data");
+}
 
 export async function GET(
   _req: NextRequest,
@@ -73,9 +78,45 @@ export async function POST(
       return badRequest("Confirmation has expired");
     }
 
-    const body = await req.json();
-    const { action } = RespondSchema.parse(body);
+    let action: "confirm" | "decline";
+    let checkInFile: File | null = null;
+
+    if (isMultipartRequest(req)) {
+      const form = await req.formData();
+      const parsed = RespondSchema.parse({
+        action: typeof form.get("action") === "string" ? form.get("action") : "",
+      });
+      action = parsed.action;
+
+      const fileRaw = form.get("proofImage");
+      if (fileRaw instanceof File && fileRaw.size > 0) {
+        checkInFile = fileRaw;
+      }
+    } else {
+      const body = await req.json();
+      const parsed = RespondSchema.parse(body);
+      action = parsed.action;
+    }
+
     if (action === "confirm") {
+      if (checkInFile) {
+        try {
+          const fileBuffer = Buffer.from(await checkInFile.arrayBuffer());
+          await saveShiftProof({
+            shiftId: confirmation.shiftId,
+            policyId: confirmation.shift.policy.id,
+            userId: confirmation.userId,
+            kind: "CHECK_IN",
+            source: "WEB",
+            fileName: checkInFile.name || "check-in.jpg",
+            contentType: checkInFile.type || null,
+            fileBuffer,
+          });
+        } catch (error) {
+          return badRequest((error as Error).message || "Tải ảnh check-in thất bại");
+        }
+      }
+
       const policyOptions = await getPolicyTelegramOptions(confirmation.shift.policy.id);
       if (policyOptions.requirePhotoOnConfirm) {
         const hasCheckInPhoto = await hasShiftProof({

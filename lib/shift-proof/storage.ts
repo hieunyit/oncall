@@ -12,6 +12,7 @@ export interface SaveShiftProofInput {
   policyId: string;
   userId: string;
   kind: ShiftProofKind;
+  source?: string;
   fileName: string;
   contentType?: string | null;
   fileBuffer: Buffer;
@@ -123,7 +124,7 @@ export async function saveShiftProof(input: SaveShiftProofInput): Promise<SavedS
       ${input.policyId}::uuid,
       ${input.userId}::uuid,
       ${input.kind},
-      ${"TELEGRAM"},
+      ${input.source?.trim() ? input.source.trim().slice(0, 32).toUpperCase() : "TELEGRAM"},
       ${normalizedFileName},
       ${storagePath},
       ${imageType.contentType},

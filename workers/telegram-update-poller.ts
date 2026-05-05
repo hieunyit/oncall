@@ -62,7 +62,8 @@ export function startTelegramUpdatePoller(): Closable {
           processed += 1;
         } catch (error) {
           console.error("[telegram-poller] process update failed:", error);
-          break;
+          // Skip poisoned update to avoid poller getting stuck forever on one bad payload.
+          offset = update.update_id + 1;
         }
       }
 

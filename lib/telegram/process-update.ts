@@ -388,81 +388,90 @@ async function sendScheduleExportDocument(
     return;
   }
 
-  const shifts = await prisma.shift.findMany({
-    where: {
-      startsAt: { lte: exportWindow.end },
-      endsAt: { gte: exportWindow.start },
-      status: { in: [ShiftStatus.PUBLISHED, ShiftStatus.ACTIVE, ShiftStatus.COMPLETED] },
-      policy: isAdmin ? undefined : { teamId: { in: managedTeamIds } },
-    },
-    include: {
-      assignee: { select: { fullName: true } },
-      backup: { select: { fullName: true } },
-      policy: { select: { name: true, team: { select: { name: true } } } },
-      confirmation: { select: { status: true } },
-      verificationPhotos: {
-        select: { kind: true, storagePath: true, createdAt: true },
-        orderBy: { createdAt: "desc" },
+  try {
+    const shifts = await prisma.shift.findMany({
+      where: {
+        startsAt: { lte: exportWindow.end },
+        endsAt: { gte: exportWindow.start },
+        status: { in: [ShiftStatus.PUBLISHED, ShiftStatus.ACTIVE, ShiftStatus.COMPLETED] },
+        policy: isAdmin ? undefined : { teamId: { in: managedTeamIds } },
       },
-    },
-    orderBy: { startsAt: "asc" },
-  });
+      include: {
+        assignee: { select: { fullName: true } },
+        backup: { select: { fullName: true } },
+        policy: { select: { name: true, team: { select: { name: true } } } },
+        confirmation: { select: { status: true } },
+        verificationPhotos: {
+          select: { kind: true, storagePath: true, createdAt: true },
+          orderBy: { createdAt: "desc" },
+        },
+      },
+      orderBy: { startsAt: "asc" },
+    });
 
-  if (shifts.length === 0) {
-    await sendTelegramMessage(
-      chatId.toString(),
-      `ℹ️ Không có ca trực trong tháng <b>${exportWindow.monthToken}</b> để export.`,
-      "HTML"
+    if (shifts.length === 0) {
+      await sendTelegramMessage(
+        chatId.toString(),
+        `ℹ️ Không có ca trực trong tháng <b>${exportWindow.monthToken}</b> để export.`,
+        "HTML"
+      );
+      return;
+    }
+
+    const rows = buildScheduleExportRows(
+      shifts.map((shift) => {
+        const checkInPhoto = shift.verificationPhotos.find((photo) => photo.kind === "CHECK_IN");
+        const checkOutPhoto = shift.verificationPhotos.find((photo) => photo.kind === "CHECK_OUT");
+
+        return {
+          startsAt: shift.startsAt,
+          endsAt: shift.endsAt,
+          teamName: shift.policy.team.name,
+          policyName: shift.policy.name,
+          assigneeName: shift.assignee.fullName,
+          backupName: shift.backup?.fullName ?? "",
+          status: shift.status,
+          confirmationStatus: shift.confirmation?.status ?? "",
+          source: shift.source,
+          checkInAt: checkInPhoto?.createdAt ?? null,
+          checkOutAt: checkOutPhoto?.createdAt ?? null,
+          checkInPhotoPath: checkInPhoto?.storagePath ?? null,
+          checkOutPhotoPath: checkOutPhoto?.storagePath ?? null,
+          note: shift.notes ?? "",
+        };
+      }),
+      { appBaseUrl: process.env.NEXT_PUBLIC_APP_URL ?? null }
     );
-    return;
-  }
 
-  const rows = buildScheduleExportRows(
-    shifts.map((shift) => {
-      const checkInPhoto = shift.verificationPhotos.find((photo) => photo.kind === "CHECK_IN");
-      const checkOutPhoto = shift.verificationPhotos.find((photo) => photo.kind === "CHECK_OUT");
+    const content =
+      format === "csv"
+        ? buildScheduleCsvContent(rows)
+        : buildScheduleExcelHtml(rows);
+    const extension = format === "csv" ? "csv" : "xls";
+    const mimeType =
+      format === "csv" ? "text/csv;charset=utf-8;" : "application/vnd.ms-excel;charset=utf-8;";
+    const fileName = `lich-truc-${exportWindow.monthToken}.${extension}`;
+    const bytes = Buffer.from(`\uFEFF${content}`, "utf8");
 
-      return {
-        startsAt: shift.startsAt,
-        endsAt: shift.endsAt,
-        teamName: shift.policy.team.name,
-        policyName: shift.policy.name,
-        assigneeName: shift.assignee.fullName,
-        backupName: shift.backup?.fullName ?? "",
-        status: shift.status,
-        confirmationStatus: shift.confirmation?.status ?? "",
-        source: shift.source,
-        checkInAt: checkInPhoto?.createdAt ?? null,
-        checkOutAt: checkOutPhoto?.createdAt ?? null,
-        checkInPhotoPath: checkInPhoto?.storagePath ?? null,
-        checkOutPhotoPath: checkOutPhoto?.storagePath ?? null,
-        note: shift.notes ?? "",
-      };
-    }),
-    { appBaseUrl: process.env.NEXT_PUBLIC_APP_URL ?? null }
-  );
+    const result = await sendTelegramDocument(chatId.toString(), {
+      fileName,
+      bytes,
+      caption: `📎 Export ${format.toUpperCase()} tháng ${exportWindow.monthToken} (${rows.length} ca).`,
+      contentType: mimeType,
+    });
 
-  const content =
-    format === "csv"
-      ? buildScheduleCsvContent(rows)
-      : buildScheduleExcelHtml(rows);
-  const extension = format === "csv" ? "csv" : "xls";
-  const mimeType =
-    format === "csv" ? "text/csv;charset=utf-8;" : "application/vnd.ms-excel;charset=utf-8;";
-  const fileName = `lich-truc-${exportWindow.monthToken}.${extension}`;
-  const bytes = Buffer.from(`\uFEFF${content}`, "utf8");
-
-  const result = await sendTelegramDocument(chatId.toString(), {
-    fileName,
-    bytes,
-    caption: `📎 Export ${format.toUpperCase()} tháng ${exportWindow.monthToken} (${rows.length} ca).`,
-    contentType: mimeType,
-  });
-
-  if (!result.ok) {
+    if (!result.ok) {
+      await sendTelegramMessage(
+        chatId.toString(),
+        `❌ Gửi file thất bại: ${result.description ?? "Lỗi không xác định"}`,
+        "HTML"
+      );
+    }
+  } catch (error) {
+    console.error("[telegram] export failed:", error);
     await sendTelegramMessage(
       chatId.toString(),
-      `❌ Gửi file thất bại: ${result.description ?? "Lỗi không xác định"}`,
+      "❌ Không thể export lịch trực lúc này. Vui lòng thử lại sau.",
       "HTML"
     );
   }
@@ -2518,14 +2527,27 @@ async function handleTextCommand(update: TelegramUpdate): Promise<void> {
 }
 
 export async function processTelegramUpdate(update: TelegramUpdate): Promise<void> {
-  const legacyHandled = await handleLegacyCallbackActions(update);
-  if (legacyHandled) return;
+  try {
+    const legacyHandled = await handleLegacyCallbackActions(update);
+    if (legacyHandled) return;
 
-  const menuHandled = await handleMenuCallback(update);
-  if (menuHandled) return;
+    const menuHandled = await handleMenuCallback(update);
+    if (menuHandled) return;
 
-  const proofHandled = await handleProofPhotoMessage(update);
-  if (proofHandled) return;
+    const proofHandled = await handleProofPhotoMessage(update);
+    if (proofHandled) return;
 
-  await handleTextCommand(update);
+    await handleTextCommand(update);
+  } catch (error) {
+    console.error("[telegram] process update fatal:", error);
+
+    const chatId = update.message?.chat.id ?? update.callback_query?.message?.chat.id;
+    if (chatId) {
+      await sendTelegramMessage(
+        chatId.toString(),
+        "❌ Bot đang gặp lỗi tạm thời khi xử lý yêu cầu. Vui lòng thử lại sau ít phút.",
+        "HTML"
+      ).catch(() => {});
+    }
+  }
 }

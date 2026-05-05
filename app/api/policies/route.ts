@@ -35,7 +35,6 @@ const CreatePolicySchema = z.object({
   telegramRequirePhotoOnConfirm: z.boolean().optional(),
   telegramEndShiftReminderEnabled: z.boolean().optional(),
   telegramRequirePhotoOnCheckout: z.boolean().optional(),
-  telegramManagerImportErrorEnabled: z.boolean().optional(),
 });
 
 export async function GET(req: NextRequest) {
@@ -94,7 +93,6 @@ export async function POST(req: NextRequest) {
       telegramRequirePhotoOnConfirm,
       telegramEndShiftReminderEnabled,
       telegramRequirePhotoOnCheckout,
-      telegramManagerImportErrorEnabled,
       ...data
     } = CreatePolicySchema.parse(body);
 
@@ -124,7 +122,6 @@ export async function POST(req: NextRequest) {
       requirePhotoOnConfirm: telegramRequirePhotoOnConfirm,
       endShiftReminderEnabled: telegramEndShiftReminderEnabled,
       requirePhotoOnCheckout: telegramRequirePhotoOnCheckout,
-      managerImportErrorEnabled: telegramManagerImportErrorEnabled,
     });
 
     // Save checklist fields via raw SQL (migration 4 may not be applied yet)
@@ -156,7 +153,6 @@ export async function POST(req: NextRequest) {
       telegramRequirePhotoOnConfirm: telegramRequirePhotoOnConfirm ?? false,
       telegramEndShiftReminderEnabled: telegramEndShiftReminderEnabled ?? false,
       telegramRequirePhotoOnCheckout: telegramRequirePhotoOnCheckout ?? false,
-      telegramManagerImportErrorEnabled: telegramManagerImportErrorEnabled ?? false,
     });
   } catch (error) {
     return handleError(error);
