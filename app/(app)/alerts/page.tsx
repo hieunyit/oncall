@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { AlertStatus } from "@/app/generated/prisma/client";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
+import Link from "next/link";
 import { AlertActions } from "./alert-actions";
 
 export const metadata = { title: "Alerts" };
@@ -98,9 +99,9 @@ export default async function AlertsPage({ searchParams }: PageProps) {
               ? (tab.activeClass ?? "bg-indigo-600 text-white border-indigo-600")
               : (tab.inactiveClass ?? "border-gray-200 text-gray-600 hover:bg-gray-50");
             return (
-              <a key={tab.key} href={tab.href} className={`${base} ${colorClass}`}>
+              <Link key={tab.key} href={tab.href} className={`${base} ${colorClass}`}>
                 {tab.label}
-              </a>
+              </Link>
             );
           })}
         </div>

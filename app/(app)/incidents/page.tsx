@@ -32,14 +32,15 @@ const PAGE_SIZE_OPTIONS = [20, 50, 100] as const;
 
 function parseDayStart(value?: string): Date | null {
   if (!value) return null;
-  const parsed = new Date(`${value}T00:00:00`);
+  // Explicit +07:00 so ranges match Vietnam local midnight regardless of server timezone
+  const parsed = new Date(`${value}T00:00:00+07:00`);
   if (Number.isNaN(parsed.getTime())) return null;
   return parsed;
 }
 
 function parseDayEnd(value?: string): Date | null {
   if (!value) return null;
-  const parsed = new Date(`${value}T23:59:59.999`);
+  const parsed = new Date(`${value}T23:59:59.999+07:00`);
   if (Number.isNaN(parsed.getTime())) return null;
   return parsed;
 }
@@ -356,8 +357,9 @@ export default async function IncidentsPage({ searchParams }: IncidentsPageProps
           <SummaryCard label="Đang Mở" value={openCount} />
           <SummaryCard label="Critical" value={criticalCount} />
           <SummaryCard label="Đã Xử Lý" value={resolvedCount} />
-          <SummaryCard label="SLA Quá Hạn (trang)" value={overdueSlaCount} />
+          <SummaryCard label="SLA Quá Hạn*" value={overdueSlaCount} />
         </div>
+        <p className="mt-1 text-[11px] text-slate-400">* SLA quá hạn chỉ tính trên trang hiện tại ({pageSize} incident).</p>
       </section>
 
       <section className="space-y-3">

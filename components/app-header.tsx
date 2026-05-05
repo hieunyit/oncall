@@ -2,21 +2,51 @@
 
 import { signOut } from "next-auth/react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { Session } from "next-auth";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { getInitials } from "@/lib/ui";
 
 interface AppHeaderProps {
   user: Session["user"];
-  pageTitle?: string;
 }
 
-export function AppHeader({ user, pageTitle }: AppHeaderProps) {
-  const displayName = (user as { fullName?: string })?.fullName ?? user?.name ?? user?.email ?? "Người dùng";
-  const initials = displayName.split(" ").map((w: string) => w[0]).slice(-2).join("").toUpperCase();
+const ROUTE_TITLES: Record<string, string> = {
+  "/dashboard": "Dashboard",
+  "/schedule": "Lịch trực",
+  "/teams": "Nhóm trực",
+  "/policies": "Chính sách",
+  "/incidents": "Incident",
+  "/swaps": "Đổi ca",
+  "/escalation": "Escalation",
+  "/runbooks": "Runbook",
+  "/integrations": "Integrations",
+  "/alerts": "Alerts",
+  "/reports": "Báo cáo",
+  "/notifications": "Thông báo",
+  "/users": "Người dùng",
+  "/profile": "Hồ sơ & cài đặt",
+  "/confirm": "Xác nhận ca trực",
+};
+
+function getRouteTitle(pathname: string): string {
+  if (ROUTE_TITLES[pathname]) return ROUTE_TITLES[pathname];
+  const prefix = Object.keys(ROUTE_TITLES).find(
+    (key) => key !== "/dashboard" && pathname.startsWith(key)
+  );
+  return prefix ? ROUTE_TITLES[prefix] : "";
+}
+
+export function AppHeader({ user }: AppHeaderProps) {
+  const pathname = usePathname();
+  const pageTitle = getRouteTitle(pathname);
+  const displayName =
+    (user as { fullName?: string })?.fullName ?? user?.name ?? user?.email ?? "Người dùng";
+  const initials = getInitials(displayName);
 
   return (
     <header className="h-14 shrink-0 bg-white border-b border-gray-100 flex items-center justify-between px-6">
-      <div className="text-sm font-medium text-gray-500">{pageTitle ?? ""}</div>
+      <div className="text-sm font-medium text-gray-500">{pageTitle}</div>
 
       <div className="flex items-center gap-3">
         <ThemeToggle />
@@ -42,7 +72,12 @@ export function AppHeader({ user, pageTitle }: AppHeaderProps) {
           className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-red-600 transition-colors px-2 py-1.5 rounded-lg hover:bg-red-50"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+            />
           </svg>
           Đăng xuất
         </button>

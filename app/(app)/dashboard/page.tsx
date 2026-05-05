@@ -17,6 +17,7 @@ import {
 } from "@/app/generated/prisma/client";
 import Link from "next/link";
 import { computeIncidentSlaSnapshot } from "@/lib/incidents/sla";
+import { getInitials } from "@/lib/ui";
 
 export const metadata = { title: "Dashboard" };
 
@@ -191,7 +192,6 @@ export default async function DashboardPage() {
         },
       },
       orderBy: { occurredAt: "desc" },
-      take: 200,
     }),
   ]);
 
@@ -282,7 +282,7 @@ export default async function DashboardPage() {
           }
         />
         <StatCard
-          label="SLA quá hạn (200)"
+          label="SLA quá hạn"
           value={incidentSlaBreached}
           color={incidentSlaBreached > 0 ? "red" : "green"}
           href="/incidents"
@@ -376,7 +376,7 @@ export default async function DashboardPage() {
                 <div key={shift.id} className="px-5 py-3.5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-semibold text-indigo-700 shrink-0">
-                      {effectiveAssignee.fullName.split(" ").map((w) => w[0]).slice(-2).join("").toUpperCase()}
+                      {getInitials(effectiveAssignee.fullName)}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">

@@ -74,21 +74,23 @@ export default async function SwapsPage() {
       take: 50,
     }) as unknown as Promise<SwapWithRelations[]>,
 
-    // Open swaps from teammates that I can take (targetUserId IS NULL = open request)
+    // Open swaps from teammates that I can take (targetUserId IS NULL = open request).
+    // TODO: remove `as any` after running `prisma generate` post-migration that made targetUserId nullable.
     prisma.swapRequest.findMany({
       where: {
         status: SwapStatus.REQUESTED,
-        targetUserId: null as any,       // nullable after migration 5 — null as any bypasses generated-client type
+        targetUserId: null,
         requesterId: { not: currentUser.id },
         expiresAt: { gt: new Date() },
-        originalShift: {
-          policy: { teamId: { in: myTeamIds } },
-        },
+        originalShift: { policy: { teamId: { in: myTeamIds } } },
       } as any,
       include: swapInclude,
       orderBy: { createdAt: "desc" },
       take: 20,
-    }).catch(() => [] as SwapWithRelations[]) as unknown as Promise<SwapWithRelations[]>,
+    }).catch((err: unknown) => {
+      console.error("Failed to fetch available swaps:", err);
+      return [] as SwapWithRelations[];
+    }) as unknown as Promise<SwapWithRelations[]>,
 
     // Swaps waiting for manager approval
     (isAdmin || isManager)

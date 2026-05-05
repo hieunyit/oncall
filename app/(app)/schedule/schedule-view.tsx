@@ -185,6 +185,7 @@ export function ScheduleView({
   policyId,
   policyOptions,
 }: Props) {
+  const router = useRouter();
   const [view, setView] = useState<ViewMode>("month");
   const [highlightMe, setHighlightMe] = useState(false);
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
@@ -366,11 +367,12 @@ export function ScheduleView({
             <select
               defaultValue={teamId ?? ""}
               onChange={(e) => {
+                setSelectedPersonId(null);
                 const url = new URL(window.location.href);
                 if (e.target.value) url.searchParams.set("teamId", e.target.value);
                 else url.searchParams.delete("teamId");
                 url.searchParams.delete("policyId");
-                window.location.href = url.toString();
+                router.push(`${url.pathname}?${url.searchParams.toString()}`);
               }}
               className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700"
             >
@@ -389,7 +391,7 @@ export function ScheduleView({
                 const url = new URL(window.location.href);
                 if (e.target.value) url.searchParams.set("policyId", e.target.value);
                 else url.searchParams.delete("policyId");
-                window.location.href = url.toString();
+                router.push(`${url.pathname}?${url.searchParams.toString()}`);
               }}
               className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700"
             >

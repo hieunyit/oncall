@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type NavItem = { href: string; label: string; icon: React.ReactNode };
 
@@ -157,7 +157,9 @@ export function AppSidebar() {
           const data = await res.json();
           setCounts(data);
         }
-      } catch {}
+      } catch (err) {
+        console.error("Failed to fetch sidebar badge counts:", err);
+      }
     }
     fetchCounts();
     const interval = setInterval(fetchCounts, 30_000);
@@ -167,10 +169,13 @@ export function AppSidebar() {
     };
   }, []);
 
-  const badgeMap: Record<string, number> = {
-    "/swaps": counts.pendingSwaps,
-    "/alerts": counts.firingAlerts,
-  };
+  const badgeMap = useMemo<Record<string, number>>(
+    () => ({
+      "/swaps": counts.pendingSwaps,
+      "/alerts": counts.firingAlerts,
+    }),
+    [counts]
+  );
 
   const isActive = (href: string) =>
     pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
