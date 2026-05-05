@@ -6,17 +6,28 @@ import {
   IncidentStatus,
   ShiftStatus,
   SwapStatus,
+  SystemRole,
   TeamRole,
 } from "@/app/generated/prisma/client";
-import { addDays } from "date-fns";
+import { addDays, endOfMonth, startOfMonth, subMonths } from "date-fns";
 import {
   answerCallbackQuery,
+  buildTelegramFileDownloadUrl,
   editMessageText,
   editTelegramDeliveries,
+  getTelegramFile,
+  sendTelegramDocument,
   sendTelegramMessage,
   TelegramUpdate,
 } from "@/lib/notifications/telegram";
 import { prisma } from "@/lib/prisma";
+import { getPolicyTelegramOptions } from "@/lib/rotation/policy-telegram-options";
+import {
+  buildScheduleCsvContent,
+  buildScheduleExcelHtml,
+  buildScheduleExportRows,
+} from "@/lib/schedule/export";
+import { hasShiftProof, saveShiftProof, type ShiftProofKind } from "@/lib/shift-proof/storage";
 import { validateSwapAssignmentConstraints } from "@/lib/rotation/swap-constraints";
 import {
   buildBackToMainInlineKeyboard,
@@ -30,8 +41,20 @@ const REMOVE_REPLY_KEYBOARD = { remove_keyboard: true };
 type LinkedUser = {
   id: string;
   fullName: string;
+  systemRole: SystemRole;
   teamMembers: Array<{ teamId: string; role: TeamRole }>;
 };
+
+type PendingProofRequest = {
+  userId: string;
+  kind: ShiftProofKind;
+  confirmationId?: string;
+  shiftId?: string;
+  expiresAt: number;
+};
+
+const pendingProofRequests = new Map<number, PendingProofRequest>();
+const PENDING_PROOF_TTL_MS = 10 * 60 * 1000;
 
 function parseCommandPayload(text: string): { command: string; payload: string | null } | null {
   const trimmed = text.trim();
@@ -74,6 +97,167 @@ function shortGuid(id: string): string {
   return id.slice(0, 8);
 }
 
+type ScheduleExportFormat = "csv" | "excel";
+
+type ScheduleExportWindow = {
+  start: Date;
+  end: Date;
+  monthToken: string;
+};
+
+function pad2(value: number): string {
+  return String(value).padStart(2, "0");
+}
+
+function formatMonthToken(date: Date): string {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}`;
+}
+
+function parseMonthToken(raw: string): ScheduleExportWindow | null {
+  const match = raw.match(/^(\d{4})-(0[1-9]|1[0-2])$/);
+  if (!match) return null;
+  const year = Number.parseInt(match[1], 10);
+  const month = Number.parseInt(match[2], 10);
+  const start = startOfMonth(new Date(year, month - 1, 1));
+  const end = endOfMonth(start);
+  return { start, end, monthToken: raw };
+}
+
+function resolveExportWindow(monthToken: string | null): ScheduleExportWindow | null {
+  if (!monthToken) {
+    const start = startOfMonth(new Date());
+    const end = endOfMonth(start);
+    return {
+      start,
+      end,
+      monthToken: formatMonthToken(start),
+    };
+  }
+
+  return parseMonthToken(monthToken);
+}
+
+function parseExportCommandPayload(payload: string | null): {
+  format: ScheduleExportFormat | null;
+  monthToken: string | null;
+  error?: string;
+} {
+  if (!payload) {
+    return { format: null, monthToken: null };
+  }
+
+  let format: ScheduleExportFormat | null = null;
+  let monthToken: string | null = null;
+
+  for (const tokenRaw of payload.split(/\s+/).filter(Boolean)) {
+    const token = tokenRaw.trim().toLowerCase();
+    if (!token) continue;
+
+    if (token === "csv") {
+      if (format && format !== "csv") {
+        return { format: null, monthToken: null, error: "Chỉ chọn một định dạng export." };
+      }
+      format = "csv";
+      continue;
+    }
+    if (token === "excel" || token === "xls" || token === "xlsx") {
+      if (format && format !== "excel") {
+        return { format: null, monthToken: null, error: "Chỉ chọn một định dạng export." };
+      }
+      format = "excel";
+      continue;
+    }
+    if (/^\d{4}-(0[1-9]|1[0-2])$/.test(token)) {
+      if (monthToken) {
+        return { format: null, monthToken: null, error: "Chỉ hỗ trợ một tham số tháng YYYY-MM." };
+      }
+      monthToken = token;
+      continue;
+    }
+
+    return {
+      format: null,
+      monthToken: null,
+      error: "Payload không hợp lệ. Dùng /export csv 2026-05 hoặc /export excel 2026-05.",
+    };
+  }
+
+  return { format, monthToken };
+}
+
+function getManagedTeamIds(user: LinkedUser): string[] {
+  return [...new Set(
+    user.teamMembers
+      .filter((member) => member.role === TeamRole.MANAGER)
+      .map((member) => member.teamId)
+  )];
+}
+
+function canExportSchedule(user: LinkedUser): boolean {
+  return user.systemRole === SystemRole.ADMIN || getManagedTeamIds(user).length > 0;
+}
+
+function setPendingProofRequest(chatId: number, request: Omit<PendingProofRequest, "expiresAt">) {
+  pendingProofRequests.set(chatId, {
+    ...request,
+    expiresAt: Date.now() + PENDING_PROOF_TTL_MS,
+  });
+}
+
+function readPendingProofRequest(chatId: number, userId: string): PendingProofRequest | null {
+  const pending = pendingProofRequests.get(chatId);
+  if (!pending) return null;
+  if (pending.userId !== userId) return null;
+  if (pending.expiresAt < Date.now()) {
+    pendingProofRequests.delete(chatId);
+    return null;
+  }
+  return pending;
+}
+
+function clearPendingProofRequest(chatId: number): void {
+  pendingProofRequests.delete(chatId);
+}
+
+function parseProofCaption(caption: string): { kind: ShiftProofKind; ref: string } | null {
+  const trimmed = caption.trim();
+  if (!trimmed) return null;
+
+  const checkInMatch = trimmed.match(/^(checkin|vao|check-in)[:\s]+([a-z0-9-]+)$/i);
+  if (checkInMatch) {
+    return { kind: "CHECK_IN", ref: checkInMatch[2] };
+  }
+  const checkOutMatch = trimmed.match(/^(checkout|ra|check-out)[:\s]+([a-z0-9-]+)$/i);
+  if (checkOutMatch) {
+    return { kind: "CHECK_OUT", ref: checkOutMatch[2] };
+  }
+  return null;
+}
+
+function getLargestPhotoFromMessage(update: TelegramUpdate): string | null {
+  const photos = update.message?.photo;
+  if (!Array.isArray(photos) || photos.length === 0) return null;
+  const largest = photos[photos.length - 1];
+  return largest?.file_id ?? null;
+}
+
+async function downloadTelegramPhotoBuffer(fileId: string): Promise<{ buffer: Buffer; fileName: string }> {
+  const fileInfo = await getTelegramFile(fileId);
+  if (!fileInfo.ok || !fileInfo.result?.file_path) {
+    throw new Error(fileInfo.description ?? "Không thể lấy file ảnh từ Telegram");
+  }
+
+  const filePath = fileInfo.result.file_path;
+  const downloadUrl = buildTelegramFileDownloadUrl(filePath);
+  const response = await fetch(downloadUrl);
+  if (!response.ok) {
+    throw new Error(`Tải ảnh Telegram thất bại (${response.status})`);
+  }
+  const arrayBuffer = await response.arrayBuffer();
+  const parsedName = filePath.split("/").pop() ?? `${fileId}.jpg`;
+  return { buffer: Buffer.from(arrayBuffer), fileName: parsedName };
+}
+
 function isUuid(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
@@ -88,6 +272,7 @@ function supportText() {
   return [
     "<b>Hỗ trợ</b>",
     "- Nếu cần hỗ trợ, liên hệ quản trị hệ thống.",
+    "- Manager/Admin có thể export lịch bằng /export csv YYYY-MM hoặc /export excel YYYY-MM.",
     "- Dùng /menu để quay lại menu chính.",
   ].join("\n");
 }
@@ -98,6 +283,7 @@ async function getLinkedUserByChatId(chatId: number): Promise<LinkedUser | null>
     select: {
       id: true,
       fullName: true,
+      systemRole: true,
       teamMembers: {
         select: { teamId: true, role: true },
       },
@@ -109,7 +295,7 @@ async function sendMainMenu(chatId: number, userName?: string) {
   const intro = [
     `👋 Xin chào${userName ? ` <b>${escapeHtml(userName)}</b>` : ""}!`,
     "Chọn chức năng bên dưới hoặc dùng lệnh:",
-    "/oncall, /myshifts, /checklist, /swaps, /report, /help",
+    "/oncall, /myshifts, /export, /checklist, /swaps, /report, /help",
   ].join("\n");
 
   await sendTelegramMessage(chatId.toString(), intro, "HTML", REMOVE_REPLY_KEYBOARD);
@@ -122,6 +308,164 @@ async function sendMainMenuInline(chatId: number) {
     "HTML",
     buildMainMenuInlineKeyboard()
   );
+}
+
+async function sendExportMenu(chatId: number, user: LinkedUser, editTarget?: { messageId: number }) {
+  if (!canExportSchedule(user)) {
+    const text = "❌ Chỉ admin hoặc manager mới có quyền export lịch trực.";
+    if (editTarget) {
+      await editMessageText(chatId, editTarget.messageId, text, "HTML", buildBackToMainInlineKeyboard());
+    } else {
+      await sendTelegramMessage(chatId.toString(), text, "HTML", buildBackToMainInlineKeyboard());
+    }
+    return;
+  }
+
+  const currentMonth = formatMonthToken(new Date());
+  const previousMonth = formatMonthToken(subMonths(new Date(), 1));
+  const text = [
+    "📤 <b>Export lịch trực</b>",
+    "Phạm vi mặc định: lịch trong tháng.",
+    "",
+    "Dùng nhanh bằng lệnh:",
+    "<code>/export csv 2026-05</code>",
+    "<code>/export excel 2026-05</code>",
+  ].join("\n");
+  const keyboard = {
+    inline_keyboard: [
+      [
+        { text: `CSV ${currentMonth}`, callback_data: `exp:csv:${currentMonth}` },
+        { text: `Excel ${currentMonth}`, callback_data: `exp:excel:${currentMonth}` },
+      ],
+      [
+        { text: `CSV ${previousMonth}`, callback_data: `exp:csv:${previousMonth}` },
+        { text: `Excel ${previousMonth}`, callback_data: `exp:excel:${previousMonth}` },
+      ],
+      [{ text: "🏠 Menu chính", callback_data: "menu:main" }],
+    ],
+  };
+
+  if (editTarget) {
+    await editMessageText(chatId, editTarget.messageId, text, "HTML", keyboard);
+  } else {
+    await sendTelegramMessage(chatId.toString(), text, "HTML", keyboard);
+  }
+}
+
+async function sendScheduleExportDocument(
+  chatId: number,
+  user: LinkedUser,
+  format: ScheduleExportFormat,
+  monthToken: string | null
+) {
+  if (!canExportSchedule(user)) {
+    await sendTelegramMessage(
+      chatId.toString(),
+      "❌ Chỉ admin hoặc manager mới có quyền export lịch trực.",
+      "HTML"
+    );
+    return;
+  }
+
+  const exportWindow = resolveExportWindow(monthToken);
+  if (!exportWindow) {
+    await sendTelegramMessage(
+      chatId.toString(),
+      "❌ Tháng không hợp lệ. Dùng định dạng <code>YYYY-MM</code>, ví dụ <code>2026-05</code>.",
+      "HTML"
+    );
+    return;
+  }
+
+  const isAdmin = user.systemRole === SystemRole.ADMIN;
+  const managedTeamIds = getManagedTeamIds(user);
+  if (!isAdmin && managedTeamIds.length === 0) {
+    await sendTelegramMessage(
+      chatId.toString(),
+      "❌ Bạn chưa quản lý team nào để export lịch.",
+      "HTML"
+    );
+    return;
+  }
+
+  const shifts = await prisma.shift.findMany({
+    where: {
+      startsAt: { lte: exportWindow.end },
+      endsAt: { gte: exportWindow.start },
+      status: { in: [ShiftStatus.PUBLISHED, ShiftStatus.ACTIVE, ShiftStatus.COMPLETED] },
+      policy: isAdmin ? undefined : { teamId: { in: managedTeamIds } },
+    },
+    include: {
+      assignee: { select: { fullName: true } },
+      backup: { select: { fullName: true } },
+      policy: { select: { name: true, team: { select: { name: true } } } },
+      confirmation: { select: { status: true } },
+      verificationPhotos: {
+        select: { kind: true, storagePath: true, createdAt: true },
+        orderBy: { createdAt: "desc" },
+      },
+    },
+    orderBy: { startsAt: "asc" },
+  });
+
+  if (shifts.length === 0) {
+    await sendTelegramMessage(
+      chatId.toString(),
+      `ℹ️ Không có ca trực trong tháng <b>${exportWindow.monthToken}</b> để export.`,
+      "HTML"
+    );
+    return;
+  }
+
+  const rows = buildScheduleExportRows(
+    shifts.map((shift) => {
+      const checkInPhoto = shift.verificationPhotos.find((photo) => photo.kind === "CHECK_IN");
+      const checkOutPhoto = shift.verificationPhotos.find((photo) => photo.kind === "CHECK_OUT");
+
+      return {
+        startsAt: shift.startsAt,
+        endsAt: shift.endsAt,
+        teamName: shift.policy.team.name,
+        policyName: shift.policy.name,
+        assigneeName: shift.assignee.fullName,
+        backupName: shift.backup?.fullName ?? "",
+        status: shift.status,
+        confirmationStatus: shift.confirmation?.status ?? "",
+        source: shift.source,
+        checkInAt: checkInPhoto?.createdAt ?? null,
+        checkOutAt: checkOutPhoto?.createdAt ?? null,
+        checkInPhotoPath: checkInPhoto?.storagePath ?? null,
+        checkOutPhotoPath: checkOutPhoto?.storagePath ?? null,
+        note: shift.notes ?? "",
+      };
+    }),
+    { appBaseUrl: process.env.NEXT_PUBLIC_APP_URL ?? null }
+  );
+
+  const content =
+    format === "csv"
+      ? buildScheduleCsvContent(rows)
+      : buildScheduleExcelHtml(rows);
+  const extension = format === "csv" ? "csv" : "xls";
+  const mimeType =
+    format === "csv" ? "text/csv;charset=utf-8;" : "application/vnd.ms-excel;charset=utf-8;";
+  const fileName = `lich-truc-${exportWindow.monthToken}.${extension}`;
+  const bytes = Buffer.from(`\uFEFF${content}`, "utf8");
+
+  const result = await sendTelegramDocument(chatId.toString(), {
+    fileName,
+    bytes,
+    caption: `📎 Export ${format.toUpperCase()} tháng ${exportWindow.monthToken} (${rows.length} ca).`,
+    contentType: mimeType,
+  });
+
+  if (!result.ok) {
+    await sendTelegramMessage(
+      chatId.toString(),
+      `❌ Gửi file thất bại: ${result.description ?? "Lỗi không xác định"}`,
+      "HTML"
+    );
+  }
 }
 
 async function requireLinkedUser(chatId: number): Promise<LinkedUser | null> {
@@ -230,7 +574,7 @@ async function sendMyShifts(chatId: number, user: LinkedUser) {
     },
     include: {
       policy: { select: { name: true, team: { select: { name: true } } } },
-      confirmation: { select: { status: true } },
+      confirmation: { select: { id: true, status: true } },
     },
     orderBy: { startsAt: "asc" },
     take: 20,
@@ -246,7 +590,7 @@ async function sendMyShifts(chatId: number, user: LinkedUser) {
     return;
   }
 
-  const lines = ["📅 <b>Lịch trực của tôi</b>", ""];
+  const lines = ["📆 <b>Lịch trực của tôi</b>", ""];
   for (const shift of shifts) {
     let marker = "⏳";
     if (shift.startsAt <= now && shift.endsAt >= now) marker = "🟢";
@@ -260,12 +604,28 @@ async function sendMyShifts(chatId: number, user: LinkedUser) {
     );
   }
 
+  const pendingUpcoming = shifts
+    .filter(
+      (shift) =>
+        shift.startsAt > now &&
+        shift.confirmation?.status === ConfirmationStatus.PENDING &&
+        Boolean(shift.confirmation?.id)
+    )
+    .slice(0, 3);
+  if (pendingUpcoming.length > 0) {
+    lines.push("⚠️ Có ca sắp tới đang chờ xác nhận trực tiếp bên dưới.", "");
+  }
+
   await sendTelegramMessage(
     chatId.toString(),
     lines.join("\n").trim(),
     "HTML",
     {
       inline_keyboard: [
+        ...pendingUpcoming.map((shift, index) => ([
+          { text: `✅ Xác nhận ca ${index + 1}`, callback_data: `confirm-id:${shift.confirmation?.id}` },
+          { text: `❌ Từ chối ca ${index + 1}`, callback_data: `decline-id:${shift.confirmation?.id}` },
+        ])),
         [
           { text: "✅ Checklist", callback_data: "menu:checklist" },
           { text: "🔁 Đổi ca", callback_data: "menu:swaps" },
@@ -277,6 +637,292 @@ async function sendMyShifts(chatId: number, user: LinkedUser) {
       ],
     }
   );
+}
+
+type ConfirmationActionInput = {
+  id: string;
+  shiftId: string;
+  userId: string;
+  status: ConfirmationStatus;
+  shift: {
+    startsAt: Date;
+    endsAt: Date;
+    assignee: { fullName: string };
+    policy: { name: string; teamId: string };
+  };
+};
+
+async function applyConfirmationAction(input: {
+  confirmation: ConfirmationActionInput;
+  action: "confirm" | "decline";
+  actorLabel: string;
+}) {
+  const { confirmation, action, actorLabel } = input;
+  const newStatus =
+    action === "confirm" ? ConfirmationStatus.CONFIRMED : ConfirmationStatus.DECLINED;
+
+  await prisma.shiftConfirmation.update({
+    where: { id: confirmation.id },
+    data: { status: newStatus, respondedAt: new Date() },
+  });
+
+  const icon = action === "confirm" ? "✅" : "❌";
+  const label = action === "confirm" ? "Đã xác nhận" : "Đã từ chối";
+  const updatedText = [
+    `${icon} <b>${label} ca trực</b>`,
+    "",
+    `Ca: <b>${escapeHtml(confirmation.shift.policy.name)}</b>`,
+    `Bắt đầu: ${formatDateTime(confirmation.shift.startsAt)}`,
+    `Kết thúc: ${formatDateTime(confirmation.shift.endsAt)}`,
+    "",
+    `Người thực hiện: ${escapeHtml(actorLabel)}`,
+  ].join("\n");
+
+  const deliveries = await prisma.notificationDelivery.findMany({
+    where: {
+      channelType: ChannelType.TELEGRAM,
+      status: DeliveryStatus.SENT,
+      externalId: { not: null },
+      message: { shiftId: confirmation.shiftId },
+    },
+    select: { externalId: true },
+  });
+  if (deliveries.length > 0) {
+    await editTelegramDeliveries(deliveries, updatedText).catch(() => {});
+  }
+
+  import("@/lib/notifications/notify-channel")
+    .then(({ notifyTeamChannels }) =>
+      notifyTeamChannels({
+        teamId: confirmation.shift.policy.teamId,
+        eventType:
+          newStatus === ConfirmationStatus.CONFIRMED ? "SHIFT_CONFIRMED" : "SHIFT_DECLINED",
+        templateId:
+          newStatus === ConfirmationStatus.CONFIRMED ? "shift-confirmed" : "shift-declined",
+        recipientId: confirmation.userId,
+        variables: {
+          recipientName: confirmation.shift.assignee.fullName,
+          policyName: confirmation.shift.policy.name,
+          shiftStart: confirmation.shift.startsAt.toISOString(),
+          shiftEnd: confirmation.shift.endsAt.toISOString(),
+          appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "",
+        },
+      })
+    )
+    .catch(() => {});
+
+  return { newStatus, updatedText, icon, label };
+}
+
+async function handleProofPhotoMessage(update: TelegramUpdate): Promise<boolean> {
+  const message = update.message;
+  if (!message?.from) return false;
+  if (!Array.isArray(message.photo) || message.photo.length === 0) return false;
+
+  const chatId = message.chat.id;
+  const linked = await requireLinkedUser(chatId);
+  if (!linked) return true;
+
+  const pending = readPendingProofRequest(chatId, linked.id);
+  const captionCommand = message.caption ? parseProofCaption(message.caption) : null;
+
+  let proofKind: ShiftProofKind | null = pending?.kind ?? null;
+  let confirmationRef: string | undefined = pending?.confirmationId;
+  let shiftRef: string | undefined = pending?.shiftId;
+
+  if (!proofKind && captionCommand) {
+    proofKind = captionCommand.kind;
+    if (captionCommand.kind === "CHECK_IN") {
+      confirmationRef = captionCommand.ref;
+    } else {
+      shiftRef = captionCommand.ref;
+    }
+  }
+
+  if (!proofKind) {
+    await sendTelegramMessage(
+      chatId.toString(),
+      [
+        "📷 Đã nhận ảnh, nhưng chưa biết ảnh thuộc ca nào.",
+        "Bấm nút \"Gửi ảnh check-in/check-out\" từ tin nhắc hoặc gửi caption:",
+        "<code>checkin:&lt;confirmationId-hoac-token&gt;</code>",
+        "<code>checkout:&lt;shiftId&gt;</code>",
+      ].join("\n"),
+      "HTML"
+    );
+    return true;
+  }
+
+  const fileId = getLargestPhotoFromMessage(update);
+  if (!fileId) {
+    await sendTelegramMessage(chatId.toString(), "❌ Không đọc được ảnh. Vui lòng thử lại.", "HTML");
+    return true;
+  }
+
+  try {
+    if (proofKind === "CHECK_IN") {
+      if (!confirmationRef) {
+        await sendTelegramMessage(chatId.toString(), "❌ Thiếu mã xác nhận ca trực.", "HTML");
+        return true;
+      }
+
+      const byId = isUuid(confirmationRef);
+      const confirmation = await prisma.shiftConfirmation.findUnique({
+        where: byId ? { id: confirmationRef } : { token: confirmationRef },
+        include: {
+          shift: {
+            include: {
+              assignee: { select: { fullName: true } },
+              policy: { select: { id: true, name: true, teamId: true } },
+            },
+          },
+        },
+      });
+      if (!confirmation) {
+        await sendTelegramMessage(chatId.toString(), "❌ Không tìm thấy ca trực để check-in.", "HTML");
+        return true;
+      }
+      if (confirmation.userId !== linked.id) {
+        await sendTelegramMessage(chatId.toString(), "❌ Bạn không phải người trực của ca này.", "HTML");
+        return true;
+      }
+
+      const { buffer, fileName } = await downloadTelegramPhotoBuffer(fileId);
+      await saveShiftProof({
+        shiftId: confirmation.shiftId,
+        policyId: confirmation.shift.policy.id,
+        userId: linked.id,
+        kind: "CHECK_IN",
+        fileName,
+        fileBuffer: buffer,
+        telegramFileId: fileId,
+        telegramMessageId: message.message_id,
+      });
+      clearPendingProofRequest(chatId);
+
+      if (confirmation.status === ConfirmationStatus.PENDING) {
+        if (new Date() > confirmation.dueAt) {
+          await prisma.shiftConfirmation.update({
+            where: { id: confirmation.id },
+            data: { status: ConfirmationStatus.EXPIRED },
+          });
+          await sendTelegramMessage(
+            chatId.toString(),
+            "⚠️ Đã lưu ảnh check-in, nhưng xác nhận ca đã hết hạn.",
+            "HTML"
+          );
+          return true;
+        }
+
+        const policyOptions = await getPolicyTelegramOptions(confirmation.shift.policy.id);
+        if (policyOptions.requirePhotoOnConfirm) {
+          const checkInExists = await hasShiftProof({
+            shiftId: confirmation.shiftId,
+            userId: linked.id,
+            kind: "CHECK_IN",
+          });
+          if (!checkInExists) {
+            await sendTelegramMessage(
+              chatId.toString(),
+              "❌ Chưa có ảnh check-in hợp lệ. Vui lòng gửi lại ảnh rõ nét.",
+              "HTML"
+            );
+            return true;
+          }
+        }
+
+        await applyConfirmationAction({
+          confirmation: {
+            id: confirmation.id,
+            shiftId: confirmation.shiftId,
+            userId: confirmation.userId,
+            status: confirmation.status,
+            shift: {
+              startsAt: confirmation.shift.startsAt,
+              endsAt: confirmation.shift.endsAt,
+              assignee: { fullName: confirmation.shift.assignee.fullName },
+              policy: {
+                name: confirmation.shift.policy.name,
+                teamId: confirmation.shift.policy.teamId,
+              },
+            },
+          },
+          action: "confirm",
+          actorLabel: linked.fullName,
+        });
+        await sendTelegramMessage(
+          chatId.toString(),
+          "✅ Đã lưu ảnh check-in và xác nhận ca trực thành công.",
+          "HTML"
+        );
+        return true;
+      }
+
+      await sendTelegramMessage(
+        chatId.toString(),
+        `✅ Đã lưu ảnh check-in. Trạng thái ca hiện tại: ${confirmation.status}.`,
+        "HTML"
+      );
+      return true;
+    }
+
+    if (!shiftRef || !isUuid(shiftRef)) {
+      await sendTelegramMessage(chatId.toString(), "❌ Mã ca trực check-out không hợp lệ.", "HTML");
+      return true;
+    }
+
+    const shift = await prisma.shift.findUnique({
+      where: { id: shiftRef },
+      include: {
+        policy: { select: { id: true, name: true } },
+      },
+    });
+    if (!shift) {
+      await sendTelegramMessage(chatId.toString(), "❌ Không tìm thấy ca trực để check-out.", "HTML");
+      return true;
+    }
+    if (shift.assigneeId !== linked.id) {
+      await sendTelegramMessage(chatId.toString(), "❌ Bạn không phải người trực của ca này.", "HTML");
+      return true;
+    }
+
+    const policyOptions = await getPolicyTelegramOptions(shift.policy.id);
+    if (!policyOptions.endShiftReminderEnabled && !policyOptions.requirePhotoOnCheckout) {
+      await sendTelegramMessage(
+        chatId.toString(),
+        "ℹ️ Chính sách này chưa bật xác nhận check-out bằng ảnh.",
+        "HTML"
+      );
+      return true;
+    }
+
+    const { buffer, fileName } = await downloadTelegramPhotoBuffer(fileId);
+    await saveShiftProof({
+      shiftId: shift.id,
+      policyId: shift.policy.id,
+      userId: linked.id,
+      kind: "CHECK_OUT",
+      fileName,
+      fileBuffer: buffer,
+      telegramFileId: fileId,
+      telegramMessageId: message.message_id,
+    });
+    clearPendingProofRequest(chatId);
+
+    await sendTelegramMessage(
+      chatId.toString(),
+      `✅ Đã lưu ảnh check-out cho ca ${escapeHtml(shift.policy.name)}.`,
+      "HTML"
+    );
+    return true;
+  } catch (error) {
+    await sendTelegramMessage(
+      chatId.toString(),
+      `❌ Không thể xử lý ảnh: ${escapeHtml((error as Error).message)}`,
+      "HTML"
+    );
+    return true;
+  }
 }
 
 async function ensureShiftTasksSeeded(shiftId: string, policyId: string) {
@@ -1200,6 +1846,7 @@ function mapMenuShortcut(text: string):
   | "menu"
   | "myshifts"
   | "oncall"
+  | "export"
   | "swaps"
   | "checklist"
   | "report"
@@ -1228,6 +1875,13 @@ function mapMenuShortcut(text: string):
     normalized === "ca đang trực"
   ) {
     return "oncall";
+  }
+  if (
+    normalized === "📤 xuất lịch" ||
+    normalized === "xuất lịch" ||
+    normalized === "xuat lich"
+  ) {
+    return "export";
   }
   if (
     normalized === "🔁 đổi ca" ||
@@ -1266,6 +1920,77 @@ async function handleLegacyCallbackActions(update: TelegramUpdate): Promise<bool
   const chatId = message.chat.id;
   const msgId = message.message_id;
 
+  if (data.startsWith("proof-in:")) {
+    const confirmationId = data.slice("proof-in:".length);
+    const linked = await getLinkedUserByChatId(chatId);
+    if (!linked) {
+      await answerCallbackQuery(cbId, "Chat chưa liên kết tài khoản", true);
+      return true;
+    }
+
+    const confirmation = await prisma.shiftConfirmation.findUnique({
+      where: { id: confirmationId },
+      include: { shift: { include: { policy: { select: { name: true } } } } },
+    });
+    if (!confirmation || confirmation.userId !== linked.id) {
+      await answerCallbackQuery(cbId, "Không tìm thấy ca trực hợp lệ.", true);
+      return true;
+    }
+
+    setPendingProofRequest(chatId, {
+      userId: linked.id,
+      kind: "CHECK_IN",
+      confirmationId: confirmation.id,
+      shiftId: confirmation.shiftId,
+    });
+    await answerCallbackQuery(cbId, "Đã bật chế độ nhận ảnh check-in");
+    await sendTelegramMessage(
+      chatId.toString(),
+      [
+        `📷 Hãy gửi ảnh check-in cho ca <b>${escapeHtml(confirmation.shift.policy.name)}</b>.`,
+        `Bạn có thể gửi ngay ảnh không cần caption trong vòng 10 phút.`,
+        `Hoặc gửi kèm caption: <code>checkin:${confirmation.id}</code>`,
+      ].join("\n"),
+      "HTML"
+    );
+    return true;
+  }
+
+  if (data.startsWith("proof-out:")) {
+    const shiftId = data.slice("proof-out:".length);
+    const linked = await getLinkedUserByChatId(chatId);
+    if (!linked) {
+      await answerCallbackQuery(cbId, "Chat chưa liên kết tài khoản", true);
+      return true;
+    }
+
+    const shift = await prisma.shift.findUnique({
+      where: { id: shiftId },
+      include: { policy: { select: { name: true } } },
+    });
+    if (!shift || shift.assigneeId !== linked.id) {
+      await answerCallbackQuery(cbId, "Không tìm thấy ca trực hợp lệ.", true);
+      return true;
+    }
+
+    setPendingProofRequest(chatId, {
+      userId: linked.id,
+      kind: "CHECK_OUT",
+      shiftId: shift.id,
+    });
+    await answerCallbackQuery(cbId, "Đã bật chế độ nhận ảnh check-out");
+    await sendTelegramMessage(
+      chatId.toString(),
+      [
+        `📷 Hãy gửi ảnh check-out cho ca <b>${escapeHtml(shift.policy.name)}</b>.`,
+        `Bạn có thể gửi ngay ảnh không cần caption trong vòng 10 phút.`,
+        `Hoặc gửi kèm caption: <code>checkout:${shift.id}</code>`,
+      ].join("\n"),
+      "HTML"
+    );
+    return true;
+  }
+
   if (
     data.startsWith("confirm-id:") ||
     data.startsWith("decline-id:") ||
@@ -1282,7 +2007,7 @@ async function handleLegacyCallbackActions(update: TelegramUpdate): Promise<bool
         shift: {
           include: {
             assignee: { select: { id: true, fullName: true, telegramChatId: true } },
-            policy: { select: { name: true, teamId: true } },
+            policy: { select: { id: true, name: true, teamId: true } },
           },
         },
       },
@@ -1290,6 +2015,12 @@ async function handleLegacyCallbackActions(update: TelegramUpdate): Promise<bool
 
     if (!confirmation || confirmation.status !== ConfirmationStatus.PENDING) {
       await answerCallbackQuery(cbId, "Ca này đã được xử lý rồi.", true);
+      return true;
+    }
+
+    const linked = await getLinkedUserByChatId(chatId);
+    if (!linked || linked.id !== confirmation.userId) {
+      await answerCallbackQuery(cbId, "Chỉ người trực của ca mới được xác nhận/từ chối.", true);
       return true;
     }
 
@@ -1302,64 +2033,61 @@ async function handleLegacyCallbackActions(update: TelegramUpdate): Promise<bool
       return true;
     }
 
-    const newStatus =
-      action === "confirm" ? ConfirmationStatus.CONFIRMED : ConfirmationStatus.DECLINED;
-    await prisma.shiftConfirmation.update({
-      where: { id: confirmation.id },
-      data: { status: newStatus, respondedAt: new Date() },
-    });
-
-    const icon = action === "confirm" ? "✅" : "❌";
-    const label = action === "confirm" ? "Đã xác nhận" : "Đã từ chối";
-    const updatedText = [
-      `${icon} <b>${label} ca trực</b>`,
-      "",
-      `Ca: <b>${escapeHtml(confirmation.shift.policy.name)}</b>`,
-      `Bắt đầu: ${formatDateTime(confirmation.shift.startsAt)}`,
-      `Kết thúc: ${formatDateTime(confirmation.shift.endsAt)}`,
-      "",
-      `Người thực hiện: ${escapeHtml(from.first_name ?? "Telegram user")}`,
-    ].join("\n");
-
-    await editMessageText(chatId, msgId, updatedText, "HTML", { inline_keyboard: [] });
-    await answerCallbackQuery(cbId, `${icon} ${label} thành công!`);
-
-    const otherDeliveries = await prisma.notificationDelivery.findMany({
-      where: {
-        channelType: ChannelType.TELEGRAM,
-        status: DeliveryStatus.SENT,
-        externalId: { startsWith: `${chatId}|`, not: `${chatId}|${msgId}` },
-        message: { shiftId: confirmation.shiftId },
-      },
-      select: { externalId: true },
-    });
-    if (otherDeliveries.length > 0) {
-      await editTelegramDeliveries(otherDeliveries, updatedText).catch(() => {});
+    if (action === "confirm") {
+      const policyOptions = await getPolicyTelegramOptions(confirmation.shift.policy.id);
+      if (policyOptions.requirePhotoOnConfirm) {
+        const proofExists = await hasShiftProof({
+          shiftId: confirmation.shiftId,
+          userId: confirmation.userId,
+          kind: "CHECK_IN",
+        });
+        if (!proofExists) {
+          setPendingProofRequest(chatId, {
+            userId: confirmation.userId,
+            kind: "CHECK_IN",
+            confirmationId: confirmation.id,
+            shiftId: confirmation.shiftId,
+          });
+          await answerCallbackQuery(cbId, "Cần ảnh check-in trước khi xác nhận", true);
+          await sendTelegramMessage(
+            chatId.toString(),
+            [
+              "📷 Policy này yêu cầu ảnh check-in trước khi xác nhận ca.",
+              "Hãy gửi ảnh ngay trong chat này (trong 10 phút).",
+              `Hoặc caption: <code>checkin:${confirmation.id}</code>`,
+            ].join("\n"),
+            "HTML"
+          );
+          return true;
+        }
+      }
     }
 
-    import("@/lib/notifications/notify-channel")
-      .then(({ notifyTeamChannels }) =>
-        notifyTeamChannels({
-          teamId: confirmation.shift.policy.teamId,
-          eventType:
-            newStatus === ConfirmationStatus.CONFIRMED ? "SHIFT_CONFIRMED" : "SHIFT_DECLINED",
-          templateId:
-            newStatus === ConfirmationStatus.CONFIRMED ? "shift-confirmed" : "shift-declined",
-          recipientId: confirmation.userId,
-          variables: {
-            recipientName: confirmation.shift.assignee.fullName,
-            policyName: confirmation.shift.policy.name,
-            shiftStart: confirmation.shift.startsAt.toISOString(),
-            shiftEnd: confirmation.shift.endsAt.toISOString(),
-            appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "",
+    const actorLabel = from.first_name ?? "Telegram user";
+    const result = await applyConfirmationAction({
+      confirmation: {
+        id: confirmation.id,
+        shiftId: confirmation.shiftId,
+        userId: confirmation.userId,
+        status: confirmation.status,
+        shift: {
+          startsAt: confirmation.shift.startsAt,
+          endsAt: confirmation.shift.endsAt,
+          assignee: { fullName: confirmation.shift.assignee.fullName },
+          policy: {
+            name: confirmation.shift.policy.name,
+            teamId: confirmation.shift.policy.teamId,
           },
-        })
-      )
-      .catch(() => {});
+        },
+      },
+      action,
+      actorLabel,
+    });
 
+    await editMessageText(chatId, msgId, result.updatedText, "HTML", { inline_keyboard: [] }).catch(() => {});
+    await answerCallbackQuery(cbId, `${result.icon} ${result.label} thành công!`);
     return true;
   }
-
   if (data.startsWith("ack:")) {
     const alertId = data.slice(4);
 
@@ -1407,7 +2135,13 @@ async function handleMenuCallback(update: TelegramUpdate): Promise<boolean> {
   const chatId = cb.message.chat.id;
   const messageId = cb.message.message_id;
 
-  if (!(data.startsWith("menu:") || data.startsWith("chk:") || data.startsWith("sw:") || data.startsWith("rpt:"))) {
+  if (
+    !(data.startsWith("menu:") ||
+      data.startsWith("chk:") ||
+      data.startsWith("sw:") ||
+      data.startsWith("rpt:") ||
+      data.startsWith("exp:"))
+  ) {
     return false;
   }
 
@@ -1452,6 +2186,12 @@ async function handleMenuCallback(update: TelegramUpdate): Promise<boolean> {
     if (data === "menu:report" || data === "rpt:list") {
       await answerCallbackQuery(cb.id);
       await sendReportShiftList(chatId, user, { messageId });
+      return true;
+    }
+
+    if (data === "menu:export") {
+      await answerCallbackQuery(cb.id);
+      await sendExportMenu(chatId, user, { messageId });
       return true;
     }
 
@@ -1548,6 +2288,24 @@ async function handleMenuCallback(update: TelegramUpdate): Promise<boolean> {
       const shiftId = data.slice("rpt:s:".length);
       await answerCallbackQuery(cb.id);
       await sendReportTemplate(chatId, user, shiftId);
+      return true;
+    }
+
+    if (data.startsWith("exp:")) {
+      const [, rawFormat, rawMonth] = data.split(":");
+      const normalizedFormat = rawFormat?.toLowerCase();
+      if (!normalizedFormat || !rawMonth) {
+        await answerCallbackQuery(cb.id, "Export action không hợp lệ", true);
+        return true;
+      }
+
+      if (normalizedFormat !== "csv" && normalizedFormat !== "excel") {
+        await answerCallbackQuery(cb.id, "Định dạng export không hợp lệ", true);
+        return true;
+      }
+
+      await answerCallbackQuery(cb.id, "Đang tạo file export...");
+      await sendScheduleExportDocument(chatId, user, normalizedFormat, rawMonth);
       return true;
     }
 
@@ -1659,6 +2417,10 @@ async function handleTextCommand(update: TelegramUpdate): Promise<void> {
         await sendOncallNow(chatId);
         return;
       }
+      if (shortcut === "export") {
+        await sendExportMenu(chatId, linked);
+        return;
+      }
       if (shortcut === "swaps") {
         await sendSwapMenu(chatId);
         return;
@@ -1695,6 +2457,45 @@ async function handleTextCommand(update: TelegramUpdate): Promise<void> {
     case "myshifts":
       await sendMyShifts(chatId, linked);
       return;
+    case "export": {
+      const parsedExport = parseExportCommandPayload(parsedCommand.payload);
+      if (parsedExport.error) {
+        await sendTelegramMessage(chatId.toString(), `❌ ${parsedExport.error}`, "HTML");
+        return;
+      }
+      if (!parsedExport.format) {
+        await sendExportMenu(chatId, linked);
+        return;
+      }
+      await sendScheduleExportDocument(chatId, linked, parsedExport.format, parsedExport.monthToken);
+      return;
+    }
+    case "exportcsv": {
+      const monthToken = parsedCommand.payload?.trim() || null;
+      if (monthToken && !parseMonthToken(monthToken)) {
+        await sendTelegramMessage(
+          chatId.toString(),
+          "❌ Tháng không hợp lệ. Dùng định dạng <code>YYYY-MM</code>, ví dụ <code>2026-05</code>.",
+          "HTML"
+        );
+        return;
+      }
+      await sendScheduleExportDocument(chatId, linked, "csv", monthToken);
+      return;
+    }
+    case "exportexcel": {
+      const monthToken = parsedCommand.payload?.trim() || null;
+      if (monthToken && !parseMonthToken(monthToken)) {
+        await sendTelegramMessage(
+          chatId.toString(),
+          "❌ Tháng không hợp lệ. Dùng định dạng <code>YYYY-MM</code>, ví dụ <code>2026-05</code>.",
+          "HTML"
+        );
+        return;
+      }
+      await sendScheduleExportDocument(chatId, linked, "excel", monthToken);
+      return;
+    }
     case "checklist":
       await sendChecklist(chatId, linked);
       return;
@@ -1710,7 +2511,7 @@ async function handleTextCommand(update: TelegramUpdate): Promise<void> {
     default:
       await sendTelegramMessage(
         chatId.toString(),
-        "ℹ️ Lệnh không được hỗ trợ. Dùng /menu để mở danh sách chức năng.",
+        "ℹ️ Lệnh không được hỗ trợ. Dùng /menu hoặc /export để mở danh sách chức năng.",
         "HTML"
       );
   }
@@ -1722,6 +2523,9 @@ export async function processTelegramUpdate(update: TelegramUpdate): Promise<voi
 
   const menuHandled = await handleMenuCallback(update);
   if (menuHandled) return;
+
+  const proofHandled = await handleProofPhotoMessage(update);
+  if (proofHandled) return;
 
   await handleTextCommand(update);
 }

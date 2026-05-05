@@ -25,6 +25,7 @@ import {
 } from "@/lib/rotation/auto-schedule-rebalance";
 import type { AutoScheduleWarning } from "@/lib/rotation/auto-schedule-rebalance";
 import { buildAutoScheduleWarningNote } from "@/lib/rotation/auto-schedule-warning";
+import { getPolicyTelegramOptions } from "@/lib/rotation/policy-telegram-options";
 
 const Schema = z.object({
   fromDate: z.string().min(1),
@@ -251,6 +252,7 @@ export async function POST(
       where: { shift: { batchId, startsAt: { gte: cutoff } } },
       include: { shift: { select: { startsAt: true, endsAt: true } } },
     });
+    const policyTelegramOptions = await getPolicyTelegramOptions(policy.id);
 
     const remindersScheduled = await scheduleAllRemindersForBatchSafe(
       confirmations.map((c) => ({
@@ -260,7 +262,7 @@ export async function POST(
         dueAt: c.dueAt,
         shift: c.shift,
       })),
-      policy,
+      { ...policy, endShiftReminderEnabled: policyTelegramOptions.endShiftReminderEnabled },
       `batch-reschedule:${batchId}`
     );
 

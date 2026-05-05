@@ -394,6 +394,7 @@ export const ModelName = {
   ScheduleBatch: 'ScheduleBatch',
   Shift: 'Shift',
   ShiftConfirmation: 'ShiftConfirmation',
+  ShiftVerificationPhoto: 'ShiftVerificationPhoto',
   SwapRequest: 'SwapRequest',
   TeamNotificationChannel: 'TeamNotificationChannel',
   NotificationMessage: 'NotificationMessage',
@@ -424,7 +425,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "user" | "team" | "teamMember" | "rotationPolicy" | "scheduleBatch" | "shift" | "shiftConfirmation" | "swapRequest" | "teamNotificationChannel" | "notificationMessage" | "notificationDelivery" | "escalationPolicy" | "escalationRule" | "userNotificationRule" | "auditLog" | "alertIntegration" | "alert" | "incident" | "incidentAttachment" | "incidentLifecycleEvent" | "shiftTask" | "runbook"
+    modelProps: "account" | "session" | "verificationToken" | "user" | "team" | "teamMember" | "rotationPolicy" | "scheduleBatch" | "shift" | "shiftConfirmation" | "shiftVerificationPhoto" | "swapRequest" | "teamNotificationChannel" | "notificationMessage" | "notificationDelivery" | "escalationPolicy" | "escalationRule" | "userNotificationRule" | "auditLog" | "alertIntegration" | "alert" | "incident" | "incidentAttachment" | "incidentLifecycleEvent" | "shiftTask" | "runbook"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1165,6 +1166,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ShiftConfirmationCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ShiftConfirmationCountAggregateOutputType> | number
+        }
+      }
+    }
+    ShiftVerificationPhoto: {
+      payload: Prisma.$ShiftVerificationPhotoPayload<ExtArgs>
+      fields: Prisma.ShiftVerificationPhotoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ShiftVerificationPhotoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftVerificationPhotoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ShiftVerificationPhotoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftVerificationPhotoPayload>
+        }
+        findFirst: {
+          args: Prisma.ShiftVerificationPhotoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftVerificationPhotoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ShiftVerificationPhotoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftVerificationPhotoPayload>
+        }
+        findMany: {
+          args: Prisma.ShiftVerificationPhotoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftVerificationPhotoPayload>[]
+        }
+        create: {
+          args: Prisma.ShiftVerificationPhotoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftVerificationPhotoPayload>
+        }
+        createMany: {
+          args: Prisma.ShiftVerificationPhotoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ShiftVerificationPhotoCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftVerificationPhotoPayload>[]
+        }
+        delete: {
+          args: Prisma.ShiftVerificationPhotoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftVerificationPhotoPayload>
+        }
+        update: {
+          args: Prisma.ShiftVerificationPhotoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftVerificationPhotoPayload>
+        }
+        deleteMany: {
+          args: Prisma.ShiftVerificationPhotoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ShiftVerificationPhotoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ShiftVerificationPhotoUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftVerificationPhotoPayload>[]
+        }
+        upsert: {
+          args: Prisma.ShiftVerificationPhotoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShiftVerificationPhotoPayload>
+        }
+        aggregate: {
+          args: Prisma.ShiftVerificationPhotoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateShiftVerificationPhoto>
+        }
+        groupBy: {
+          args: Prisma.ShiftVerificationPhotoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShiftVerificationPhotoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ShiftVerificationPhotoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShiftVerificationPhotoCountAggregateOutputType> | number
         }
       }
     }
@@ -2417,6 +2492,10 @@ export const RotationPolicyScalarFieldEnum = {
   timezone: 'timezone',
   checklistRequired: 'checklistRequired',
   templateTasks: 'templateTasks',
+  telegramRequirePhotoOnConfirm: 'telegramRequirePhotoOnConfirm',
+  telegramEndShiftReminderEnabled: 'telegramEndShiftReminderEnabled',
+  telegramRequirePhotoOnCheckout: 'telegramRequirePhotoOnCheckout',
+  telegramManagerImportErrorEnabled: 'telegramManagerImportErrorEnabled',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -2472,6 +2551,25 @@ export const ShiftConfirmationScalarFieldEnum = {
 } as const
 
 export type ShiftConfirmationScalarFieldEnum = (typeof ShiftConfirmationScalarFieldEnum)[keyof typeof ShiftConfirmationScalarFieldEnum]
+
+
+export const ShiftVerificationPhotoScalarFieldEnum = {
+  id: 'id',
+  shiftId: 'shiftId',
+  policyId: 'policyId',
+  userId: 'userId',
+  kind: 'kind',
+  source: 'source',
+  fileName: 'fileName',
+  storagePath: 'storagePath',
+  contentType: 'contentType',
+  sizeBytes: 'sizeBytes',
+  telegramFileId: 'telegramFileId',
+  telegramMessageId: 'telegramMessageId',
+  createdAt: 'createdAt'
+} as const
+
+export type ShiftVerificationPhotoScalarFieldEnum = (typeof ShiftVerificationPhotoScalarFieldEnum)[keyof typeof ShiftVerificationPhotoScalarFieldEnum]
 
 
 export const SwapRequestScalarFieldEnum = {
@@ -3213,6 +3311,7 @@ export type GlobalOmitConfig = {
   scheduleBatch?: Prisma.ScheduleBatchOmit
   shift?: Prisma.ShiftOmit
   shiftConfirmation?: Prisma.ShiftConfirmationOmit
+  shiftVerificationPhoto?: Prisma.ShiftVerificationPhotoOmit
   swapRequest?: Prisma.SwapRequestOmit
   teamNotificationChannel?: Prisma.TeamNotificationChannelOmit
   notificationMessage?: Prisma.NotificationMessageOmit

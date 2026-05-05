@@ -68,6 +68,11 @@ export type Shift = Prisma.ShiftModel
  */
 export type ShiftConfirmation = Prisma.ShiftConfirmationModel
 /**
+ * Model ShiftVerificationPhoto
+ * 
+ */
+export type ShiftVerificationPhoto = Prisma.ShiftVerificationPhotoModel
+/**
  * Model SwapRequest
  * 
  */

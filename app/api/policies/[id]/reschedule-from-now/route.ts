@@ -24,6 +24,7 @@ import {
 } from "@/lib/rotation/auto-schedule-rebalance";
 import type { AutoScheduleWarning } from "@/lib/rotation/auto-schedule-rebalance";
 import { buildAutoScheduleWarningNote } from "@/lib/rotation/auto-schedule-warning";
+import { getPolicyTelegramOptions } from "@/lib/rotation/policy-telegram-options";
 
 // POST /api/policies/[id]/reschedule-from-now
 // Finds the active PUBLISHED batch for this policy and regenerates all future shifts
@@ -248,6 +249,7 @@ export async function POST(
       where: { shift: { batchId: batch.id, startsAt: { gte: cutoff } } },
       include: { shift: { select: { startsAt: true, endsAt: true } } },
     });
+    const policyTelegramOptions = await getPolicyTelegramOptions(policy.id);
 
     const remindersScheduled = await scheduleAllRemindersForBatchSafe(
       confirmations.map((c) => ({
@@ -257,7 +259,7 @@ export async function POST(
         dueAt: c.dueAt,
         shift: c.shift,
       })),
-      policy,
+      { ...policy, endShiftReminderEnabled: policyTelegramOptions.endShiftReminderEnabled },
       `policy-reschedule-from-now:${policyId}`
     );
 

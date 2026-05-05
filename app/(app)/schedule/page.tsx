@@ -143,32 +143,75 @@ export default async function SchedulePage({ searchParams }: PageProps) {
     // migration 4 not yet applied
   }
 
+  type ShiftProofRow = {
+    shift_id: string;
+    kind: string;
+    storage_path: string;
+    created_at: Date;
+  };
+  const latestProofByShift = new Map<string, { checkIn?: ShiftProofRow; checkOut?: ShiftProofRow }>();
+  try {
+    const shiftIds = shifts.map((shift) => shift.id);
+    if (shiftIds.length > 0) {
+      const proofRows = await prisma.$queryRaw<Array<ShiftProofRow>>`
+        SELECT DISTINCT ON (shift_id, kind)
+          shift_id::text,
+          kind,
+          storage_path,
+          created_at
+        FROM shift_verification_photos
+        WHERE shift_id = ANY(${shiftIds}::uuid[])
+          AND kind IN ('CHECK_IN', 'CHECK_OUT')
+        ORDER BY shift_id, kind, created_at DESC
+      `;
+
+      for (const row of proofRows) {
+        const current = latestProofByShift.get(row.shift_id) ?? {};
+        if (row.kind === "CHECK_IN") current.checkIn = row;
+        if (row.kind === "CHECK_OUT") current.checkOut = row;
+        latestProofByShift.set(row.shift_id, current);
+      }
+    }
+  } catch {
+    // shift_verification_photos table not yet created
+  }
+
   const shiftBlocks: ShiftBlock[] = shifts
     .filter((s) => s.policy != null)
-    .map((s) => ({
-    id: s.id,
-    assigneeName: s.assignee.fullName,
-    assigneeId: s.assignee.id,
-    policyId: s.policyId,
-    teamId: s.policy?.teamId ?? "",
-    teamName: s.policy?.team?.name ?? null,
-    policyName: s.policy?.name ?? "",
-    startsAt: s.startsAt,
-    endsAt: s.endsAt,
-    status: s.status,
-    source: s.source,
-    confirmationStatus: s.confirmation?.status ?? null,
-    confirmationToken: s.confirmation?.token ?? null,
-    confirmationDueAt: s.confirmation?.dueAt ?? null,
-    confirmationRespondedAt: s.confirmation?.respondedAt ?? null,
-    isMe: s.assignee.id === currentUser.id,
-    isOverride: s.overrideForShiftId !== null,
-    backupName: s.backup?.fullName ?? null,
-    notes: s.notes ?? null,
-    checklistRequired: checklistRequiredByPolicy[s.policyId] ?? false,
-    checklistTotal: totalMap[s.id] ?? 0,
-    checklistDone: doneMap[s.id] ?? 0,
-  }));
+    .map((s) => {
+      const latestProof = latestProofByShift.get(s.id);
+      const checkInPhoto = latestProof?.checkIn;
+      const checkOutPhoto = latestProof?.checkOut;
+
+      return {
+        id: s.id,
+        assigneeName: s.assignee.fullName,
+        assigneeId: s.assignee.id,
+        policyId: s.policyId,
+        teamId: s.policy?.teamId ?? "",
+        teamName: s.policy?.team?.name ?? null,
+        policyName: s.policy?.name ?? "",
+        startsAt: s.startsAt,
+        endsAt: s.endsAt,
+        status: s.status,
+        source: s.source,
+        confirmationStatus: s.confirmation?.status ?? null,
+        confirmationToken: s.confirmation?.token ?? null,
+        confirmationDueAt: s.confirmation?.dueAt ?? null,
+        confirmationRespondedAt: s.confirmation?.respondedAt ?? null,
+        isMe: s.assignee.id === currentUser.id,
+        isOverride: s.overrideForShiftId !== null,
+        backupName: s.backup?.fullName ?? null,
+        notes: s.notes ?? null,
+        checklistRequired: checklistRequiredByPolicy[s.policyId] ?? false,
+        checklistTotal: totalMap[s.id] ?? 0,
+        checklistDone: doneMap[s.id] ?? 0,
+        checkInAt: checkInPhoto?.created_at ?? null,
+        checkOutAt: checkOutPhoto?.created_at ?? null,
+        checkInPhotoPath: checkInPhoto?.storage_path ?? null,
+        checkOutPhotoPath: checkOutPhoto?.storage_path ?? null,
+      };
+    });
 
   return (
     <ScheduleView

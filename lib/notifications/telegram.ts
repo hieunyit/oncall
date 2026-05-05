@@ -40,6 +40,16 @@ export interface TelegramMessageRef {
   from?: TelegramUserRef;
   chat: { id: number; type: string };
   text?: string;
+  caption?: string;
+  photo?: TelegramPhotoSizeRef[];
+}
+
+export interface TelegramPhotoSizeRef {
+  file_id: string;
+  file_unique_id?: string;
+  width: number;
+  height: number;
+  file_size?: number;
 }
 
 export interface TelegramCallbackQueryRef {
@@ -108,6 +118,63 @@ export async function sendTelegramMessage(
   return parseTelegramJson<{ message_id: number }>(res);
 }
 
+export async function sendTelegramPhoto(
+  chatId: string,
+  photo: string,
+  caption?: string,
+  replyMarkup?: object
+): Promise<TelegramSendResult> {
+  const res = await fetch(botUrl("sendPhoto"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      photo,
+      ...(caption ? { caption, parse_mode: "HTML" } : {}),
+      ...(replyMarkup ? { reply_markup: replyMarkup } : {}),
+    }),
+  });
+  return parseTelegramJson<{ message_id: number }>(res);
+}
+
+export async function sendTelegramDocument(
+  chatId: string,
+  params: {
+    fileName: string;
+    bytes: Buffer | Uint8Array;
+    caption?: string;
+    contentType?: string;
+    replyMarkup?: object;
+  }
+): Promise<TelegramSendResult> {
+  const formData = new FormData();
+  formData.set("chat_id", chatId);
+
+  const inputBytes = params.bytes instanceof Uint8Array ? params.bytes : new Uint8Array(params.bytes);
+  const arrayBuffer = inputBytes.buffer.slice(
+    inputBytes.byteOffset,
+    inputBytes.byteOffset + inputBytes.byteLength
+  ) as ArrayBuffer;
+  const blob = new Blob([arrayBuffer], {
+    type: params.contentType ?? "application/octet-stream",
+  });
+  formData.set("document", blob, params.fileName);
+
+  if (params.caption?.trim()) {
+    formData.set("caption", params.caption.trim());
+    formData.set("parse_mode", "HTML");
+  }
+  if (params.replyMarkup) {
+    formData.set("reply_markup", JSON.stringify(params.replyMarkup));
+  }
+
+  const res = await fetch(botUrl("sendDocument"), {
+    method: "POST",
+    body: formData,
+  });
+  return parseTelegramJson<{ message_id: number }>(res);
+}
+
 export async function answerCallbackQuery(
   callbackQueryId: string,
   text?: string,
@@ -150,10 +217,21 @@ export function buildInlineKeyboard(templateId: string, variables: Record<string
     const declineData = variables.confirmationId
       ? `decline-id:${variables.confirmationId}`
       : `decline:${variables.confirmationToken}`;
+    const rows: Array<Array<{ text: string; callback_data: string }>> = [[
+      { text: "✅ Xác nhận ca trực", callback_data: confirmData },
+      { text: "❌ Từ chối", callback_data: declineData },
+    ]];
+    if (variables.requirePhotoOnConfirm === "1" && variables.confirmationId) {
+      rows.push([{ text: "📷 Gửi ảnh check-in", callback_data: `proof-in:${variables.confirmationId}` }]);
+    }
+    return {
+      inline_keyboard: rows,
+    };
+  }
+  if (templateId === "shift-end-reminder" && variables.shiftId) {
     return {
       inline_keyboard: [[
-        { text: "✅ Xác nhận ca trực", callback_data: confirmData },
-        { text: "❌ Từ chối", callback_data: declineData },
+        { text: "📷 Gửi ảnh check-out", callback_data: `proof-out:${variables.shiftId}` },
       ]],
     };
   }
@@ -206,12 +284,27 @@ export function renderTelegramMessage(templateId: string, vars: Record<string, s
         `• Bắt đầu: ${fmtVN(vars.shiftStart)}`,
         `• Kết thúc: ${fmtVN(vars.shiftEnd)}`,
       ];
+      if (vars.requirePhotoOnConfirm === "1") {
+        lines.push(``, `📷 Policy này yêu cầu ảnh check-in khi xác nhận ca.`);
+      }
       if (vars.confirmationToken) {
         const confirmUrl = `${vars.appUrl}/confirm/${vars.confirmationToken}`;
         lines.push(``, `<a href="${confirmUrl}">✅ Xác nhận ca trực</a>`);
       }
       return lines.join("\n");
     }
+    case "shift-end-reminder":
+      return [
+        `⏱️ <b>Nhắc nhở hết ca trực</b>`,
+        ``,
+        `Xin chào ${vars.recipientName},`,
+        `Ca trực <b>${vars.policyName}</b> đã đến giờ kết thúc.`,
+        `• Bắt đầu: ${fmtVN(vars.shiftStart)}`,
+        `• Kết thúc: ${fmtVN(vars.shiftEnd)}`,
+        ...(vars.requirePhotoOnCheckout === "1"
+          ? [``, `📷 Vui lòng gửi ảnh check-out để xác nhận kết ca.`]
+          : []),
+      ].join("\n");
     case "alert-firing":
       return [
         `🔴 <b>ALERT: ${vars.alertTitle}</b>`,
@@ -266,6 +359,28 @@ export function renderTelegramMessage(templateId: string, vars: Record<string, s
     default:
       return vars.body ?? "Thông báo từ On-Call Manager";
   }
+}
+
+export interface TelegramFileRef {
+  file_id: string;
+  file_unique_id?: string;
+  file_size?: number;
+  file_path?: string;
+}
+
+export async function getTelegramFile(fileId: string): Promise<TelegramApiResult<TelegramFileRef>> {
+  const res = await fetch(botUrl("getFile"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ file_id: fileId }),
+  });
+  return parseTelegramJson<TelegramFileRef>(res);
+}
+
+export function buildTelegramFileDownloadUrl(filePath: string): string {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token) throw new Error("TELEGRAM_BOT_TOKEN not set");
+  return `${TELEGRAM_API}/file/bot${token}/${filePath}`;
 }
 
 export async function setTelegramWebhook(webhookUrl: string): Promise<TelegramApiResult<true>> {

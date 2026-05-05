@@ -1,11 +1,20 @@
 // Job payload types for all queues
 
-export interface ReminderJobPayload {
+export interface ConfirmationReminderJobPayload {
   shiftId: string;
   confirmationId: string;
   recipientId: string;
   leadHours: number;
+  kind?: "CONFIRMATION_REMINDER";
 }
+
+export interface ShiftEndReminderJobPayload {
+  shiftId: string;
+  recipientId: string;
+  kind: "SHIFT_END_REMINDER";
+}
+
+export type ReminderJobPayload = ConfirmationReminderJobPayload | ShiftEndReminderJobPayload;
 
 export interface EscalationJobPayload {
   shiftId: string;

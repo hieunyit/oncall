@@ -9,6 +9,10 @@ import {
   getPolicyParticipantUserIds,
   setPolicyParticipantUserIds,
 } from "@/lib/rotation/policy-participants";
+import {
+  getPolicyTelegramOptions,
+  updatePolicyTelegramOptions,
+} from "@/lib/rotation/policy-telegram-options";
 
 const TimeSlotSchema = z.object({
   label: z.string(),
@@ -34,6 +38,10 @@ const UpdatePolicySchema = z.object({
   checklistRequired: z.boolean().optional(),
   templateTasks: z.array(z.string().min(1).max(500)).optional().nullable(),
   memberIds: z.array(z.string().uuid()).min(1).optional(),
+  telegramRequirePhotoOnConfirm: z.boolean().optional(),
+  telegramEndShiftReminderEnabled: z.boolean().optional(),
+  telegramRequirePhotoOnCheckout: z.boolean().optional(),
+  telegramManagerImportErrorEnabled: z.boolean().optional(),
 });
 
 export async function GET(
@@ -66,8 +74,18 @@ export async function GET(
     const result = await requireTeamRole(policy.teamId, TeamRole.MEMBER);
     if (isNextResponse(result)) return result;
 
-    const participantUserIds = await getPolicyParticipantUserIds(id);
-    return ok({ ...policy, participantUserIds });
+    const [participantUserIds, policyTelegramOptions] = await Promise.all([
+      getPolicyParticipantUserIds(id),
+      getPolicyTelegramOptions(id),
+    ]);
+    return ok({
+      ...policy,
+      participantUserIds,
+      telegramRequirePhotoOnConfirm: policyTelegramOptions.requirePhotoOnConfirm,
+      telegramEndShiftReminderEnabled: policyTelegramOptions.endShiftReminderEnabled,
+      telegramRequirePhotoOnCheckout: policyTelegramOptions.requirePhotoOnCheckout,
+      telegramManagerImportErrorEnabled: policyTelegramOptions.managerImportErrorEnabled,
+    });
   } catch (error) {
     return handleError(error);
   }
@@ -95,6 +113,10 @@ export async function PATCH(
       templateTasks,
       checklistRequired,
       memberIds,
+      telegramRequirePhotoOnConfirm,
+      telegramEndShiftReminderEnabled,
+      telegramRequirePhotoOnCheckout,
+      telegramManagerImportErrorEnabled,
       ...rest
     } = UpdatePolicySchema.parse(body);
 
@@ -123,6 +145,12 @@ export async function PATCH(
     if (memberIds) {
       await setPolicyParticipantUserIds(id, memberIds);
     }
+    await updatePolicyTelegramOptions(id, {
+      requirePhotoOnConfirm: telegramRequirePhotoOnConfirm,
+      endShiftReminderEnabled: telegramEndShiftReminderEnabled,
+      requirePhotoOnCheckout: telegramRequirePhotoOnCheckout,
+      managerImportErrorEnabled: telegramManagerImportErrorEnabled,
+    });
 
     // checklistRequired + templateTasks require migration 4 — update via raw SQL,
     // silently skip if columns don't exist yet (pre-migration environments)
@@ -150,8 +178,18 @@ export async function PATCH(
       ipAddress: req.headers.get("x-forwarded-for") ?? undefined,
     });
 
-    const participantUserIds = await getPolicyParticipantUserIds(id);
-    return ok({ ...updated, participantUserIds });
+    const [participantUserIds, policyTelegramOptions] = await Promise.all([
+      getPolicyParticipantUserIds(id),
+      getPolicyTelegramOptions(id),
+    ]);
+    return ok({
+      ...updated,
+      participantUserIds,
+      telegramRequirePhotoOnConfirm: policyTelegramOptions.requirePhotoOnConfirm,
+      telegramEndShiftReminderEnabled: policyTelegramOptions.endShiftReminderEnabled,
+      telegramRequirePhotoOnCheckout: policyTelegramOptions.requirePhotoOnCheckout,
+      telegramManagerImportErrorEnabled: policyTelegramOptions.managerImportErrorEnabled,
+    });
   } catch (error) {
     return handleError(error);
   }

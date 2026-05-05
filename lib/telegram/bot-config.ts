@@ -2,6 +2,7 @@ export const TELEGRAM_BOT_COMMANDS = [
   { command: "menu", description: "Mở menu chính" },
   { command: "oncall", description: "Xem ca đang trực hiện tại" },
   { command: "myshifts", description: "Xem lịch trực của tôi" },
+  { command: "export", description: "Xuất lịch trực CSV/Excel (admin/manager)" },
   { command: "checklist", description: "Cập nhật checklist ca trực" },
   { command: "swaps", description: "Tạo/nhận đổi ca" },
   { command: "report", description: "Tạo report theo ca" },
@@ -15,6 +16,7 @@ export const TELEGRAM_MENU_TEXT = {
   SWAPS: "🔁 Đổi ca",
   CHECKLIST: "✅ Checklist",
   REPORT: "📝 Báo cáo",
+  EXPORT: "📤 Xuất lịch",
   HELP: "🆘 Hỗ trợ",
 } as const;
 
@@ -24,7 +26,8 @@ export function buildMainMenuReplyKeyboard(): object {
       [{ text: TELEGRAM_MENU_TEXT.MAIN }],
       [{ text: TELEGRAM_MENU_TEXT.SHIFTS }, { text: TELEGRAM_MENU_TEXT.ONCALL }],
       [{ text: TELEGRAM_MENU_TEXT.SWAPS }, { text: TELEGRAM_MENU_TEXT.CHECKLIST }],
-      [{ text: TELEGRAM_MENU_TEXT.REPORT }, { text: TELEGRAM_MENU_TEXT.HELP }],
+      [{ text: TELEGRAM_MENU_TEXT.REPORT }, { text: TELEGRAM_MENU_TEXT.EXPORT }],
+      [{ text: TELEGRAM_MENU_TEXT.HELP }],
     ],
     resize_keyboard: true,
     is_persistent: true,
@@ -45,6 +48,9 @@ export function buildMainMenuInlineKeyboard(): object {
       ],
       [
         { text: TELEGRAM_MENU_TEXT.REPORT, callback_data: "menu:report" },
+        { text: TELEGRAM_MENU_TEXT.EXPORT, callback_data: "menu:export" },
+      ],
+      [
         { text: TELEGRAM_MENU_TEXT.HELP, callback_data: "menu:help" },
       ],
     ],

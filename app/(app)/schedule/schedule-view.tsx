@@ -20,6 +20,11 @@ import { WeekTimeline } from "@/components/schedule/week-timeline";
 import { OverrideShiftModal } from "./override-shift-modal";
 import { getAutoScheduleWarningMessage, hasAutoScheduleWarning } from "@/lib/rotation/auto-schedule-warning";
 import { ShiftIncidentsPanel } from "./shift-incidents-panel";
+import {
+  buildScheduleCsvContent,
+  buildScheduleExcelHtml,
+  buildScheduleExportRows,
+} from "@/lib/schedule/export";
 
 export interface ShiftBlock {
   id: string;
@@ -44,6 +49,10 @@ export interface ShiftBlock {
   checklistRequired?: boolean;
   checklistTotal?: number;
   checklistDone?: number;
+  checkInAt?: Date | null;
+  checkOutAt?: Date | null;
+  checkInPhotoPath?: string | null;
+  checkOutPhotoPath?: string | null;
 }
 
 interface TeamMember {
@@ -83,43 +92,12 @@ const CONFIRMATION_STATUS: Record<string, { label: string; className: string }> 
   EXPIRED: { label: "Đã hết hạn", className: "bg-gray-100 text-gray-500" },
 };
 
-const SHIFT_STATUS_LABELS: Record<string, string> = {
-  PUBLISHED: "Đã xuất bản",
-  ACTIVE: "Đang trực",
-  COMPLETED: "Hoàn thành",
-  CANCELLED: "Đã hủy",
-};
-
-const SHIFT_SOURCE_LABELS: Record<string, string> = {
-  AUTO: "Tự động",
-  MANUAL: "Thủ công",
-  SWAP: "Đổi ca",
-  OVERRIDE: "Override",
-};
-
 function formatDuration(start: Date, end: Date): string {
   const totalMins = differenceInMinutes(end, start);
   const h = Math.floor(totalMins / 60);
   const m = totalMins % 60;
   if (m === 0) return `${h} giờ`;
   return `${h}g ${m}p`;
-}
-
-function formatExportDateTime(date: Date): string {
-  return format(date, "dd/MM/yyyy HH:mm");
-}
-
-function csvEscape(value: string): string {
-  return `"${value.replace(/"/g, "\"\"")}"`;
-}
-
-function htmlEscape(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&#39;");
 }
 
 function triggerFileDownload(blob: Blob, fileName: string): void {
@@ -296,26 +274,28 @@ export function ScheduleView({
   );
 
   const exportRows = useMemo(
-    () =>
-      shiftsForExport.map((shift, idx) => {
+    () => buildScheduleExportRows(
+      shiftsForExport.map((shift) => {
         const warning = getAutoScheduleWarningMessage(shift.notes);
         return {
-          stt: String(idx + 1),
-          startsAt: formatExportDateTime(shift.startsAt),
-          endsAt: formatExportDateTime(shift.endsAt),
-          duration: formatDuration(shift.startsAt, shift.endsAt),
+          startsAt: shift.startsAt,
+          endsAt: shift.endsAt,
           teamName: shift.teamName ?? "",
           policyName: shift.policyName,
           assigneeName: shift.assigneeName,
           backupName: shift.backupName ?? "",
-          shiftStatus: shift.status ? SHIFT_STATUS_LABELS[shift.status] ?? shift.status : "",
-          confirmationStatus: shift.confirmationStatus
-            ? CONFIRMATION_STATUS[shift.confirmationStatus]?.label ?? shift.confirmationStatus
-            : "",
-          source: shift.source ? SHIFT_SOURCE_LABELS[shift.source] ?? shift.source : "",
+          status: shift.status ?? "",
+          confirmationStatus: shift.confirmationStatus ?? "",
+          source: shift.source ?? "",
+          checkInAt: shift.checkInAt ?? null,
+          checkOutAt: shift.checkOutAt ?? null,
+          checkInPhotoPath: shift.checkInPhotoPath ?? null,
+          checkOutPhotoPath: shift.checkOutPhotoPath ?? null,
           note: warning ?? shift.notes ?? "",
         };
       }),
+      { appBaseUrl: typeof window !== "undefined" ? window.location.origin : null }
+    ),
     [shiftsForExport]
   );
 
@@ -326,87 +306,14 @@ export function ScheduleView({
 
   const handleExportCsv = useCallback(() => {
     if (exportRows.length === 0) return;
-    const headers = [
-      "STT",
-      "Bắt đầu",
-      "Kết thúc",
-      "Thời lượng",
-      "Nhóm",
-      "Chính sách",
-      "Người trực",
-      "Dự phòng",
-      "Trạng thái ca",
-      "Xác nhận",
-      "Nguồn",
-      "Ghi chú",
-    ];
-    const lines = [
-      headers.map(csvEscape).join(","),
-      ...exportRows.map((row) =>
-        [
-          row.stt,
-          row.startsAt,
-          row.endsAt,
-          row.duration,
-          row.teamName,
-          row.policyName,
-          row.assigneeName,
-          row.backupName,
-          row.shiftStatus,
-          row.confirmationStatus,
-          row.source,
-          row.note,
-        ]
-          .map((cell) => csvEscape(cell))
-          .join(",")
-      ),
-    ];
-    const csv = lines.join("\r\n");
+    const csv = buildScheduleCsvContent(exportRows);
     const blob = new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8;" });
     triggerFileDownload(blob, `${exportFilePrefix}.csv`);
   }, [exportFilePrefix, exportRows]);
 
   const handleExportExcel = useCallback(() => {
     if (exportRows.length === 0) return;
-    const headers = [
-      "STT",
-      "Bắt đầu",
-      "Kết thúc",
-      "Thời lượng",
-      "Nhóm",
-      "Chính sách",
-      "Người trực",
-      "Dự phòng",
-      "Trạng thái ca",
-      "Xác nhận",
-      "Nguồn",
-      "Ghi chú",
-    ];
-
-    const headerHtml = headers.map((h) => `<th>${htmlEscape(h)}</th>`).join("");
-    const rowsHtml = exportRows
-      .map(
-        (row) =>
-          `<tr>${[
-            row.stt,
-            row.startsAt,
-            row.endsAt,
-            row.duration,
-            row.teamName,
-            row.policyName,
-            row.assigneeName,
-            row.backupName,
-            row.shiftStatus,
-            row.confirmationStatus,
-            row.source,
-            row.note,
-          ]
-            .map((cell) => `<td>${htmlEscape(cell)}</td>`)
-            .join("")}</tr>`
-      )
-      .join("");
-
-    const html = `<!DOCTYPE html><html><head><meta charset=\"UTF-8\" /></head><body><table border=\"1\"><thead><tr>${headerHtml}</tr></thead><tbody>${rowsHtml}</tbody></table></body></html>`;
+    const html = buildScheduleExcelHtml(exportRows);
     const blob = new Blob(["\uFEFF", html], {
       type: "application/vnd.ms-excel;charset=utf-8;",
     });

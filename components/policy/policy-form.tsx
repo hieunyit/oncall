@@ -50,6 +50,10 @@ interface PolicyFormProps {
     checklistRequired?: boolean;
     templateTasks?: string[] | null;
     participantUserIds?: string[] | null;
+    telegramRequirePhotoOnConfirm?: boolean;
+    telegramEndShiftReminderEnabled?: boolean;
+    telegramRequirePhotoOnCheckout?: boolean;
+    telegramManagerImportErrorEnabled?: boolean;
   };
 }
 
@@ -119,6 +123,18 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
       ? (initialData.templateTasks as string[])
       : []
   );
+  const [telegramRequirePhotoOnConfirm, setTelegramRequirePhotoOnConfirm] = useState(
+    initialData?.telegramRequirePhotoOnConfirm ?? false
+  );
+  const [telegramEndShiftReminderEnabled, setTelegramEndShiftReminderEnabled] = useState(
+    initialData?.telegramEndShiftReminderEnabled ?? false
+  );
+  const [telegramRequirePhotoOnCheckout, setTelegramRequirePhotoOnCheckout] = useState(
+    initialData?.telegramRequirePhotoOnCheckout ?? false
+  );
+  const [telegramManagerImportErrorEnabled, setTelegramManagerImportErrorEnabled] = useState(
+    initialData?.telegramManagerImportErrorEnabled ?? false
+  );
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -162,6 +178,12 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
     void buildCsvPreview(importCsvFile);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [importCsvFile, form.teamId, selectedMemberIds]);
+
+  useEffect(() => {
+    if (!telegramEndShiftReminderEnabled && telegramRequirePhotoOnCheckout) {
+      setTelegramRequirePhotoOnCheckout(false);
+    }
+  }, [telegramEndShiftReminderEnabled, telegramRequirePhotoOnCheckout]);
 
   function toggleMember(memberId: string) {
     setSelectedMemberIds((prev) =>
@@ -407,6 +429,11 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
       checklistRequired,
       templateTasks: templateTasks.filter((t) => t.trim()),
       memberIds: selectedMemberIds,
+      telegramRequirePhotoOnConfirm,
+      telegramEndShiftReminderEnabled,
+      telegramRequirePhotoOnCheckout:
+        telegramEndShiftReminderEnabled && telegramRequirePhotoOnCheckout,
+      telegramManagerImportErrorEnabled,
     };
 
     if (selectedMemberIds.length === 0) {
@@ -872,6 +899,60 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
           </p>
         )}
       </Field>
+
+      <div className="border border-gray-200 rounded-lg p-4 space-y-3">
+        <p className="text-sm font-medium text-gray-700">Tùy chọn Telegram nâng cao</p>
+        <div className="space-y-2 text-sm">
+          <label className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              checked={telegramRequirePhotoOnConfirm}
+              onChange={(e) => setTelegramRequirePhotoOnConfirm(e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600"
+            />
+            <span className="text-gray-700">
+              Yêu cầu ảnh check-in khi xác nhận ca trực trên Telegram
+            </span>
+          </label>
+
+          <label className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              checked={telegramEndShiftReminderEnabled}
+              onChange={(e) => setTelegramEndShiftReminderEnabled(e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600"
+            />
+            <span className="text-gray-700">
+              Gửi nhắc hết ca qua Telegram
+            </span>
+          </label>
+
+          <label className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              checked={telegramRequirePhotoOnCheckout}
+              onChange={(e) => setTelegramRequirePhotoOnCheckout(e.target.checked)}
+              disabled={!telegramEndShiftReminderEnabled}
+              className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 disabled:opacity-50"
+            />
+            <span className="text-gray-700">
+              Khi nhắc hết ca, yêu cầu ảnh check-out để xác nhận kết ca
+            </span>
+          </label>
+
+          <label className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              checked={telegramManagerImportErrorEnabled}
+              onChange={(e) => setTelegramManagerImportErrorEnabled(e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600"
+            />
+            <span className="text-gray-700">
+              Báo lỗi import CSV quan trọng cho manager qua Telegram
+            </span>
+          </label>
+        </div>
+      </div>
 
       {/* Time slots section */}
       {!importCsvFile ? (

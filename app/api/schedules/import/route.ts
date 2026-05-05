@@ -25,6 +25,8 @@ import {
   getPolicyParticipantUserIds,
 } from "@/lib/rotation/policy-participants";
 import { RATE_LIMITS, rateLimit } from "@/lib/rate-limit";
+import { getPolicyTelegramOptions } from "@/lib/rotation/policy-telegram-options";
+import { sendTelegramMessage } from "@/lib/notifications/telegram";
 
 const MAX_CSV_BYTES = 2 * 1024 * 1024;
 const MAX_ERRORS = 100;
@@ -131,6 +133,63 @@ function parseTemplateTasks(raw: unknown): string[] {
     .filter((item) => item.length > 0);
 }
 
+async function notifyImportErrorForManagers(input: {
+  policyId: string;
+  teamId: string;
+  policyName: string;
+  actorName: string;
+  fileName: string;
+  headline: string;
+  details?: Array<{ line?: number; message: string }>;
+}) {
+  try {
+    const policyOptions = await getPolicyTelegramOptions(input.policyId);
+    if (!policyOptions.managerImportErrorEnabled) return;
+
+    const managers = await prisma.teamMember.findMany({
+      where: {
+        teamId: input.teamId,
+        role: TeamRole.MANAGER,
+        user: { isActive: true, telegramChatId: { not: null } },
+      },
+      select: {
+        user: { select: { telegramChatId: true } },
+      },
+    });
+
+    const uniqueChatIds = [...new Set(
+      managers
+        .map((manager) => manager.user.telegramChatId?.toString() ?? "")
+        .filter((chatId) => chatId.length > 0)
+    )];
+
+    if (uniqueChatIds.length === 0) return;
+
+    const detailLines = (input.details ?? [])
+      .slice(0, 8)
+      .map((item) =>
+        item.line ? `- Dòng ${item.line}: ${item.message}` : `- ${item.message}`
+      );
+
+    const text = [
+      "⚠️ <b>Lỗi import CSV quan trọng</b>",
+      "",
+      `Chính sách: <b>${input.policyName}</b>`,
+      `Người thao tác: ${input.actorName}`,
+      `File: ${input.fileName}`,
+      "",
+      `Lỗi: ${input.headline}`,
+      ...(detailLines.length > 0 ? ["", ...detailLines] : []),
+    ].join("\n");
+
+    await Promise.allSettled(
+      uniqueChatIds.map((chatId) => sendTelegramMessage(chatId, text, "HTML"))
+    );
+  } catch {
+    // Do not fail the import API response if manager alert fails.
+  }
+}
+
 export async function POST(req: NextRequest) {
   const limited = await rateLimit(req, RATE_LIMITS.WRITE);
   if (limited) return limited;
@@ -176,11 +235,33 @@ export async function POST(req: NextRequest) {
 
     if (!policy) return notFound("Policy không tồn tại");
     if (!policy.isActive) {
+      await notifyImportErrorForManagers({
+        policyId: policy.id,
+        teamId: policy.teamId,
+        policyName: policy.name,
+        actorName: actor.fullName,
+        fileName: csvFileRaw.name,
+        headline: "Policy đang inactive",
+      });
       return conflict("Policy đang inactive. Hãy kích hoạt policy trước khi import.", "POLICY_INACTIVE");
     }
 
     const roleCheck = await requireTeamRole(policy.teamId, TeamRole.MANAGER);
     if (isNextResponse(roleCheck)) return roleCheck;
+    const notifyManagerImportError = async (
+      headline: string,
+      details?: Array<{ line?: number; message: string }>
+    ) => {
+      await notifyImportErrorForManagers({
+        policyId: policy.id,
+        teamId: policy.teamId,
+        policyName: policy.name,
+        actorName: actor.fullName,
+        fileName: csvFileRaw.name,
+        headline,
+        details,
+      });
+    };
 
     const selectedParticipantUserIds = await getPolicyParticipantUserIds(policy.id);
     const eligibleMembers = filterTeamMembersByPolicySelection(
@@ -188,6 +269,7 @@ export async function POST(req: NextRequest) {
       selectedParticipantUserIds
     );
     if (eligibleMembers.length === 0) {
+      await notifyManagerImportError("Policy không có thành viên áp dụng");
       return badRequest("Chính sách này chưa có thành viên áp dụng");
     }
     const participantSet = new Set(eligibleMembers.map((member) => member.user.id));
@@ -195,6 +277,15 @@ export async function POST(req: NextRequest) {
     const csvText = await csvFileRaw.text();
     const parsed = parseScheduleCsv(csvText);
     if (parsed.errors.length > 0) {
+      await notifyManagerImportError(
+        "CSV không hợp lệ",
+        parsed.errors.slice(0, MAX_ERRORS).map((error) => ({
+          line: error.line,
+          message: error.field === "header" || error.field === "file"
+            ? error.message
+            : `${error.field}: ${error.message}`,
+        }))
+      );
       return badRequest(
         "CSV không hợp lệ",
         parsed.errors.slice(0, MAX_ERRORS).map((error) => ({
@@ -287,9 +378,11 @@ export async function POST(req: NextRequest) {
     }
 
     if (rowErrors.length > 0) {
+      await notifyManagerImportError("CSV có dữ liệu không hợp lệ", rowErrors.slice(0, MAX_ERRORS));
       return badRequest("CSV có dữ liệu không hợp lệ", rowErrors.slice(0, MAX_ERRORS));
     }
     if (shiftDrafts.length === 0) {
+      await notifyManagerImportError("CSV không có ca trực hợp lệ");
       return badRequest("CSV không có ca trực hợp lệ để import");
     }
 
@@ -332,6 +425,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (internalConflicts.length > 0) {
+      await notifyManagerImportError("CSV có xung đột nội bộ", internalConflicts.slice(0, MAX_ERRORS));
       return badRequest("CSV có xung đột nội bộ", internalConflicts.slice(0, MAX_ERRORS));
     }
 
@@ -354,6 +448,7 @@ export async function POST(req: NextRequest) {
       select: { id: true },
     });
     if (overlapBatch) {
+      await notifyManagerImportError("Khoảng thời gian import bị trùng với batch đã publish");
       return conflict(
         "Khoảng thời gian import bị trùng với batch đã publish. Hãy rollback/reschedule batch cũ trước.",
         "BATCH_OVERLAP"
@@ -402,6 +497,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (externalConflicts.length > 0) {
+      await notifyManagerImportError("CSV xung đột với ca trực đã tồn tại", externalConflicts.slice(0, MAX_ERRORS));
       return badRequest(
         "CSV bị xung đột với ca trực đã tồn tại",
         externalConflicts.slice(0, MAX_ERRORS)
@@ -476,6 +572,7 @@ export async function POST(req: NextRequest) {
         shift: { select: { startsAt: true, endsAt: true } },
       },
     });
+    const policyTelegramOptions = await getPolicyTelegramOptions(policy.id);
 
     const remindersScheduled = await scheduleAllRemindersForBatchSafe(
       confirmations.map((confirmation) => ({
@@ -485,7 +582,7 @@ export async function POST(req: NextRequest) {
         dueAt: confirmation.dueAt,
         shift: confirmation.shift,
       })),
-      policy,
+      { ...policy, endShiftReminderEnabled: policyTelegramOptions.endShiftReminderEnabled },
       `csv-import:${batch.id}`
     );
 

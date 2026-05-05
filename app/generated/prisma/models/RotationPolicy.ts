@@ -55,6 +55,10 @@ export type RotationPolicyMinAggregateOutputType = {
   maxGenerateWeeks: number | null
   timezone: string | null
   checklistRequired: boolean | null
+  telegramRequirePhotoOnConfirm: boolean | null
+  telegramEndShiftReminderEnabled: boolean | null
+  telegramRequirePhotoOnCheckout: boolean | null
+  telegramManagerImportErrorEnabled: boolean | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -73,6 +77,10 @@ export type RotationPolicyMaxAggregateOutputType = {
   maxGenerateWeeks: number | null
   timezone: string | null
   checklistRequired: boolean | null
+  telegramRequirePhotoOnConfirm: boolean | null
+  telegramEndShiftReminderEnabled: boolean | null
+  telegramRequirePhotoOnCheckout: boolean | null
+  telegramManagerImportErrorEnabled: boolean | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -95,6 +103,10 @@ export type RotationPolicyCountAggregateOutputType = {
   timezone: number
   checklistRequired: number
   templateTasks: number
+  telegramRequirePhotoOnConfirm: number
+  telegramEndShiftReminderEnabled: number
+  telegramRequirePhotoOnCheckout: number
+  telegramManagerImportErrorEnabled: number
   isActive: number
   createdAt: number
   updatedAt: number
@@ -131,6 +143,10 @@ export type RotationPolicyMinAggregateInputType = {
   maxGenerateWeeks?: true
   timezone?: true
   checklistRequired?: true
+  telegramRequirePhotoOnConfirm?: true
+  telegramEndShiftReminderEnabled?: true
+  telegramRequirePhotoOnCheckout?: true
+  telegramManagerImportErrorEnabled?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -149,6 +165,10 @@ export type RotationPolicyMaxAggregateInputType = {
   maxGenerateWeeks?: true
   timezone?: true
   checklistRequired?: true
+  telegramRequirePhotoOnConfirm?: true
+  telegramEndShiftReminderEnabled?: true
+  telegramRequirePhotoOnCheckout?: true
+  telegramManagerImportErrorEnabled?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -171,6 +191,10 @@ export type RotationPolicyCountAggregateInputType = {
   timezone?: true
   checklistRequired?: true
   templateTasks?: true
+  telegramRequirePhotoOnConfirm?: true
+  telegramEndShiftReminderEnabled?: true
+  telegramRequirePhotoOnCheckout?: true
+  telegramManagerImportErrorEnabled?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -280,6 +304,10 @@ export type RotationPolicyGroupByOutputType = {
   timezone: string
   checklistRequired: boolean
   templateTasks: runtime.JsonValue
+  telegramRequirePhotoOnConfirm: boolean
+  telegramEndShiftReminderEnabled: boolean
+  telegramRequirePhotoOnCheckout: boolean
+  telegramManagerImportErrorEnabled: boolean
   isActive: boolean
   createdAt: Date
   updatedAt: Date
@@ -325,6 +353,10 @@ export type RotationPolicyWhereInput = {
   timezone?: Prisma.StringFilter<"RotationPolicy"> | string
   checklistRequired?: Prisma.BoolFilter<"RotationPolicy"> | boolean
   templateTasks?: Prisma.JsonFilter<"RotationPolicy">
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFilter<"RotationPolicy"> | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFilter<"RotationPolicy"> | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFilter<"RotationPolicy"> | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFilter<"RotationPolicy"> | boolean
   isActive?: Prisma.BoolFilter<"RotationPolicy"> | boolean
   createdAt?: Prisma.DateTimeFilter<"RotationPolicy"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RotationPolicy"> | Date | string
@@ -333,6 +365,7 @@ export type RotationPolicyWhereInput = {
   scheduleBatches?: Prisma.ScheduleBatchListRelationFilter
   shifts?: Prisma.ShiftListRelationFilter
   incidents?: Prisma.IncidentListRelationFilter
+  verificationPhotos?: Prisma.ShiftVerificationPhotoListRelationFilter
 }
 
 export type RotationPolicyOrderByWithRelationInput = {
@@ -352,6 +385,10 @@ export type RotationPolicyOrderByWithRelationInput = {
   timezone?: Prisma.SortOrder
   checklistRequired?: Prisma.SortOrder
   templateTasks?: Prisma.SortOrder
+  telegramRequirePhotoOnConfirm?: Prisma.SortOrder
+  telegramEndShiftReminderEnabled?: Prisma.SortOrder
+  telegramRequirePhotoOnCheckout?: Prisma.SortOrder
+  telegramManagerImportErrorEnabled?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -360,6 +397,7 @@ export type RotationPolicyOrderByWithRelationInput = {
   scheduleBatches?: Prisma.ScheduleBatchOrderByRelationAggregateInput
   shifts?: Prisma.ShiftOrderByRelationAggregateInput
   incidents?: Prisma.IncidentOrderByRelationAggregateInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoOrderByRelationAggregateInput
 }
 
 export type RotationPolicyWhereUniqueInput = Prisma.AtLeast<{
@@ -382,6 +420,10 @@ export type RotationPolicyWhereUniqueInput = Prisma.AtLeast<{
   timezone?: Prisma.StringFilter<"RotationPolicy"> | string
   checklistRequired?: Prisma.BoolFilter<"RotationPolicy"> | boolean
   templateTasks?: Prisma.JsonFilter<"RotationPolicy">
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFilter<"RotationPolicy"> | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFilter<"RotationPolicy"> | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFilter<"RotationPolicy"> | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFilter<"RotationPolicy"> | boolean
   isActive?: Prisma.BoolFilter<"RotationPolicy"> | boolean
   createdAt?: Prisma.DateTimeFilter<"RotationPolicy"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RotationPolicy"> | Date | string
@@ -390,6 +432,7 @@ export type RotationPolicyWhereUniqueInput = Prisma.AtLeast<{
   scheduleBatches?: Prisma.ScheduleBatchListRelationFilter
   shifts?: Prisma.ShiftListRelationFilter
   incidents?: Prisma.IncidentListRelationFilter
+  verificationPhotos?: Prisma.ShiftVerificationPhotoListRelationFilter
 }, "id">
 
 export type RotationPolicyOrderByWithAggregationInput = {
@@ -409,6 +452,10 @@ export type RotationPolicyOrderByWithAggregationInput = {
   timezone?: Prisma.SortOrder
   checklistRequired?: Prisma.SortOrder
   templateTasks?: Prisma.SortOrder
+  telegramRequirePhotoOnConfirm?: Prisma.SortOrder
+  telegramEndShiftReminderEnabled?: Prisma.SortOrder
+  telegramRequirePhotoOnCheckout?: Prisma.SortOrder
+  telegramManagerImportErrorEnabled?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -439,6 +486,10 @@ export type RotationPolicyScalarWhereWithAggregatesInput = {
   timezone?: Prisma.StringWithAggregatesFilter<"RotationPolicy"> | string
   checklistRequired?: Prisma.BoolWithAggregatesFilter<"RotationPolicy"> | boolean
   templateTasks?: Prisma.JsonWithAggregatesFilter<"RotationPolicy">
+  telegramRequirePhotoOnConfirm?: Prisma.BoolWithAggregatesFilter<"RotationPolicy"> | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolWithAggregatesFilter<"RotationPolicy"> | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolWithAggregatesFilter<"RotationPolicy"> | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolWithAggregatesFilter<"RotationPolicy"> | boolean
   isActive?: Prisma.BoolWithAggregatesFilter<"RotationPolicy"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"RotationPolicy"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"RotationPolicy"> | Date | string
@@ -459,6 +510,10 @@ export type RotationPolicyCreateInput = {
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -467,6 +522,7 @@ export type RotationPolicyCreateInput = {
   scheduleBatches?: Prisma.ScheduleBatchCreateNestedManyWithoutPolicyInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutPolicyInput
   incidents?: Prisma.IncidentCreateNestedManyWithoutPolicyInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyUncheckedCreateInput = {
@@ -486,12 +542,17 @@ export type RotationPolicyUncheckedCreateInput = {
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   scheduleBatches?: Prisma.ScheduleBatchUncheckedCreateNestedManyWithoutPolicyInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutPolicyInput
   incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutPolicyInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyUpdateInput = {
@@ -509,6 +570,10 @@ export type RotationPolicyUpdateInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -517,6 +582,7 @@ export type RotationPolicyUpdateInput = {
   scheduleBatches?: Prisma.ScheduleBatchUpdateManyWithoutPolicyNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutPolicyNestedInput
   incidents?: Prisma.IncidentUpdateManyWithoutPolicyNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyUncheckedUpdateInput = {
@@ -536,12 +602,17 @@ export type RotationPolicyUncheckedUpdateInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   scheduleBatches?: Prisma.ScheduleBatchUncheckedUpdateManyWithoutPolicyNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutPolicyNestedInput
   incidents?: Prisma.IncidentUncheckedUpdateManyWithoutPolicyNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyCreateManyInput = {
@@ -561,6 +632,10 @@ export type RotationPolicyCreateManyInput = {
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -581,6 +656,10 @@ export type RotationPolicyUpdateManyMutationInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -603,6 +682,10 @@ export type RotationPolicyUncheckedUpdateManyInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -643,6 +726,10 @@ export type RotationPolicyCountOrderByAggregateInput = {
   timezone?: Prisma.SortOrder
   checklistRequired?: Prisma.SortOrder
   templateTasks?: Prisma.SortOrder
+  telegramRequirePhotoOnConfirm?: Prisma.SortOrder
+  telegramEndShiftReminderEnabled?: Prisma.SortOrder
+  telegramRequirePhotoOnCheckout?: Prisma.SortOrder
+  telegramManagerImportErrorEnabled?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -669,6 +756,10 @@ export type RotationPolicyMaxOrderByAggregateInput = {
   maxGenerateWeeks?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   checklistRequired?: Prisma.SortOrder
+  telegramRequirePhotoOnConfirm?: Prisma.SortOrder
+  telegramEndShiftReminderEnabled?: Prisma.SortOrder
+  telegramRequirePhotoOnCheckout?: Prisma.SortOrder
+  telegramManagerImportErrorEnabled?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -687,6 +778,10 @@ export type RotationPolicyMinOrderByAggregateInput = {
   maxGenerateWeeks?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   checklistRequired?: Prisma.SortOrder
+  telegramRequirePhotoOnConfirm?: Prisma.SortOrder
+  telegramEndShiftReminderEnabled?: Prisma.SortOrder
+  telegramRequirePhotoOnCheckout?: Prisma.SortOrder
+  telegramManagerImportErrorEnabled?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -793,6 +888,20 @@ export type RotationPolicyUpdateOneRequiredWithoutShiftsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.RotationPolicyUpdateToOneWithWhereWithoutShiftsInput, Prisma.RotationPolicyUpdateWithoutShiftsInput>, Prisma.RotationPolicyUncheckedUpdateWithoutShiftsInput>
 }
 
+export type RotationPolicyCreateNestedOneWithoutVerificationPhotosInput = {
+  create?: Prisma.XOR<Prisma.RotationPolicyCreateWithoutVerificationPhotosInput, Prisma.RotationPolicyUncheckedCreateWithoutVerificationPhotosInput>
+  connectOrCreate?: Prisma.RotationPolicyCreateOrConnectWithoutVerificationPhotosInput
+  connect?: Prisma.RotationPolicyWhereUniqueInput
+}
+
+export type RotationPolicyUpdateOneRequiredWithoutVerificationPhotosNestedInput = {
+  create?: Prisma.XOR<Prisma.RotationPolicyCreateWithoutVerificationPhotosInput, Prisma.RotationPolicyUncheckedCreateWithoutVerificationPhotosInput>
+  connectOrCreate?: Prisma.RotationPolicyCreateOrConnectWithoutVerificationPhotosInput
+  upsert?: Prisma.RotationPolicyUpsertWithoutVerificationPhotosInput
+  connect?: Prisma.RotationPolicyWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RotationPolicyUpdateToOneWithWhereWithoutVerificationPhotosInput, Prisma.RotationPolicyUpdateWithoutVerificationPhotosInput>, Prisma.RotationPolicyUncheckedUpdateWithoutVerificationPhotosInput>
+}
+
 export type RotationPolicyCreateNestedManyWithoutEscalationPolicyInput = {
   create?: Prisma.XOR<Prisma.RotationPolicyCreateWithoutEscalationPolicyInput, Prisma.RotationPolicyUncheckedCreateWithoutEscalationPolicyInput> | Prisma.RotationPolicyCreateWithoutEscalationPolicyInput[] | Prisma.RotationPolicyUncheckedCreateWithoutEscalationPolicyInput[]
   connectOrCreate?: Prisma.RotationPolicyCreateOrConnectWithoutEscalationPolicyInput | Prisma.RotationPolicyCreateOrConnectWithoutEscalationPolicyInput[]
@@ -866,6 +975,10 @@ export type RotationPolicyCreateWithoutTeamInput = {
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -873,6 +986,7 @@ export type RotationPolicyCreateWithoutTeamInput = {
   scheduleBatches?: Prisma.ScheduleBatchCreateNestedManyWithoutPolicyInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutPolicyInput
   incidents?: Prisma.IncidentCreateNestedManyWithoutPolicyInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyUncheckedCreateWithoutTeamInput = {
@@ -891,12 +1005,17 @@ export type RotationPolicyUncheckedCreateWithoutTeamInput = {
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   scheduleBatches?: Prisma.ScheduleBatchUncheckedCreateNestedManyWithoutPolicyInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutPolicyInput
   incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutPolicyInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyCreateOrConnectWithoutTeamInput = {
@@ -945,6 +1064,10 @@ export type RotationPolicyScalarWhereInput = {
   timezone?: Prisma.StringFilter<"RotationPolicy"> | string
   checklistRequired?: Prisma.BoolFilter<"RotationPolicy"> | boolean
   templateTasks?: Prisma.JsonFilter<"RotationPolicy">
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFilter<"RotationPolicy"> | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFilter<"RotationPolicy"> | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFilter<"RotationPolicy"> | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFilter<"RotationPolicy"> | boolean
   isActive?: Prisma.BoolFilter<"RotationPolicy"> | boolean
   createdAt?: Prisma.DateTimeFilter<"RotationPolicy"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RotationPolicy"> | Date | string
@@ -965,6 +1088,10 @@ export type RotationPolicyCreateWithoutScheduleBatchesInput = {
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -972,6 +1099,7 @@ export type RotationPolicyCreateWithoutScheduleBatchesInput = {
   escalationPolicy?: Prisma.EscalationPolicyCreateNestedOneWithoutRotationPoliciesInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutPolicyInput
   incidents?: Prisma.IncidentCreateNestedManyWithoutPolicyInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyUncheckedCreateWithoutScheduleBatchesInput = {
@@ -991,11 +1119,16 @@ export type RotationPolicyUncheckedCreateWithoutScheduleBatchesInput = {
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutPolicyInput
   incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutPolicyInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyCreateOrConnectWithoutScheduleBatchesInput = {
@@ -1029,6 +1162,10 @@ export type RotationPolicyUpdateWithoutScheduleBatchesInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1036,6 +1173,7 @@ export type RotationPolicyUpdateWithoutScheduleBatchesInput = {
   escalationPolicy?: Prisma.EscalationPolicyUpdateOneWithoutRotationPoliciesNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutPolicyNestedInput
   incidents?: Prisma.IncidentUpdateManyWithoutPolicyNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyUncheckedUpdateWithoutScheduleBatchesInput = {
@@ -1055,11 +1193,16 @@ export type RotationPolicyUncheckedUpdateWithoutScheduleBatchesInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutPolicyNestedInput
   incidents?: Prisma.IncidentUncheckedUpdateManyWithoutPolicyNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyCreateWithoutShiftsInput = {
@@ -1077,6 +1220,10 @@ export type RotationPolicyCreateWithoutShiftsInput = {
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1084,6 +1231,7 @@ export type RotationPolicyCreateWithoutShiftsInput = {
   escalationPolicy?: Prisma.EscalationPolicyCreateNestedOneWithoutRotationPoliciesInput
   scheduleBatches?: Prisma.ScheduleBatchCreateNestedManyWithoutPolicyInput
   incidents?: Prisma.IncidentCreateNestedManyWithoutPolicyInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyUncheckedCreateWithoutShiftsInput = {
@@ -1103,11 +1251,16 @@ export type RotationPolicyUncheckedCreateWithoutShiftsInput = {
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   scheduleBatches?: Prisma.ScheduleBatchUncheckedCreateNestedManyWithoutPolicyInput
   incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutPolicyInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyCreateOrConnectWithoutShiftsInput = {
@@ -1141,6 +1294,10 @@ export type RotationPolicyUpdateWithoutShiftsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1148,6 +1305,7 @@ export type RotationPolicyUpdateWithoutShiftsInput = {
   escalationPolicy?: Prisma.EscalationPolicyUpdateOneWithoutRotationPoliciesNestedInput
   scheduleBatches?: Prisma.ScheduleBatchUpdateManyWithoutPolicyNestedInput
   incidents?: Prisma.IncidentUpdateManyWithoutPolicyNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyUncheckedUpdateWithoutShiftsInput = {
@@ -1167,10 +1325,147 @@ export type RotationPolicyUncheckedUpdateWithoutShiftsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   scheduleBatches?: Prisma.ScheduleBatchUncheckedUpdateManyWithoutPolicyNestedInput
+  incidents?: Prisma.IncidentUncheckedUpdateManyWithoutPolicyNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutPolicyNestedInput
+}
+
+export type RotationPolicyCreateWithoutVerificationPhotosInput = {
+  id?: string
+  name: string
+  cadence: $Enums.CadenceKind
+  cronExpression?: string | null
+  shiftDurationHours: number
+  handoverOffsetMinutes?: number
+  confirmationDueHours?: number
+  reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
+  maxGenerateWeeks?: number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  timezone?: string
+  checklistRequired?: boolean
+  templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  team: Prisma.TeamCreateNestedOneWithoutRotationPoliciesInput
+  escalationPolicy?: Prisma.EscalationPolicyCreateNestedOneWithoutRotationPoliciesInput
+  scheduleBatches?: Prisma.ScheduleBatchCreateNestedManyWithoutPolicyInput
+  shifts?: Prisma.ShiftCreateNestedManyWithoutPolicyInput
+  incidents?: Prisma.IncidentCreateNestedManyWithoutPolicyInput
+}
+
+export type RotationPolicyUncheckedCreateWithoutVerificationPhotosInput = {
+  id?: string
+  teamId: string
+  escalationPolicyId?: string | null
+  name: string
+  cadence: $Enums.CadenceKind
+  cronExpression?: string | null
+  shiftDurationHours: number
+  handoverOffsetMinutes?: number
+  confirmationDueHours?: number
+  reminderLeadHours?: Prisma.RotationPolicyCreatereminderLeadHoursInput | number[]
+  maxGenerateWeeks?: number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  timezone?: string
+  checklistRequired?: boolean
+  templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  scheduleBatches?: Prisma.ScheduleBatchUncheckedCreateNestedManyWithoutPolicyInput
+  shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutPolicyInput
+  incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutPolicyInput
+}
+
+export type RotationPolicyCreateOrConnectWithoutVerificationPhotosInput = {
+  where: Prisma.RotationPolicyWhereUniqueInput
+  create: Prisma.XOR<Prisma.RotationPolicyCreateWithoutVerificationPhotosInput, Prisma.RotationPolicyUncheckedCreateWithoutVerificationPhotosInput>
+}
+
+export type RotationPolicyUpsertWithoutVerificationPhotosInput = {
+  update: Prisma.XOR<Prisma.RotationPolicyUpdateWithoutVerificationPhotosInput, Prisma.RotationPolicyUncheckedUpdateWithoutVerificationPhotosInput>
+  create: Prisma.XOR<Prisma.RotationPolicyCreateWithoutVerificationPhotosInput, Prisma.RotationPolicyUncheckedCreateWithoutVerificationPhotosInput>
+  where?: Prisma.RotationPolicyWhereInput
+}
+
+export type RotationPolicyUpdateToOneWithWhereWithoutVerificationPhotosInput = {
+  where?: Prisma.RotationPolicyWhereInput
+  data: Prisma.XOR<Prisma.RotationPolicyUpdateWithoutVerificationPhotosInput, Prisma.RotationPolicyUncheckedUpdateWithoutVerificationPhotosInput>
+}
+
+export type RotationPolicyUpdateWithoutVerificationPhotosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  cadence?: Prisma.EnumCadenceKindFieldUpdateOperationsInput | $Enums.CadenceKind
+  cronExpression?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shiftDurationHours?: Prisma.IntFieldUpdateOperationsInput | number
+  handoverOffsetMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
+  reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
+  maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  team?: Prisma.TeamUpdateOneRequiredWithoutRotationPoliciesNestedInput
+  escalationPolicy?: Prisma.EscalationPolicyUpdateOneWithoutRotationPoliciesNestedInput
+  scheduleBatches?: Prisma.ScheduleBatchUpdateManyWithoutPolicyNestedInput
+  shifts?: Prisma.ShiftUpdateManyWithoutPolicyNestedInput
+  incidents?: Prisma.IncidentUpdateManyWithoutPolicyNestedInput
+}
+
+export type RotationPolicyUncheckedUpdateWithoutVerificationPhotosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  teamId?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationPolicyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  cadence?: Prisma.EnumCadenceKindFieldUpdateOperationsInput | $Enums.CadenceKind
+  cronExpression?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shiftDurationHours?: Prisma.IntFieldUpdateOperationsInput | number
+  handoverOffsetMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  confirmationDueHours?: Prisma.IntFieldUpdateOperationsInput | number
+  reminderLeadHours?: Prisma.RotationPolicyUpdatereminderLeadHoursInput | number[]
+  maxGenerateWeeks?: Prisma.IntFieldUpdateOperationsInput | number
+  timeSlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  participantUserIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  scheduleBatches?: Prisma.ScheduleBatchUncheckedUpdateManyWithoutPolicyNestedInput
+  shifts?: Prisma.ShiftUncheckedUpdateManyWithoutPolicyNestedInput
   incidents?: Prisma.IncidentUncheckedUpdateManyWithoutPolicyNestedInput
 }
 
@@ -1189,6 +1484,10 @@ export type RotationPolicyCreateWithoutEscalationPolicyInput = {
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1196,6 +1495,7 @@ export type RotationPolicyCreateWithoutEscalationPolicyInput = {
   scheduleBatches?: Prisma.ScheduleBatchCreateNestedManyWithoutPolicyInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutPolicyInput
   incidents?: Prisma.IncidentCreateNestedManyWithoutPolicyInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyUncheckedCreateWithoutEscalationPolicyInput = {
@@ -1214,12 +1514,17 @@ export type RotationPolicyUncheckedCreateWithoutEscalationPolicyInput = {
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   scheduleBatches?: Prisma.ScheduleBatchUncheckedCreateNestedManyWithoutPolicyInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutPolicyInput
   incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutPolicyInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyCreateOrConnectWithoutEscalationPolicyInput = {
@@ -1263,6 +1568,10 @@ export type RotationPolicyCreateWithoutIncidentsInput = {
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1270,6 +1579,7 @@ export type RotationPolicyCreateWithoutIncidentsInput = {
   escalationPolicy?: Prisma.EscalationPolicyCreateNestedOneWithoutRotationPoliciesInput
   scheduleBatches?: Prisma.ScheduleBatchCreateNestedManyWithoutPolicyInput
   shifts?: Prisma.ShiftCreateNestedManyWithoutPolicyInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyUncheckedCreateWithoutIncidentsInput = {
@@ -1289,11 +1599,16 @@ export type RotationPolicyUncheckedCreateWithoutIncidentsInput = {
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   scheduleBatches?: Prisma.ScheduleBatchUncheckedCreateNestedManyWithoutPolicyInput
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutPolicyInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutPolicyInput
 }
 
 export type RotationPolicyCreateOrConnectWithoutIncidentsInput = {
@@ -1327,6 +1642,10 @@ export type RotationPolicyUpdateWithoutIncidentsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1334,6 +1653,7 @@ export type RotationPolicyUpdateWithoutIncidentsInput = {
   escalationPolicy?: Prisma.EscalationPolicyUpdateOneWithoutRotationPoliciesNestedInput
   scheduleBatches?: Prisma.ScheduleBatchUpdateManyWithoutPolicyNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutPolicyNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyUncheckedUpdateWithoutIncidentsInput = {
@@ -1353,11 +1673,16 @@ export type RotationPolicyUncheckedUpdateWithoutIncidentsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   scheduleBatches?: Prisma.ScheduleBatchUncheckedUpdateManyWithoutPolicyNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutPolicyNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyCreateManyTeamInput = {
@@ -1376,6 +1701,10 @@ export type RotationPolicyCreateManyTeamInput = {
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1396,6 +1725,10 @@ export type RotationPolicyUpdateWithoutTeamInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1403,6 +1736,7 @@ export type RotationPolicyUpdateWithoutTeamInput = {
   scheduleBatches?: Prisma.ScheduleBatchUpdateManyWithoutPolicyNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutPolicyNestedInput
   incidents?: Prisma.IncidentUpdateManyWithoutPolicyNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyUncheckedUpdateWithoutTeamInput = {
@@ -1421,12 +1755,17 @@ export type RotationPolicyUncheckedUpdateWithoutTeamInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   scheduleBatches?: Prisma.ScheduleBatchUncheckedUpdateManyWithoutPolicyNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutPolicyNestedInput
   incidents?: Prisma.IncidentUncheckedUpdateManyWithoutPolicyNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyUncheckedUpdateManyWithoutTeamInput = {
@@ -1445,6 +1784,10 @@ export type RotationPolicyUncheckedUpdateManyWithoutTeamInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1466,6 +1809,10 @@ export type RotationPolicyCreateManyEscalationPolicyInput = {
   timezone?: string
   checklistRequired?: boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1486,6 +1833,10 @@ export type RotationPolicyUpdateWithoutEscalationPolicyInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1493,6 +1844,7 @@ export type RotationPolicyUpdateWithoutEscalationPolicyInput = {
   scheduleBatches?: Prisma.ScheduleBatchUpdateManyWithoutPolicyNestedInput
   shifts?: Prisma.ShiftUpdateManyWithoutPolicyNestedInput
   incidents?: Prisma.IncidentUpdateManyWithoutPolicyNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyUncheckedUpdateWithoutEscalationPolicyInput = {
@@ -1511,12 +1863,17 @@ export type RotationPolicyUncheckedUpdateWithoutEscalationPolicyInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   scheduleBatches?: Prisma.ScheduleBatchUncheckedUpdateManyWithoutPolicyNestedInput
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutPolicyNestedInput
   incidents?: Prisma.IncidentUncheckedUpdateManyWithoutPolicyNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutPolicyNestedInput
 }
 
 export type RotationPolicyUncheckedUpdateManyWithoutEscalationPolicyInput = {
@@ -1535,6 +1892,10 @@ export type RotationPolicyUncheckedUpdateManyWithoutEscalationPolicyInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   checklistRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   templateTasks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  telegramRequirePhotoOnConfirm?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramEndShiftReminderEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramRequirePhotoOnCheckout?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  telegramManagerImportErrorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1549,12 +1910,14 @@ export type RotationPolicyCountOutputType = {
   scheduleBatches: number
   shifts: number
   incidents: number
+  verificationPhotos: number
 }
 
 export type RotationPolicyCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   scheduleBatches?: boolean | RotationPolicyCountOutputTypeCountScheduleBatchesArgs
   shifts?: boolean | RotationPolicyCountOutputTypeCountShiftsArgs
   incidents?: boolean | RotationPolicyCountOutputTypeCountIncidentsArgs
+  verificationPhotos?: boolean | RotationPolicyCountOutputTypeCountVerificationPhotosArgs
 }
 
 /**
@@ -1588,6 +1951,13 @@ export type RotationPolicyCountOutputTypeCountIncidentsArgs<ExtArgs extends runt
   where?: Prisma.IncidentWhereInput
 }
 
+/**
+ * RotationPolicyCountOutputType without action
+ */
+export type RotationPolicyCountOutputTypeCountVerificationPhotosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ShiftVerificationPhotoWhereInput
+}
+
 
 export type RotationPolicySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1606,6 +1976,10 @@ export type RotationPolicySelect<ExtArgs extends runtime.Types.Extensions.Intern
   timezone?: boolean
   checklistRequired?: boolean
   templateTasks?: boolean
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1614,6 +1988,7 @@ export type RotationPolicySelect<ExtArgs extends runtime.Types.Extensions.Intern
   scheduleBatches?: boolean | Prisma.RotationPolicy$scheduleBatchesArgs<ExtArgs>
   shifts?: boolean | Prisma.RotationPolicy$shiftsArgs<ExtArgs>
   incidents?: boolean | Prisma.RotationPolicy$incidentsArgs<ExtArgs>
+  verificationPhotos?: boolean | Prisma.RotationPolicy$verificationPhotosArgs<ExtArgs>
   _count?: boolean | Prisma.RotationPolicyCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["rotationPolicy"]>
 
@@ -1634,6 +2009,10 @@ export type RotationPolicySelectCreateManyAndReturn<ExtArgs extends runtime.Type
   timezone?: boolean
   checklistRequired?: boolean
   templateTasks?: boolean
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1658,6 +2037,10 @@ export type RotationPolicySelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   timezone?: boolean
   checklistRequired?: boolean
   templateTasks?: boolean
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1682,18 +2065,23 @@ export type RotationPolicySelectScalar = {
   timezone?: boolean
   checklistRequired?: boolean
   templateTasks?: boolean
+  telegramRequirePhotoOnConfirm?: boolean
+  telegramEndShiftReminderEnabled?: boolean
+  telegramRequirePhotoOnCheckout?: boolean
+  telegramManagerImportErrorEnabled?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type RotationPolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "teamId" | "escalationPolicyId" | "name" | "cadence" | "cronExpression" | "shiftDurationHours" | "handoverOffsetMinutes" | "confirmationDueHours" | "reminderLeadHours" | "maxGenerateWeeks" | "timeSlots" | "participantUserIds" | "timezone" | "checklistRequired" | "templateTasks" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["rotationPolicy"]>
+export type RotationPolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "teamId" | "escalationPolicyId" | "name" | "cadence" | "cronExpression" | "shiftDurationHours" | "handoverOffsetMinutes" | "confirmationDueHours" | "reminderLeadHours" | "maxGenerateWeeks" | "timeSlots" | "participantUserIds" | "timezone" | "checklistRequired" | "templateTasks" | "telegramRequirePhotoOnConfirm" | "telegramEndShiftReminderEnabled" | "telegramRequirePhotoOnCheckout" | "telegramManagerImportErrorEnabled" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["rotationPolicy"]>
 export type RotationPolicyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   team?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
   escalationPolicy?: boolean | Prisma.RotationPolicy$escalationPolicyArgs<ExtArgs>
   scheduleBatches?: boolean | Prisma.RotationPolicy$scheduleBatchesArgs<ExtArgs>
   shifts?: boolean | Prisma.RotationPolicy$shiftsArgs<ExtArgs>
   incidents?: boolean | Prisma.RotationPolicy$incidentsArgs<ExtArgs>
+  verificationPhotos?: boolean | Prisma.RotationPolicy$verificationPhotosArgs<ExtArgs>
   _count?: boolean | Prisma.RotationPolicyCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type RotationPolicyIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1713,6 +2101,7 @@ export type $RotationPolicyPayload<ExtArgs extends runtime.Types.Extensions.Inte
     scheduleBatches: Prisma.$ScheduleBatchPayload<ExtArgs>[]
     shifts: Prisma.$ShiftPayload<ExtArgs>[]
     incidents: Prisma.$IncidentPayload<ExtArgs>[]
+    verificationPhotos: Prisma.$ShiftVerificationPhotoPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1731,6 +2120,10 @@ export type $RotationPolicyPayload<ExtArgs extends runtime.Types.Extensions.Inte
     timezone: string
     checklistRequired: boolean
     templateTasks: runtime.JsonValue
+    telegramRequirePhotoOnConfirm: boolean
+    telegramEndShiftReminderEnabled: boolean
+    telegramRequirePhotoOnCheckout: boolean
+    telegramManagerImportErrorEnabled: boolean
     isActive: boolean
     createdAt: Date
     updatedAt: Date
@@ -2133,6 +2526,7 @@ export interface Prisma__RotationPolicyClient<T, Null = never, ExtArgs extends r
   scheduleBatches<T extends Prisma.RotationPolicy$scheduleBatchesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RotationPolicy$scheduleBatchesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ScheduleBatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   shifts<T extends Prisma.RotationPolicy$shiftsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RotationPolicy$shiftsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   incidents<T extends Prisma.RotationPolicy$incidentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RotationPolicy$incidentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IncidentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  verificationPhotos<T extends Prisma.RotationPolicy$verificationPhotosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RotationPolicy$verificationPhotosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ShiftVerificationPhotoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2178,6 +2572,10 @@ export interface RotationPolicyFieldRefs {
   readonly timezone: Prisma.FieldRef<"RotationPolicy", 'String'>
   readonly checklistRequired: Prisma.FieldRef<"RotationPolicy", 'Boolean'>
   readonly templateTasks: Prisma.FieldRef<"RotationPolicy", 'Json'>
+  readonly telegramRequirePhotoOnConfirm: Prisma.FieldRef<"RotationPolicy", 'Boolean'>
+  readonly telegramEndShiftReminderEnabled: Prisma.FieldRef<"RotationPolicy", 'Boolean'>
+  readonly telegramRequirePhotoOnCheckout: Prisma.FieldRef<"RotationPolicy", 'Boolean'>
+  readonly telegramManagerImportErrorEnabled: Prisma.FieldRef<"RotationPolicy", 'Boolean'>
   readonly isActive: Prisma.FieldRef<"RotationPolicy", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"RotationPolicy", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"RotationPolicy", 'DateTime'>
@@ -2670,6 +3068,30 @@ export type RotationPolicy$incidentsArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.IncidentScalarFieldEnum | Prisma.IncidentScalarFieldEnum[]
+}
+
+/**
+ * RotationPolicy.verificationPhotos
+ */
+export type RotationPolicy$verificationPhotosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ShiftVerificationPhoto
+   */
+  select?: Prisma.ShiftVerificationPhotoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ShiftVerificationPhoto
+   */
+  omit?: Prisma.ShiftVerificationPhotoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ShiftVerificationPhotoInclude<ExtArgs> | null
+  where?: Prisma.ShiftVerificationPhotoWhereInput
+  orderBy?: Prisma.ShiftVerificationPhotoOrderByWithRelationInput | Prisma.ShiftVerificationPhotoOrderByWithRelationInput[]
+  cursor?: Prisma.ShiftVerificationPhotoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ShiftVerificationPhotoScalarFieldEnum | Prisma.ShiftVerificationPhotoScalarFieldEnum[]
 }
 
 /**

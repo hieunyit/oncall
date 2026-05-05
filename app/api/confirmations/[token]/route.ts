@@ -6,6 +6,8 @@ import { ChannelType, ConfirmationStatus, DeliveryStatus } from "@/app/generated
 import { writeAuditLog } from "@/lib/audit";
 import { notifyTeamChannels } from "@/lib/notifications/notify-channel";
 import { editTelegramDeliveries } from "@/lib/notifications/telegram";
+import { getPolicyTelegramOptions } from "@/lib/rotation/policy-telegram-options";
+import { hasShiftProof } from "@/lib/shift-proof/storage";
 
 const RespondSchema = z.object({
   action: z.enum(["confirm", "decline"]),
@@ -48,7 +50,7 @@ export async function POST(
         shift: {
           include: {
             assignee: { select: { id: true, fullName: true } },
-            policy: { select: { name: true, teamId: true } },
+            policy: { select: { id: true, name: true, teamId: true } },
           },
         },
       },
@@ -73,6 +75,22 @@ export async function POST(
 
     const body = await req.json();
     const { action } = RespondSchema.parse(body);
+    if (action === "confirm") {
+      const policyOptions = await getPolicyTelegramOptions(confirmation.shift.policy.id);
+      if (policyOptions.requirePhotoOnConfirm) {
+        const hasCheckInPhoto = await hasShiftProof({
+          shiftId: confirmation.shiftId,
+          userId: confirmation.userId,
+          kind: "CHECK_IN",
+        });
+        if (!hasCheckInPhoto) {
+          return conflict(
+            "Policy này yêu cầu ảnh check-in trước khi xác nhận ca trực.",
+            "PHOTO_REQUIRED"
+          );
+        }
+      }
+    }
 
     const newStatus =
       action === "confirm" ? ConfirmationStatus.CONFIRMED : ConfirmationStatus.DECLINED;

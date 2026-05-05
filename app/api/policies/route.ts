@@ -6,6 +6,7 @@ import { ok, created, unauthorized, forbidden, badRequest, handleError } from "@
 import { CadenceKind, TeamRole, SystemRole } from "@/app/generated/prisma/client";
 import { writeAuditLog } from "@/lib/audit";
 import { setPolicyParticipantUserIds } from "@/lib/rotation/policy-participants";
+import { updatePolicyTelegramOptions } from "@/lib/rotation/policy-telegram-options";
 
 const TimeSlotSchema = z.object({
   label: z.string(),
@@ -31,6 +32,10 @@ const CreatePolicySchema = z.object({
   checklistRequired: z.boolean().optional(),
   templateTasks: z.array(z.string().min(1).max(500)).optional(),
   memberIds: z.array(z.string().uuid()).min(1).optional(),
+  telegramRequirePhotoOnConfirm: z.boolean().optional(),
+  telegramEndShiftReminderEnabled: z.boolean().optional(),
+  telegramRequirePhotoOnCheckout: z.boolean().optional(),
+  telegramManagerImportErrorEnabled: z.boolean().optional(),
 });
 
 export async function GET(req: NextRequest) {
@@ -82,7 +87,16 @@ export async function POST(req: NextRequest) {
     if (!actor) return unauthorized();
 
     const body = await req.json();
-    const { checklistRequired, templateTasks, memberIds, ...data } = CreatePolicySchema.parse(body);
+    const {
+      checklistRequired,
+      templateTasks,
+      memberIds,
+      telegramRequirePhotoOnConfirm,
+      telegramEndShiftReminderEnabled,
+      telegramRequirePhotoOnCheckout,
+      telegramManagerImportErrorEnabled,
+      ...data
+    } = CreatePolicySchema.parse(body);
 
     const result = await requireTeamRole(data.teamId, TeamRole.MANAGER);
     if (isNextResponse(result)) return result;
@@ -106,6 +120,12 @@ export async function POST(req: NextRequest) {
 
     const policy = await prisma.rotationPolicy.create({ data });
     await setPolicyParticipantUserIds(policy.id, selectedMemberIds);
+    await updatePolicyTelegramOptions(policy.id, {
+      requirePhotoOnConfirm: telegramRequirePhotoOnConfirm,
+      endShiftReminderEnabled: telegramEndShiftReminderEnabled,
+      requirePhotoOnCheckout: telegramRequirePhotoOnCheckout,
+      managerImportErrorEnabled: telegramManagerImportErrorEnabled,
+    });
 
     // Save checklist fields via raw SQL (migration 4 may not be applied yet)
     if (checklistRequired !== undefined || (templateTasks && templateTasks.length > 0)) {
@@ -130,7 +150,14 @@ export async function POST(req: NextRequest) {
       ipAddress: req.headers.get("x-forwarded-for") ?? undefined,
     });
 
-    return created({ ...policy, participantUserIds: selectedMemberIds });
+    return created({
+      ...policy,
+      participantUserIds: selectedMemberIds,
+      telegramRequirePhotoOnConfirm: telegramRequirePhotoOnConfirm ?? false,
+      telegramEndShiftReminderEnabled: telegramEndShiftReminderEnabled ?? false,
+      telegramRequirePhotoOnCheckout: telegramRequirePhotoOnCheckout ?? false,
+      telegramManagerImportErrorEnabled: telegramManagerImportErrorEnabled ?? false,
+    });
   } catch (error) {
     return handleError(error);
   }

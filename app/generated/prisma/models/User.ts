@@ -320,6 +320,7 @@ export type UserWhereInput = {
   assignedIncidents?: Prisma.IncidentListRelationFilter
   uploadedIncidentFiles?: Prisma.IncidentAttachmentListRelationFilter
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventListRelationFilter
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -355,6 +356,7 @@ export type UserOrderByWithRelationInput = {
   assignedIncidents?: Prisma.IncidentOrderByRelationAggregateInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentOrderByRelationAggregateInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventOrderByRelationAggregateInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -393,6 +395,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   assignedIncidents?: Prisma.IncidentListRelationFilter
   uploadedIncidentFiles?: Prisma.IncidentAttachmentListRelationFilter
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventListRelationFilter
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoListRelationFilter
 }, "id" | "email" | "keycloakId" | "telegramLinkToken">
 
 export type UserOrderByWithAggregationInput = {
@@ -474,6 +477,7 @@ export type UserCreateInput = {
   assignedIncidents?: Prisma.IncidentCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -509,6 +513,7 @@ export type UserUncheckedCreateInput = {
   assignedIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -544,6 +549,7 @@ export type UserUpdateInput = {
   assignedIncidents?: Prisma.IncidentUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -579,6 +585,7 @@ export type UserUncheckedUpdateInput = {
   assignedIncidents?: Prisma.IncidentUncheckedUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -819,6 +826,20 @@ export type UserUpdateOneRequiredWithoutShiftConfirmationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutShiftConfirmationsInput, Prisma.UserUpdateWithoutShiftConfirmationsInput>, Prisma.UserUncheckedUpdateWithoutShiftConfirmationsInput>
 }
 
+export type UserCreateNestedOneWithoutShiftVerificationPhotosInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutShiftVerificationPhotosInput, Prisma.UserUncheckedCreateWithoutShiftVerificationPhotosInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutShiftVerificationPhotosInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutShiftVerificationPhotosNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutShiftVerificationPhotosInput, Prisma.UserUncheckedCreateWithoutShiftVerificationPhotosInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutShiftVerificationPhotosInput
+  upsert?: Prisma.UserUpsertWithoutShiftVerificationPhotosInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutShiftVerificationPhotosInput, Prisma.UserUpdateWithoutShiftVerificationPhotosInput>, Prisma.UserUncheckedUpdateWithoutShiftVerificationPhotosInput>
+}
+
 export type UserCreateNestedOneWithoutSwapRequestsFromInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutSwapRequestsFromInput, Prisma.UserUncheckedCreateWithoutSwapRequestsFromInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutSwapRequestsFromInput
@@ -999,6 +1020,7 @@ export type UserCreateWithoutAccountsInput = {
   assignedIncidents?: Prisma.IncidentCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -1033,6 +1055,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   assignedIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -1083,6 +1106,7 @@ export type UserUpdateWithoutAccountsInput = {
   assignedIncidents?: Prisma.IncidentUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -1117,6 +1141,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   assignedIncidents?: Prisma.IncidentUncheckedUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -1151,6 +1176,7 @@ export type UserCreateWithoutSessionsInput = {
   assignedIncidents?: Prisma.IncidentCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -1185,6 +1211,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   assignedIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -1235,6 +1262,7 @@ export type UserUpdateWithoutSessionsInput = {
   assignedIncidents?: Prisma.IncidentUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -1269,6 +1297,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   assignedIncidents?: Prisma.IncidentUncheckedUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTeamMembersInput = {
@@ -1303,6 +1332,7 @@ export type UserCreateWithoutTeamMembersInput = {
   assignedIncidents?: Prisma.IncidentCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTeamMembersInput = {
@@ -1337,6 +1367,7 @@ export type UserUncheckedCreateWithoutTeamMembersInput = {
   assignedIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTeamMembersInput = {
@@ -1387,6 +1418,7 @@ export type UserUpdateWithoutTeamMembersInput = {
   assignedIncidents?: Prisma.IncidentUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTeamMembersInput = {
@@ -1421,6 +1453,7 @@ export type UserUncheckedUpdateWithoutTeamMembersInput = {
   assignedIncidents?: Prisma.IncidentUncheckedUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutShiftsAsAssigneeInput = {
@@ -1455,6 +1488,7 @@ export type UserCreateWithoutShiftsAsAssigneeInput = {
   assignedIncidents?: Prisma.IncidentCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutShiftsAsAssigneeInput = {
@@ -1489,6 +1523,7 @@ export type UserUncheckedCreateWithoutShiftsAsAssigneeInput = {
   assignedIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutShiftsAsAssigneeInput = {
@@ -1528,6 +1563,7 @@ export type UserCreateWithoutShiftsAsBackupInput = {
   assignedIncidents?: Prisma.IncidentCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutShiftsAsBackupInput = {
@@ -1562,6 +1598,7 @@ export type UserUncheckedCreateWithoutShiftsAsBackupInput = {
   assignedIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutShiftsAsBackupInput = {
@@ -1612,6 +1649,7 @@ export type UserUpdateWithoutShiftsAsAssigneeInput = {
   assignedIncidents?: Prisma.IncidentUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutShiftsAsAssigneeInput = {
@@ -1646,6 +1684,7 @@ export type UserUncheckedUpdateWithoutShiftsAsAssigneeInput = {
   assignedIncidents?: Prisma.IncidentUncheckedUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutShiftsAsBackupInput = {
@@ -1691,6 +1730,7 @@ export type UserUpdateWithoutShiftsAsBackupInput = {
   assignedIncidents?: Prisma.IncidentUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutShiftsAsBackupInput = {
@@ -1725,6 +1765,7 @@ export type UserUncheckedUpdateWithoutShiftsAsBackupInput = {
   assignedIncidents?: Prisma.IncidentUncheckedUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutShiftConfirmationsInput = {
@@ -1759,6 +1800,7 @@ export type UserCreateWithoutShiftConfirmationsInput = {
   assignedIncidents?: Prisma.IncidentCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutShiftConfirmationsInput = {
@@ -1793,6 +1835,7 @@ export type UserUncheckedCreateWithoutShiftConfirmationsInput = {
   assignedIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutShiftConfirmationsInput = {
@@ -1843,6 +1886,7 @@ export type UserUpdateWithoutShiftConfirmationsInput = {
   assignedIncidents?: Prisma.IncidentUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutShiftConfirmationsInput = {
@@ -1867,6 +1911,163 @@ export type UserUncheckedUpdateWithoutShiftConfirmationsInput = {
   teamMembers?: Prisma.TeamMemberUncheckedUpdateManyWithoutUserNestedInput
   shiftsAsAssignee?: Prisma.ShiftUncheckedUpdateManyWithoutAssigneeNestedInput
   shiftsAsBackup?: Prisma.ShiftUncheckedUpdateManyWithoutBackupNestedInput
+  swapRequestsFrom?: Prisma.SwapRequestUncheckedUpdateManyWithoutRequesterNestedInput
+  swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdIncidents?: Prisma.IncidentUncheckedUpdateManyWithoutCreatedByNestedInput
+  assignedIncidents?: Prisma.IncidentUncheckedUpdateManyWithoutAssigneeNestedInput
+  uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutShiftVerificationPhotosInput = {
+  id?: string
+  email: string
+  fullName: string
+  keycloakId?: string | null
+  telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
+  teamsUserId?: string | null
+  teamsConversationId?: string | null
+  phone?: string | null
+  systemRole?: $Enums.SystemRole
+  timezone?: string
+  theme?: string
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  teamMembers?: Prisma.TeamMemberCreateNestedManyWithoutUserInput
+  shiftsAsAssignee?: Prisma.ShiftCreateNestedManyWithoutAssigneeInput
+  shiftsAsBackup?: Prisma.ShiftCreateNestedManyWithoutBackupInput
+  shiftConfirmations?: Prisma.ShiftConfirmationCreateNestedManyWithoutUserInput
+  swapRequestsFrom?: Prisma.SwapRequestCreateNestedManyWithoutRequesterInput
+  swapRequestsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookCreateNestedManyWithoutCreatedByInput
+  createdIncidents?: Prisma.IncidentCreateNestedManyWithoutCreatedByInput
+  assignedIncidents?: Prisma.IncidentCreateNestedManyWithoutAssigneeInput
+  uploadedIncidentFiles?: Prisma.IncidentAttachmentCreateNestedManyWithoutUploadedByInput
+  incidentLifecycleEvents?: Prisma.IncidentLifecycleEventCreateNestedManyWithoutChangedByInput
+}
+
+export type UserUncheckedCreateWithoutShiftVerificationPhotosInput = {
+  id?: string
+  email: string
+  fullName: string
+  keycloakId?: string | null
+  telegramChatId?: bigint | number | null
+  telegramLinkToken?: string | null
+  telegramLinkTokenExp?: Date | string | null
+  teamsUserId?: string | null
+  teamsConversationId?: string | null
+  phone?: string | null
+  systemRole?: $Enums.SystemRole
+  timezone?: string
+  theme?: string
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  teamMembers?: Prisma.TeamMemberUncheckedCreateNestedManyWithoutUserInput
+  shiftsAsAssignee?: Prisma.ShiftUncheckedCreateNestedManyWithoutAssigneeInput
+  shiftsAsBackup?: Prisma.ShiftUncheckedCreateNestedManyWithoutBackupInput
+  shiftConfirmations?: Prisma.ShiftConfirmationUncheckedCreateNestedManyWithoutUserInput
+  swapRequestsFrom?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutRequesterInput
+  swapRequestsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  notificationRules?: Prisma.UserNotificationRuleUncheckedCreateNestedManyWithoutUserInput
+  acknowledgedAlerts?: Prisma.AlertUncheckedCreateNestedManyWithoutAcknowledgerInput
+  createdRunbooks?: Prisma.RunbookUncheckedCreateNestedManyWithoutCreatedByInput
+  createdIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutCreatedByInput
+  assignedIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutAssigneeInput
+  uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedCreateNestedManyWithoutChangedByInput
+}
+
+export type UserCreateOrConnectWithoutShiftVerificationPhotosInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutShiftVerificationPhotosInput, Prisma.UserUncheckedCreateWithoutShiftVerificationPhotosInput>
+}
+
+export type UserUpsertWithoutShiftVerificationPhotosInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutShiftVerificationPhotosInput, Prisma.UserUncheckedUpdateWithoutShiftVerificationPhotosInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutShiftVerificationPhotosInput, Prisma.UserUncheckedCreateWithoutShiftVerificationPhotosInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutShiftVerificationPhotosInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutShiftVerificationPhotosInput, Prisma.UserUncheckedUpdateWithoutShiftVerificationPhotosInput>
+}
+
+export type UserUpdateWithoutShiftVerificationPhotosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  teamMembers?: Prisma.TeamMemberUpdateManyWithoutUserNestedInput
+  shiftsAsAssignee?: Prisma.ShiftUpdateManyWithoutAssigneeNestedInput
+  shiftsAsBackup?: Prisma.ShiftUpdateManyWithoutBackupNestedInput
+  shiftConfirmations?: Prisma.ShiftConfirmationUpdateManyWithoutUserNestedInput
+  swapRequestsFrom?: Prisma.SwapRequestUpdateManyWithoutRequesterNestedInput
+  swapRequestsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  notificationRules?: Prisma.UserNotificationRuleUpdateManyWithoutUserNestedInput
+  acknowledgedAlerts?: Prisma.AlertUpdateManyWithoutAcknowledgerNestedInput
+  createdRunbooks?: Prisma.RunbookUpdateManyWithoutCreatedByNestedInput
+  createdIncidents?: Prisma.IncidentUpdateManyWithoutCreatedByNestedInput
+  assignedIncidents?: Prisma.IncidentUpdateManyWithoutAssigneeNestedInput
+  uploadedIncidentFiles?: Prisma.IncidentAttachmentUpdateManyWithoutUploadedByNestedInput
+  incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUpdateManyWithoutChangedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutShiftVerificationPhotosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramChatId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  telegramLinkToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telegramLinkTokenExp?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  teamsUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamsConversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  teamMembers?: Prisma.TeamMemberUncheckedUpdateManyWithoutUserNestedInput
+  shiftsAsAssignee?: Prisma.ShiftUncheckedUpdateManyWithoutAssigneeNestedInput
+  shiftsAsBackup?: Prisma.ShiftUncheckedUpdateManyWithoutBackupNestedInput
+  shiftConfirmations?: Prisma.ShiftConfirmationUncheckedUpdateManyWithoutUserNestedInput
   swapRequestsFrom?: Prisma.SwapRequestUncheckedUpdateManyWithoutRequesterNestedInput
   swapRequestsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
@@ -1911,6 +2112,7 @@ export type UserCreateWithoutSwapRequestsFromInput = {
   assignedIncidents?: Prisma.IncidentCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSwapRequestsFromInput = {
@@ -1945,6 +2147,7 @@ export type UserUncheckedCreateWithoutSwapRequestsFromInput = {
   assignedIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSwapRequestsFromInput = {
@@ -1984,6 +2187,7 @@ export type UserCreateWithoutSwapRequestsTargetInput = {
   assignedIncidents?: Prisma.IncidentCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSwapRequestsTargetInput = {
@@ -2018,6 +2222,7 @@ export type UserUncheckedCreateWithoutSwapRequestsTargetInput = {
   assignedIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSwapRequestsTargetInput = {
@@ -2068,6 +2273,7 @@ export type UserUpdateWithoutSwapRequestsFromInput = {
   assignedIncidents?: Prisma.IncidentUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSwapRequestsFromInput = {
@@ -2102,6 +2308,7 @@ export type UserUncheckedUpdateWithoutSwapRequestsFromInput = {
   assignedIncidents?: Prisma.IncidentUncheckedUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutSwapRequestsTargetInput = {
@@ -2147,6 +2354,7 @@ export type UserUpdateWithoutSwapRequestsTargetInput = {
   assignedIncidents?: Prisma.IncidentUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSwapRequestsTargetInput = {
@@ -2181,6 +2389,7 @@ export type UserUncheckedUpdateWithoutSwapRequestsTargetInput = {
   assignedIncidents?: Prisma.IncidentUncheckedUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutNotificationRulesInput = {
@@ -2215,6 +2424,7 @@ export type UserCreateWithoutNotificationRulesInput = {
   assignedIncidents?: Prisma.IncidentCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutNotificationRulesInput = {
@@ -2249,6 +2459,7 @@ export type UserUncheckedCreateWithoutNotificationRulesInput = {
   assignedIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutNotificationRulesInput = {
@@ -2299,6 +2510,7 @@ export type UserUpdateWithoutNotificationRulesInput = {
   assignedIncidents?: Prisma.IncidentUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotificationRulesInput = {
@@ -2333,6 +2545,7 @@ export type UserUncheckedUpdateWithoutNotificationRulesInput = {
   assignedIncidents?: Prisma.IncidentUncheckedUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAuditLogsInput = {
@@ -2367,6 +2580,7 @@ export type UserCreateWithoutAuditLogsInput = {
   assignedIncidents?: Prisma.IncidentCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAuditLogsInput = {
@@ -2401,6 +2615,7 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   assignedIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -2451,6 +2666,7 @@ export type UserUpdateWithoutAuditLogsInput = {
   assignedIncidents?: Prisma.IncidentUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -2485,6 +2701,7 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   assignedIncidents?: Prisma.IncidentUncheckedUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAcknowledgedAlertsInput = {
@@ -2519,6 +2736,7 @@ export type UserCreateWithoutAcknowledgedAlertsInput = {
   assignedIncidents?: Prisma.IncidentCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAcknowledgedAlertsInput = {
@@ -2553,6 +2771,7 @@ export type UserUncheckedCreateWithoutAcknowledgedAlertsInput = {
   assignedIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAcknowledgedAlertsInput = {
@@ -2603,6 +2822,7 @@ export type UserUpdateWithoutAcknowledgedAlertsInput = {
   assignedIncidents?: Prisma.IncidentUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAcknowledgedAlertsInput = {
@@ -2637,6 +2857,7 @@ export type UserUncheckedUpdateWithoutAcknowledgedAlertsInput = {
   assignedIncidents?: Prisma.IncidentUncheckedUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCreatedIncidentsInput = {
@@ -2671,6 +2892,7 @@ export type UserCreateWithoutCreatedIncidentsInput = {
   assignedIncidents?: Prisma.IncidentCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCreatedIncidentsInput = {
@@ -2705,6 +2927,7 @@ export type UserUncheckedCreateWithoutCreatedIncidentsInput = {
   assignedIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCreatedIncidentsInput = {
@@ -2744,6 +2967,7 @@ export type UserCreateWithoutAssignedIncidentsInput = {
   createdIncidents?: Prisma.IncidentCreateNestedManyWithoutCreatedByInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAssignedIncidentsInput = {
@@ -2778,6 +3002,7 @@ export type UserUncheckedCreateWithoutAssignedIncidentsInput = {
   createdIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutCreatedByInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAssignedIncidentsInput = {
@@ -2828,6 +3053,7 @@ export type UserUpdateWithoutCreatedIncidentsInput = {
   assignedIncidents?: Prisma.IncidentUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedIncidentsInput = {
@@ -2862,6 +3088,7 @@ export type UserUncheckedUpdateWithoutCreatedIncidentsInput = {
   assignedIncidents?: Prisma.IncidentUncheckedUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutAssignedIncidentsInput = {
@@ -2907,6 +3134,7 @@ export type UserUpdateWithoutAssignedIncidentsInput = {
   createdIncidents?: Prisma.IncidentUpdateManyWithoutCreatedByNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAssignedIncidentsInput = {
@@ -2941,6 +3169,7 @@ export type UserUncheckedUpdateWithoutAssignedIncidentsInput = {
   createdIncidents?: Prisma.IncidentUncheckedUpdateManyWithoutCreatedByNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutUploadedIncidentFilesInput = {
@@ -2975,6 +3204,7 @@ export type UserCreateWithoutUploadedIncidentFilesInput = {
   createdIncidents?: Prisma.IncidentCreateNestedManyWithoutCreatedByInput
   assignedIncidents?: Prisma.IncidentCreateNestedManyWithoutAssigneeInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutUploadedIncidentFilesInput = {
@@ -3009,6 +3239,7 @@ export type UserUncheckedCreateWithoutUploadedIncidentFilesInput = {
   createdIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutCreatedByInput
   assignedIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutAssigneeInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutUploadedIncidentFilesInput = {
@@ -3059,6 +3290,7 @@ export type UserUpdateWithoutUploadedIncidentFilesInput = {
   createdIncidents?: Prisma.IncidentUpdateManyWithoutCreatedByNestedInput
   assignedIncidents?: Prisma.IncidentUpdateManyWithoutAssigneeNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutUploadedIncidentFilesInput = {
@@ -3093,6 +3325,7 @@ export type UserUncheckedUpdateWithoutUploadedIncidentFilesInput = {
   createdIncidents?: Prisma.IncidentUncheckedUpdateManyWithoutCreatedByNestedInput
   assignedIncidents?: Prisma.IncidentUncheckedUpdateManyWithoutAssigneeNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutIncidentLifecycleEventsInput = {
@@ -3127,6 +3360,7 @@ export type UserCreateWithoutIncidentLifecycleEventsInput = {
   createdIncidents?: Prisma.IncidentCreateNestedManyWithoutCreatedByInput
   assignedIncidents?: Prisma.IncidentCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentCreateNestedManyWithoutUploadedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutIncidentLifecycleEventsInput = {
@@ -3161,6 +3395,7 @@ export type UserUncheckedCreateWithoutIncidentLifecycleEventsInput = {
   createdIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutCreatedByInput
   assignedIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutIncidentLifecycleEventsInput = {
@@ -3211,6 +3446,7 @@ export type UserUpdateWithoutIncidentLifecycleEventsInput = {
   createdIncidents?: Prisma.IncidentUpdateManyWithoutCreatedByNestedInput
   assignedIncidents?: Prisma.IncidentUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUpdateManyWithoutUploadedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutIncidentLifecycleEventsInput = {
@@ -3245,6 +3481,7 @@ export type UserUncheckedUpdateWithoutIncidentLifecycleEventsInput = {
   createdIncidents?: Prisma.IncidentUncheckedUpdateManyWithoutCreatedByNestedInput
   assignedIncidents?: Prisma.IncidentUncheckedUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCreatedRunbooksInput = {
@@ -3279,6 +3516,7 @@ export type UserCreateWithoutCreatedRunbooksInput = {
   assignedIncidents?: Prisma.IncidentCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCreatedRunbooksInput = {
@@ -3313,6 +3551,7 @@ export type UserUncheckedCreateWithoutCreatedRunbooksInput = {
   assignedIncidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutAssigneeInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedCreateNestedManyWithoutChangedByInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCreatedRunbooksInput = {
@@ -3363,6 +3602,7 @@ export type UserUpdateWithoutCreatedRunbooksInput = {
   assignedIncidents?: Prisma.IncidentUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedRunbooksInput = {
@@ -3397,6 +3637,7 @@ export type UserUncheckedUpdateWithoutCreatedRunbooksInput = {
   assignedIncidents?: Prisma.IncidentUncheckedUpdateManyWithoutAssigneeNestedInput
   uploadedIncidentFiles?: Prisma.IncidentAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
   incidentLifecycleEvents?: Prisma.IncidentLifecycleEventUncheckedUpdateManyWithoutChangedByNestedInput
+  shiftVerificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -3421,6 +3662,7 @@ export type UserCountOutputType = {
   assignedIncidents: number
   uploadedIncidentFiles: number
   incidentLifecycleEvents: number
+  shiftVerificationPhotos: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3440,6 +3682,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   assignedIncidents?: boolean | UserCountOutputTypeCountAssignedIncidentsArgs
   uploadedIncidentFiles?: boolean | UserCountOutputTypeCountUploadedIncidentFilesArgs
   incidentLifecycleEvents?: boolean | UserCountOutputTypeCountIncidentLifecycleEventsArgs
+  shiftVerificationPhotos?: boolean | UserCountOutputTypeCountShiftVerificationPhotosArgs
 }
 
 /**
@@ -3564,6 +3807,13 @@ export type UserCountOutputTypeCountIncidentLifecycleEventsArgs<ExtArgs extends 
   where?: Prisma.IncidentLifecycleEventWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountShiftVerificationPhotosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ShiftVerificationPhotoWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -3598,6 +3848,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   assignedIncidents?: boolean | Prisma.User$assignedIncidentsArgs<ExtArgs>
   uploadedIncidentFiles?: boolean | Prisma.User$uploadedIncidentFilesArgs<ExtArgs>
   incidentLifecycleEvents?: boolean | Prisma.User$incidentLifecycleEventsArgs<ExtArgs>
+  shiftVerificationPhotos?: boolean | Prisma.User$shiftVerificationPhotosArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -3676,6 +3927,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   assignedIncidents?: boolean | Prisma.User$assignedIncidentsArgs<ExtArgs>
   uploadedIncidentFiles?: boolean | Prisma.User$uploadedIncidentFilesArgs<ExtArgs>
   incidentLifecycleEvents?: boolean | Prisma.User$incidentLifecycleEventsArgs<ExtArgs>
+  shiftVerificationPhotos?: boolean | Prisma.User$shiftVerificationPhotosArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -3700,6 +3952,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     assignedIncidents: Prisma.$IncidentPayload<ExtArgs>[]
     uploadedIncidentFiles: Prisma.$IncidentAttachmentPayload<ExtArgs>[]
     incidentLifecycleEvents: Prisma.$IncidentLifecycleEventPayload<ExtArgs>[]
+    shiftVerificationPhotos: Prisma.$ShiftVerificationPhotoPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -4128,6 +4381,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   assignedIncidents<T extends Prisma.User$assignedIncidentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$assignedIncidentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IncidentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   uploadedIncidentFiles<T extends Prisma.User$uploadedIncidentFilesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$uploadedIncidentFilesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IncidentAttachmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   incidentLifecycleEvents<T extends Prisma.User$incidentLifecycleEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$incidentLifecycleEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IncidentLifecycleEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  shiftVerificationPhotos<T extends Prisma.User$shiftVerificationPhotosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$shiftVerificationPhotosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ShiftVerificationPhotoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4947,6 +5201,30 @@ export type User$incidentLifecycleEventsArgs<ExtArgs extends runtime.Types.Exten
   take?: number
   skip?: number
   distinct?: Prisma.IncidentLifecycleEventScalarFieldEnum | Prisma.IncidentLifecycleEventScalarFieldEnum[]
+}
+
+/**
+ * User.shiftVerificationPhotos
+ */
+export type User$shiftVerificationPhotosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ShiftVerificationPhoto
+   */
+  select?: Prisma.ShiftVerificationPhotoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ShiftVerificationPhoto
+   */
+  omit?: Prisma.ShiftVerificationPhotoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ShiftVerificationPhotoInclude<ExtArgs> | null
+  where?: Prisma.ShiftVerificationPhotoWhereInput
+  orderBy?: Prisma.ShiftVerificationPhotoOrderByWithRelationInput | Prisma.ShiftVerificationPhotoOrderByWithRelationInput[]
+  cursor?: Prisma.ShiftVerificationPhotoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ShiftVerificationPhotoScalarFieldEnum | Prisma.ShiftVerificationPhotoScalarFieldEnum[]
 }
 
 /**

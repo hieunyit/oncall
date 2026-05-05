@@ -61,6 +61,7 @@ export const ModelName = {
   ScheduleBatch: 'ScheduleBatch',
   Shift: 'Shift',
   ShiftConfirmation: 'ShiftConfirmation',
+  ShiftVerificationPhoto: 'ShiftVerificationPhoto',
   SwapRequest: 'SwapRequest',
   TeamNotificationChannel: 'TeamNotificationChannel',
   NotificationMessage: 'NotificationMessage',
@@ -194,6 +195,10 @@ export const RotationPolicyScalarFieldEnum = {
   timezone: 'timezone',
   checklistRequired: 'checklistRequired',
   templateTasks: 'templateTasks',
+  telegramRequirePhotoOnConfirm: 'telegramRequirePhotoOnConfirm',
+  telegramEndShiftReminderEnabled: 'telegramEndShiftReminderEnabled',
+  telegramRequirePhotoOnCheckout: 'telegramRequirePhotoOnCheckout',
+  telegramManagerImportErrorEnabled: 'telegramManagerImportErrorEnabled',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -249,6 +254,25 @@ export const ShiftConfirmationScalarFieldEnum = {
 } as const
 
 export type ShiftConfirmationScalarFieldEnum = (typeof ShiftConfirmationScalarFieldEnum)[keyof typeof ShiftConfirmationScalarFieldEnum]
+
+
+export const ShiftVerificationPhotoScalarFieldEnum = {
+  id: 'id',
+  shiftId: 'shiftId',
+  policyId: 'policyId',
+  userId: 'userId',
+  kind: 'kind',
+  source: 'source',
+  fileName: 'fileName',
+  storagePath: 'storagePath',
+  contentType: 'contentType',
+  sizeBytes: 'sizeBytes',
+  telegramFileId: 'telegramFileId',
+  telegramMessageId: 'telegramMessageId',
+  createdAt: 'createdAt'
+} as const
+
+export type ShiftVerificationPhotoScalarFieldEnum = (typeof ShiftVerificationPhotoScalarFieldEnum)[keyof typeof ShiftVerificationPhotoScalarFieldEnum]
 
 
 export const SwapRequestScalarFieldEnum = {

@@ -299,6 +299,7 @@ export type ShiftWhereInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestListRelationFilter
   tasks?: Prisma.ShiftTaskListRelationFilter
   incidents?: Prisma.IncidentListRelationFilter
+  verificationPhotos?: Prisma.ShiftVerificationPhotoListRelationFilter
 }
 
 export type ShiftOrderByWithRelationInput = {
@@ -327,6 +328,7 @@ export type ShiftOrderByWithRelationInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestOrderByRelationAggregateInput
   tasks?: Prisma.ShiftTaskOrderByRelationAggregateInput
   incidents?: Prisma.IncidentOrderByRelationAggregateInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoOrderByRelationAggregateInput
 }
 
 export type ShiftWhereUniqueInput = Prisma.AtLeast<{
@@ -358,6 +360,7 @@ export type ShiftWhereUniqueInput = Prisma.AtLeast<{
   swapRequestsAsTarget?: Prisma.SwapRequestListRelationFilter
   tasks?: Prisma.ShiftTaskListRelationFilter
   incidents?: Prisma.IncidentListRelationFilter
+  verificationPhotos?: Prisma.ShiftVerificationPhotoListRelationFilter
 }, "id">
 
 export type ShiftOrderByWithAggregationInput = {
@@ -423,6 +426,7 @@ export type ShiftCreateInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
   tasks?: Prisma.ShiftTaskCreateNestedManyWithoutShiftInput
   incidents?: Prisma.IncidentCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftUncheckedCreateInput = {
@@ -446,6 +450,7 @@ export type ShiftUncheckedCreateInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
   tasks?: Prisma.ShiftTaskUncheckedCreateNestedManyWithoutShiftInput
   incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftUpdateInput = {
@@ -469,6 +474,7 @@ export type ShiftUpdateInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
   tasks?: Prisma.ShiftTaskUpdateManyWithoutShiftNestedInput
   incidents?: Prisma.IncidentUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftUncheckedUpdateInput = {
@@ -492,6 +498,7 @@ export type ShiftUncheckedUpdateInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
   tasks?: Prisma.ShiftTaskUncheckedUpdateManyWithoutShiftNestedInput
   incidents?: Prisma.IncidentUncheckedUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftCreateManyInput = {
@@ -867,6 +874,20 @@ export type ShiftUpdateOneRequiredWithoutConfirmationNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ShiftUpdateToOneWithWhereWithoutConfirmationInput, Prisma.ShiftUpdateWithoutConfirmationInput>, Prisma.ShiftUncheckedUpdateWithoutConfirmationInput>
 }
 
+export type ShiftCreateNestedOneWithoutVerificationPhotosInput = {
+  create?: Prisma.XOR<Prisma.ShiftCreateWithoutVerificationPhotosInput, Prisma.ShiftUncheckedCreateWithoutVerificationPhotosInput>
+  connectOrCreate?: Prisma.ShiftCreateOrConnectWithoutVerificationPhotosInput
+  connect?: Prisma.ShiftWhereUniqueInput
+}
+
+export type ShiftUpdateOneRequiredWithoutVerificationPhotosNestedInput = {
+  create?: Prisma.XOR<Prisma.ShiftCreateWithoutVerificationPhotosInput, Prisma.ShiftUncheckedCreateWithoutVerificationPhotosInput>
+  connectOrCreate?: Prisma.ShiftCreateOrConnectWithoutVerificationPhotosInput
+  upsert?: Prisma.ShiftUpsertWithoutVerificationPhotosInput
+  connect?: Prisma.ShiftWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ShiftUpdateToOneWithWhereWithoutVerificationPhotosInput, Prisma.ShiftUpdateWithoutVerificationPhotosInput>, Prisma.ShiftUncheckedUpdateWithoutVerificationPhotosInput>
+}
+
 export type ShiftCreateNestedOneWithoutSwapRequestsAsOriginalInput = {
   create?: Prisma.XOR<Prisma.ShiftCreateWithoutSwapRequestsAsOriginalInput, Prisma.ShiftUncheckedCreateWithoutSwapRequestsAsOriginalInput>
   connectOrCreate?: Prisma.ShiftCreateOrConnectWithoutSwapRequestsAsOriginalInput
@@ -947,6 +968,7 @@ export type ShiftCreateWithoutAssigneeInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
   tasks?: Prisma.ShiftTaskCreateNestedManyWithoutShiftInput
   incidents?: Prisma.IncidentCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftUncheckedCreateWithoutAssigneeInput = {
@@ -969,6 +991,7 @@ export type ShiftUncheckedCreateWithoutAssigneeInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
   tasks?: Prisma.ShiftTaskUncheckedCreateNestedManyWithoutShiftInput
   incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftCreateOrConnectWithoutAssigneeInput = {
@@ -1001,6 +1024,7 @@ export type ShiftCreateWithoutBackupInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
   tasks?: Prisma.ShiftTaskCreateNestedManyWithoutShiftInput
   incidents?: Prisma.IncidentCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftUncheckedCreateWithoutBackupInput = {
@@ -1023,6 +1047,7 @@ export type ShiftUncheckedCreateWithoutBackupInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
   tasks?: Prisma.ShiftTaskUncheckedCreateNestedManyWithoutShiftInput
   incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftCreateOrConnectWithoutBackupInput = {
@@ -1107,6 +1132,7 @@ export type ShiftCreateWithoutPolicyInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
   tasks?: Prisma.ShiftTaskCreateNestedManyWithoutShiftInput
   incidents?: Prisma.IncidentCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftUncheckedCreateWithoutPolicyInput = {
@@ -1129,6 +1155,7 @@ export type ShiftUncheckedCreateWithoutPolicyInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
   tasks?: Prisma.ShiftTaskUncheckedCreateNestedManyWithoutShiftInput
   incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftCreateOrConnectWithoutPolicyInput = {
@@ -1177,6 +1204,7 @@ export type ShiftCreateWithoutBatchInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
   tasks?: Prisma.ShiftTaskCreateNestedManyWithoutShiftInput
   incidents?: Prisma.IncidentCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftUncheckedCreateWithoutBatchInput = {
@@ -1199,6 +1227,7 @@ export type ShiftUncheckedCreateWithoutBatchInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
   tasks?: Prisma.ShiftTaskUncheckedCreateNestedManyWithoutShiftInput
   incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftCreateOrConnectWithoutBatchInput = {
@@ -1247,6 +1276,7 @@ export type ShiftCreateWithoutOverridesInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
   tasks?: Prisma.ShiftTaskCreateNestedManyWithoutShiftInput
   incidents?: Prisma.IncidentCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftUncheckedCreateWithoutOverridesInput = {
@@ -1269,6 +1299,7 @@ export type ShiftUncheckedCreateWithoutOverridesInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
   tasks?: Prisma.ShiftTaskUncheckedCreateNestedManyWithoutShiftInput
   incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftCreateOrConnectWithoutOverridesInput = {
@@ -1296,6 +1327,7 @@ export type ShiftCreateWithoutOverrideForShiftInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
   tasks?: Prisma.ShiftTaskCreateNestedManyWithoutShiftInput
   incidents?: Prisma.IncidentCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftUncheckedCreateWithoutOverrideForShiftInput = {
@@ -1318,6 +1350,7 @@ export type ShiftUncheckedCreateWithoutOverrideForShiftInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
   tasks?: Prisma.ShiftTaskUncheckedCreateNestedManyWithoutShiftInput
   incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftCreateOrConnectWithoutOverrideForShiftInput = {
@@ -1361,6 +1394,7 @@ export type ShiftUpdateWithoutOverridesInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
   tasks?: Prisma.ShiftTaskUpdateManyWithoutShiftNestedInput
   incidents?: Prisma.IncidentUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftUncheckedUpdateWithoutOverridesInput = {
@@ -1383,6 +1417,7 @@ export type ShiftUncheckedUpdateWithoutOverridesInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
   tasks?: Prisma.ShiftTaskUncheckedUpdateManyWithoutShiftNestedInput
   incidents?: Prisma.IncidentUncheckedUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftUpsertWithWhereUniqueWithoutOverrideForShiftInput = {
@@ -1421,6 +1456,7 @@ export type ShiftCreateWithoutConfirmationInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
   tasks?: Prisma.ShiftTaskCreateNestedManyWithoutShiftInput
   incidents?: Prisma.IncidentCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftUncheckedCreateWithoutConfirmationInput = {
@@ -1443,6 +1479,7 @@ export type ShiftUncheckedCreateWithoutConfirmationInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
   tasks?: Prisma.ShiftTaskUncheckedCreateNestedManyWithoutShiftInput
   incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftCreateOrConnectWithoutConfirmationInput = {
@@ -1481,6 +1518,7 @@ export type ShiftUpdateWithoutConfirmationInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
   tasks?: Prisma.ShiftTaskUpdateManyWithoutShiftNestedInput
   incidents?: Prisma.IncidentUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftUncheckedUpdateWithoutConfirmationInput = {
@@ -1499,6 +1537,115 @@ export type ShiftUncheckedUpdateWithoutConfirmationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   overrides?: Prisma.ShiftUncheckedUpdateManyWithoutOverrideForShiftNestedInput
+  swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedUpdateManyWithoutOriginalShiftNestedInput
+  swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
+  tasks?: Prisma.ShiftTaskUncheckedUpdateManyWithoutShiftNestedInput
+  incidents?: Prisma.IncidentUncheckedUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutShiftNestedInput
+}
+
+export type ShiftCreateWithoutVerificationPhotosInput = {
+  id?: string
+  startsAt: Date | string
+  endsAt: Date | string
+  status?: $Enums.ShiftStatus
+  source?: $Enums.ShiftSource
+  version?: number
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  policy: Prisma.RotationPolicyCreateNestedOneWithoutShiftsInput
+  batch?: Prisma.ScheduleBatchCreateNestedOneWithoutShiftsInput
+  assignee: Prisma.UserCreateNestedOneWithoutShiftsAsAssigneeInput
+  backup?: Prisma.UserCreateNestedOneWithoutShiftsAsBackupInput
+  overrideForShift?: Prisma.ShiftCreateNestedOneWithoutOverridesInput
+  overrides?: Prisma.ShiftCreateNestedManyWithoutOverrideForShiftInput
+  confirmation?: Prisma.ShiftConfirmationCreateNestedOneWithoutShiftInput
+  swapRequestsAsOriginal?: Prisma.SwapRequestCreateNestedManyWithoutOriginalShiftInput
+  swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
+  tasks?: Prisma.ShiftTaskCreateNestedManyWithoutShiftInput
+  incidents?: Prisma.IncidentCreateNestedManyWithoutShiftInput
+}
+
+export type ShiftUncheckedCreateWithoutVerificationPhotosInput = {
+  id?: string
+  policyId: string
+  batchId?: string | null
+  assigneeId: string
+  backupId?: string | null
+  overrideForShiftId?: string | null
+  startsAt: Date | string
+  endsAt: Date | string
+  status?: $Enums.ShiftStatus
+  source?: $Enums.ShiftSource
+  version?: number
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  overrides?: Prisma.ShiftUncheckedCreateNestedManyWithoutOverrideForShiftInput
+  confirmation?: Prisma.ShiftConfirmationUncheckedCreateNestedOneWithoutShiftInput
+  swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutOriginalShiftInput
+  swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
+  tasks?: Prisma.ShiftTaskUncheckedCreateNestedManyWithoutShiftInput
+  incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutShiftInput
+}
+
+export type ShiftCreateOrConnectWithoutVerificationPhotosInput = {
+  where: Prisma.ShiftWhereUniqueInput
+  create: Prisma.XOR<Prisma.ShiftCreateWithoutVerificationPhotosInput, Prisma.ShiftUncheckedCreateWithoutVerificationPhotosInput>
+}
+
+export type ShiftUpsertWithoutVerificationPhotosInput = {
+  update: Prisma.XOR<Prisma.ShiftUpdateWithoutVerificationPhotosInput, Prisma.ShiftUncheckedUpdateWithoutVerificationPhotosInput>
+  create: Prisma.XOR<Prisma.ShiftCreateWithoutVerificationPhotosInput, Prisma.ShiftUncheckedCreateWithoutVerificationPhotosInput>
+  where?: Prisma.ShiftWhereInput
+}
+
+export type ShiftUpdateToOneWithWhereWithoutVerificationPhotosInput = {
+  where?: Prisma.ShiftWhereInput
+  data: Prisma.XOR<Prisma.ShiftUpdateWithoutVerificationPhotosInput, Prisma.ShiftUncheckedUpdateWithoutVerificationPhotosInput>
+}
+
+export type ShiftUpdateWithoutVerificationPhotosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+  source?: Prisma.EnumShiftSourceFieldUpdateOperationsInput | $Enums.ShiftSource
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  policy?: Prisma.RotationPolicyUpdateOneRequiredWithoutShiftsNestedInput
+  batch?: Prisma.ScheduleBatchUpdateOneWithoutShiftsNestedInput
+  assignee?: Prisma.UserUpdateOneRequiredWithoutShiftsAsAssigneeNestedInput
+  backup?: Prisma.UserUpdateOneWithoutShiftsAsBackupNestedInput
+  overrideForShift?: Prisma.ShiftUpdateOneWithoutOverridesNestedInput
+  overrides?: Prisma.ShiftUpdateManyWithoutOverrideForShiftNestedInput
+  confirmation?: Prisma.ShiftConfirmationUpdateOneWithoutShiftNestedInput
+  swapRequestsAsOriginal?: Prisma.SwapRequestUpdateManyWithoutOriginalShiftNestedInput
+  swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
+  tasks?: Prisma.ShiftTaskUpdateManyWithoutShiftNestedInput
+  incidents?: Prisma.IncidentUpdateManyWithoutShiftNestedInput
+}
+
+export type ShiftUncheckedUpdateWithoutVerificationPhotosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  policyId?: Prisma.StringFieldUpdateOperationsInput | string
+  batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assigneeId?: Prisma.StringFieldUpdateOperationsInput | string
+  backupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  overrideForShiftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumShiftStatusFieldUpdateOperationsInput | $Enums.ShiftStatus
+  source?: Prisma.EnumShiftSourceFieldUpdateOperationsInput | $Enums.ShiftSource
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  overrides?: Prisma.ShiftUncheckedUpdateManyWithoutOverrideForShiftNestedInput
+  confirmation?: Prisma.ShiftConfirmationUncheckedUpdateOneWithoutShiftNestedInput
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedUpdateManyWithoutOriginalShiftNestedInput
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
   tasks?: Prisma.ShiftTaskUncheckedUpdateManyWithoutShiftNestedInput
@@ -1525,6 +1672,7 @@ export type ShiftCreateWithoutSwapRequestsAsOriginalInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
   tasks?: Prisma.ShiftTaskCreateNestedManyWithoutShiftInput
   incidents?: Prisma.IncidentCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftUncheckedCreateWithoutSwapRequestsAsOriginalInput = {
@@ -1547,6 +1695,7 @@ export type ShiftUncheckedCreateWithoutSwapRequestsAsOriginalInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
   tasks?: Prisma.ShiftTaskUncheckedCreateNestedManyWithoutShiftInput
   incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftCreateOrConnectWithoutSwapRequestsAsOriginalInput = {
@@ -1574,6 +1723,7 @@ export type ShiftCreateWithoutSwapRequestsAsTargetInput = {
   swapRequestsAsOriginal?: Prisma.SwapRequestCreateNestedManyWithoutOriginalShiftInput
   tasks?: Prisma.ShiftTaskCreateNestedManyWithoutShiftInput
   incidents?: Prisma.IncidentCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftUncheckedCreateWithoutSwapRequestsAsTargetInput = {
@@ -1596,6 +1746,7 @@ export type ShiftUncheckedCreateWithoutSwapRequestsAsTargetInput = {
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutOriginalShiftInput
   tasks?: Prisma.ShiftTaskUncheckedCreateNestedManyWithoutShiftInput
   incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftCreateOrConnectWithoutSwapRequestsAsTargetInput = {
@@ -1634,6 +1785,7 @@ export type ShiftUpdateWithoutSwapRequestsAsOriginalInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
   tasks?: Prisma.ShiftTaskUpdateManyWithoutShiftNestedInput
   incidents?: Prisma.IncidentUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftUncheckedUpdateWithoutSwapRequestsAsOriginalInput = {
@@ -1656,6 +1808,7 @@ export type ShiftUncheckedUpdateWithoutSwapRequestsAsOriginalInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
   tasks?: Prisma.ShiftTaskUncheckedUpdateManyWithoutShiftNestedInput
   incidents?: Prisma.IncidentUncheckedUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftUpsertWithoutSwapRequestsAsTargetInput = {
@@ -1689,6 +1842,7 @@ export type ShiftUpdateWithoutSwapRequestsAsTargetInput = {
   swapRequestsAsOriginal?: Prisma.SwapRequestUpdateManyWithoutOriginalShiftNestedInput
   tasks?: Prisma.ShiftTaskUpdateManyWithoutShiftNestedInput
   incidents?: Prisma.IncidentUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftUncheckedUpdateWithoutSwapRequestsAsTargetInput = {
@@ -1711,6 +1865,7 @@ export type ShiftUncheckedUpdateWithoutSwapRequestsAsTargetInput = {
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedUpdateManyWithoutOriginalShiftNestedInput
   tasks?: Prisma.ShiftTaskUncheckedUpdateManyWithoutShiftNestedInput
   incidents?: Prisma.IncidentUncheckedUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftCreateWithoutIncidentsInput = {
@@ -1733,6 +1888,7 @@ export type ShiftCreateWithoutIncidentsInput = {
   swapRequestsAsOriginal?: Prisma.SwapRequestCreateNestedManyWithoutOriginalShiftInput
   swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
   tasks?: Prisma.ShiftTaskCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftUncheckedCreateWithoutIncidentsInput = {
@@ -1755,6 +1911,7 @@ export type ShiftUncheckedCreateWithoutIncidentsInput = {
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutOriginalShiftInput
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
   tasks?: Prisma.ShiftTaskUncheckedCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftCreateOrConnectWithoutIncidentsInput = {
@@ -1793,6 +1950,7 @@ export type ShiftUpdateWithoutIncidentsInput = {
   swapRequestsAsOriginal?: Prisma.SwapRequestUpdateManyWithoutOriginalShiftNestedInput
   swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
   tasks?: Prisma.ShiftTaskUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftUncheckedUpdateWithoutIncidentsInput = {
@@ -1815,6 +1973,7 @@ export type ShiftUncheckedUpdateWithoutIncidentsInput = {
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedUpdateManyWithoutOriginalShiftNestedInput
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
   tasks?: Prisma.ShiftTaskUncheckedUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftCreateWithoutTasksInput = {
@@ -1837,6 +1996,7 @@ export type ShiftCreateWithoutTasksInput = {
   swapRequestsAsOriginal?: Prisma.SwapRequestCreateNestedManyWithoutOriginalShiftInput
   swapRequestsAsTarget?: Prisma.SwapRequestCreateNestedManyWithoutTargetShiftInput
   incidents?: Prisma.IncidentCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftUncheckedCreateWithoutTasksInput = {
@@ -1859,6 +2019,7 @@ export type ShiftUncheckedCreateWithoutTasksInput = {
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutOriginalShiftInput
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedCreateNestedManyWithoutTargetShiftInput
   incidents?: Prisma.IncidentUncheckedCreateNestedManyWithoutShiftInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedCreateNestedManyWithoutShiftInput
 }
 
 export type ShiftCreateOrConnectWithoutTasksInput = {
@@ -1897,6 +2058,7 @@ export type ShiftUpdateWithoutTasksInput = {
   swapRequestsAsOriginal?: Prisma.SwapRequestUpdateManyWithoutOriginalShiftNestedInput
   swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
   incidents?: Prisma.IncidentUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftUncheckedUpdateWithoutTasksInput = {
@@ -1919,6 +2081,7 @@ export type ShiftUncheckedUpdateWithoutTasksInput = {
   swapRequestsAsOriginal?: Prisma.SwapRequestUncheckedUpdateManyWithoutOriginalShiftNestedInput
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
   incidents?: Prisma.IncidentUncheckedUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftCreateManyAssigneeInput = {
@@ -1973,6 +2136,7 @@ export type ShiftUpdateWithoutAssigneeInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
   tasks?: Prisma.ShiftTaskUpdateManyWithoutShiftNestedInput
   incidents?: Prisma.IncidentUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftUncheckedUpdateWithoutAssigneeInput = {
@@ -1995,6 +2159,7 @@ export type ShiftUncheckedUpdateWithoutAssigneeInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
   tasks?: Prisma.ShiftTaskUncheckedUpdateManyWithoutShiftNestedInput
   incidents?: Prisma.IncidentUncheckedUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftUncheckedUpdateManyWithoutAssigneeInput = {
@@ -2033,6 +2198,7 @@ export type ShiftUpdateWithoutBackupInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
   tasks?: Prisma.ShiftTaskUpdateManyWithoutShiftNestedInput
   incidents?: Prisma.IncidentUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftUncheckedUpdateWithoutBackupInput = {
@@ -2055,6 +2221,7 @@ export type ShiftUncheckedUpdateWithoutBackupInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
   tasks?: Prisma.ShiftTaskUncheckedUpdateManyWithoutShiftNestedInput
   incidents?: Prisma.IncidentUncheckedUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftUncheckedUpdateManyWithoutBackupInput = {
@@ -2109,6 +2276,7 @@ export type ShiftUpdateWithoutPolicyInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
   tasks?: Prisma.ShiftTaskUpdateManyWithoutShiftNestedInput
   incidents?: Prisma.IncidentUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftUncheckedUpdateWithoutPolicyInput = {
@@ -2131,6 +2299,7 @@ export type ShiftUncheckedUpdateWithoutPolicyInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
   tasks?: Prisma.ShiftTaskUncheckedUpdateManyWithoutShiftNestedInput
   incidents?: Prisma.IncidentUncheckedUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftUncheckedUpdateManyWithoutPolicyInput = {
@@ -2185,6 +2354,7 @@ export type ShiftUpdateWithoutBatchInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
   tasks?: Prisma.ShiftTaskUpdateManyWithoutShiftNestedInput
   incidents?: Prisma.IncidentUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftUncheckedUpdateWithoutBatchInput = {
@@ -2207,6 +2377,7 @@ export type ShiftUncheckedUpdateWithoutBatchInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
   tasks?: Prisma.ShiftTaskUncheckedUpdateManyWithoutShiftNestedInput
   incidents?: Prisma.IncidentUncheckedUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftUncheckedUpdateManyWithoutBatchInput = {
@@ -2261,6 +2432,7 @@ export type ShiftUpdateWithoutOverrideForShiftInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUpdateManyWithoutTargetShiftNestedInput
   tasks?: Prisma.ShiftTaskUpdateManyWithoutShiftNestedInput
   incidents?: Prisma.IncidentUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftUncheckedUpdateWithoutOverrideForShiftInput = {
@@ -2283,6 +2455,7 @@ export type ShiftUncheckedUpdateWithoutOverrideForShiftInput = {
   swapRequestsAsTarget?: Prisma.SwapRequestUncheckedUpdateManyWithoutTargetShiftNestedInput
   tasks?: Prisma.ShiftTaskUncheckedUpdateManyWithoutShiftNestedInput
   incidents?: Prisma.IncidentUncheckedUpdateManyWithoutShiftNestedInput
+  verificationPhotos?: Prisma.ShiftVerificationPhotoUncheckedUpdateManyWithoutShiftNestedInput
 }
 
 export type ShiftUncheckedUpdateManyWithoutOverrideForShiftInput = {
@@ -2312,6 +2485,7 @@ export type ShiftCountOutputType = {
   swapRequestsAsTarget: number
   tasks: number
   incidents: number
+  verificationPhotos: number
 }
 
 export type ShiftCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2320,6 +2494,7 @@ export type ShiftCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.
   swapRequestsAsTarget?: boolean | ShiftCountOutputTypeCountSwapRequestsAsTargetArgs
   tasks?: boolean | ShiftCountOutputTypeCountTasksArgs
   incidents?: boolean | ShiftCountOutputTypeCountIncidentsArgs
+  verificationPhotos?: boolean | ShiftCountOutputTypeCountVerificationPhotosArgs
 }
 
 /**
@@ -2367,6 +2542,13 @@ export type ShiftCountOutputTypeCountIncidentsArgs<ExtArgs extends runtime.Types
   where?: Prisma.IncidentWhereInput
 }
 
+/**
+ * ShiftCountOutputType without action
+ */
+export type ShiftCountOutputTypeCountVerificationPhotosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ShiftVerificationPhotoWhereInput
+}
+
 
 export type ShiftSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2394,6 +2576,7 @@ export type ShiftSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   swapRequestsAsTarget?: boolean | Prisma.Shift$swapRequestsAsTargetArgs<ExtArgs>
   tasks?: boolean | Prisma.Shift$tasksArgs<ExtArgs>
   incidents?: boolean | Prisma.Shift$incidentsArgs<ExtArgs>
+  verificationPhotos?: boolean | Prisma.Shift$verificationPhotosArgs<ExtArgs>
   _count?: boolean | Prisma.ShiftCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["shift"]>
 
@@ -2471,6 +2654,7 @@ export type ShiftInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   swapRequestsAsTarget?: boolean | Prisma.Shift$swapRequestsAsTargetArgs<ExtArgs>
   tasks?: boolean | Prisma.Shift$tasksArgs<ExtArgs>
   incidents?: boolean | Prisma.Shift$incidentsArgs<ExtArgs>
+  verificationPhotos?: boolean | Prisma.Shift$verificationPhotosArgs<ExtArgs>
   _count?: boolean | Prisma.ShiftCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ShiftIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2502,6 +2686,7 @@ export type $ShiftPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     swapRequestsAsTarget: Prisma.$SwapRequestPayload<ExtArgs>[]
     tasks: Prisma.$ShiftTaskPayload<ExtArgs>[]
     incidents: Prisma.$IncidentPayload<ExtArgs>[]
+    verificationPhotos: Prisma.$ShiftVerificationPhotoPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2923,6 +3108,7 @@ export interface Prisma__ShiftClient<T, Null = never, ExtArgs extends runtime.Ty
   swapRequestsAsTarget<T extends Prisma.Shift$swapRequestsAsTargetArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Shift$swapRequestsAsTargetArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SwapRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   tasks<T extends Prisma.Shift$tasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Shift$tasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ShiftTaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   incidents<T extends Prisma.Shift$incidentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Shift$incidentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IncidentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  verificationPhotos<T extends Prisma.Shift$verificationPhotosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Shift$verificationPhotosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ShiftVerificationPhotoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3560,6 +3746,30 @@ export type Shift$incidentsArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.IncidentScalarFieldEnum | Prisma.IncidentScalarFieldEnum[]
+}
+
+/**
+ * Shift.verificationPhotos
+ */
+export type Shift$verificationPhotosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ShiftVerificationPhoto
+   */
+  select?: Prisma.ShiftVerificationPhotoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ShiftVerificationPhoto
+   */
+  omit?: Prisma.ShiftVerificationPhotoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ShiftVerificationPhotoInclude<ExtArgs> | null
+  where?: Prisma.ShiftVerificationPhotoWhereInput
+  orderBy?: Prisma.ShiftVerificationPhotoOrderByWithRelationInput | Prisma.ShiftVerificationPhotoOrderByWithRelationInput[]
+  cursor?: Prisma.ShiftVerificationPhotoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ShiftVerificationPhotoScalarFieldEnum | Prisma.ShiftVerificationPhotoScalarFieldEnum[]
 }
 
 /**

@@ -1,6 +1,10 @@
 import { reminderQueue, escalationQueue } from "@/lib/queue/queues";
 import { computeReminderFireAt, computeConfirmationDueAt } from "@/lib/rotation/engine";
-import type { ReminderJobPayload, EscalationJobPayload } from "@/lib/queue/jobs";
+import type {
+  ReminderJobPayload,
+  EscalationJobPayload,
+  ShiftEndReminderJobPayload,
+} from "@/lib/queue/jobs";
 
 interface ConfirmationInfo {
   id: string;
@@ -17,6 +21,7 @@ interface PolicyInfo {
   id: string;
   reminderLeadHours: number[];
   confirmationDueHours: number;
+  endShiftReminderEnabled?: boolean;
 }
 
 export async function scheduleRemindersForConfirmation(
@@ -41,6 +46,7 @@ export async function scheduleRemindersForConfirmation(
       confirmationId: confirmation.id,
       recipientId: confirmation.userId,
       leadHours,
+      kind: "CONFIRMATION_REMINDER",
     };
 
     await reminderQueue.add(
@@ -53,6 +59,33 @@ export async function scheduleRemindersForConfirmation(
       }
     );
   }
+}
+
+export async function scheduleShiftEndReminderForConfirmation(
+  confirmation: ConfirmationInfo,
+  policy: PolicyInfo
+) {
+  if (!policy.endShiftReminderEnabled) return;
+
+  const fireAt = confirmation.shift.endsAt;
+  const now = Date.now();
+  if (fireAt.getTime() <= now) return;
+
+  const payload: ShiftEndReminderJobPayload = {
+    kind: "SHIFT_END_REMINDER",
+    shiftId: confirmation.shiftId,
+    recipientId: confirmation.userId,
+  };
+
+  await reminderQueue.add(
+    `shift-end-reminder-${confirmation.shiftId}`,
+    payload,
+    {
+      delay: fireAt.getTime() - now,
+      jobId: `shift-end-reminder-${confirmation.shiftId}`,
+      removeOnComplete: true,
+    }
+  );
 }
 
 export async function scheduleEscalationForConfirmation(
@@ -93,6 +126,7 @@ export async function scheduleAllRemindersForBatch(
     confirmations.flatMap((c) => [
       scheduleRemindersForConfirmation(c, policy),
       scheduleEscalationForConfirmation(c, policy),
+      scheduleShiftEndReminderForConfirmation(c, policy),
     ])
   );
 }

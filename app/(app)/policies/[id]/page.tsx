@@ -78,9 +78,26 @@ export default async function PolicyDetailPage({
   // Load checklist fields via raw SQL (not yet in generated Prisma client)
   let checklistRequired = false;
   let templateTasks: string[] = [];
+  let telegramRequirePhotoOnConfirm = false;
+  let telegramEndShiftReminderEnabled = false;
+  let telegramRequirePhotoOnCheckout = false;
+  let telegramManagerImportErrorEnabled = false;
   try {
-    const rows = await prisma.$queryRaw<Array<{ checklist_required: boolean; template_tasks: unknown }>>`
-      SELECT checklist_required, template_tasks
+    const rows = await prisma.$queryRaw<Array<{
+      checklist_required: boolean;
+      template_tasks: unknown;
+      telegram_require_photo_on_confirm: boolean;
+      telegram_end_shift_reminder_enabled: boolean;
+      telegram_require_photo_on_checkout: boolean;
+      telegram_manager_import_error_enabled: boolean;
+    }>>`
+      SELECT
+        checklist_required,
+        template_tasks,
+        telegram_require_photo_on_confirm,
+        telegram_end_shift_reminder_enabled,
+        telegram_require_photo_on_checkout,
+        telegram_manager_import_error_enabled
       FROM rotation_policies
       WHERE id = ${id}::uuid
     `;
@@ -88,6 +105,10 @@ export default async function PolicyDetailPage({
       checklistRequired = rows[0].checklist_required ?? false;
       const raw = rows[0].template_tasks;
       templateTasks = Array.isArray(raw) ? (raw as string[]) : [];
+      telegramRequirePhotoOnConfirm = rows[0].telegram_require_photo_on_confirm ?? false;
+      telegramEndShiftReminderEnabled = rows[0].telegram_end_shift_reminder_enabled ?? false;
+      telegramRequirePhotoOnCheckout = rows[0].telegram_require_photo_on_checkout ?? false;
+      telegramManagerImportErrorEnabled = rows[0].telegram_manager_import_error_enabled ?? false;
     }
   } catch {
     // Columns not yet created — migration 4 pending
@@ -144,6 +165,10 @@ export default async function PolicyDetailPage({
               timeSlots: policy.timeSlots as Array<{ label: string; startHour: number; startMinute: number; endHour: number; endMinute: number; daysOfWeek?: number[] }> | null,
               checklistRequired,
               templateTasks,
+              telegramRequirePhotoOnConfirm,
+              telegramEndShiftReminderEnabled,
+              telegramRequirePhotoOnCheckout,
+              telegramManagerImportErrorEnabled,
               participantUserIds: participantUserIds ?? policy.team.members.map((member) => member.user.id),
             }}
           />

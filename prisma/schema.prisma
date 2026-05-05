@@ -205,6 +205,7 @@ model User {
   assignedIncidents      Incident[]           @relation("IncidentAssignee")
   uploadedIncidentFiles  IncidentAttachment[] @relation("IncidentAttachmentUploader")
   incidentLifecycleEvents IncidentLifecycleEvent[] @relation("IncidentLifecycleActor")
+  shiftVerificationPhotos ShiftVerificationPhoto[]
 
   @@map("users")
 }
@@ -260,6 +261,10 @@ model RotationPolicy {
   timezone              String      @default("Asia/Ho_Chi_Minh")
   checklistRequired     Boolean     @default(false) @map("checklist_required")
   templateTasks         Json        @default("[]") @map("template_tasks")
+  telegramRequirePhotoOnConfirm    Boolean   @default(false) @map("telegram_require_photo_on_confirm")
+  telegramEndShiftReminderEnabled  Boolean   @default(false) @map("telegram_end_shift_reminder_enabled")
+  telegramRequirePhotoOnCheckout   Boolean   @default(false) @map("telegram_require_photo_on_checkout")
+  telegramManagerImportErrorEnabled Boolean  @default(false) @map("telegram_manager_import_error_enabled")
   isActive              Boolean     @default(true) @map("is_active")
   createdAt             DateTime    @default(now()) @map("created_at")
   updatedAt             DateTime    @updatedAt @map("updated_at")
@@ -269,6 +274,7 @@ model RotationPolicy {
   scheduleBatches   ScheduleBatch[]
   shifts            Shift[]
   incidents         Incident[]
+  verificationPhotos ShiftVerificationPhoto[]
 
   @@map("rotation_policies")
 }
@@ -316,6 +322,7 @@ model Shift {
   swapRequestsAsTarget   SwapRequest[] @relation("SwapTargetShift")
   tasks            ShiftTask[]
   incidents        Incident[]
+  verificationPhotos ShiftVerificationPhoto[]
 
   @@index([policyId, startsAt, endsAt])
   @@index([assigneeId, startsAt])
@@ -338,6 +345,30 @@ model ShiftConfirmation {
   user  User  @relation(fields: [userId], references: [id])
 
   @@map("shift_confirmations")
+}
+
+model ShiftVerificationPhoto {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  shiftId           String   @map("shift_id") @db.Uuid
+  policyId          String   @map("policy_id") @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  kind              String
+  source            String   @default("TELEGRAM")
+  fileName          String   @map("file_name")
+  storagePath       String   @map("storage_path")
+  contentType       String   @map("content_type")
+  sizeBytes         Int      @map("size_bytes")
+  telegramFileId    String?  @map("telegram_file_id")
+  telegramMessageId BigInt?  @map("telegram_message_id")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  shift Shift @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  policy RotationPolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([shiftId, kind, createdAt])
+  @@index([userId, createdAt])
+  @@map("shift_verification_photos")
 }
 
 model SwapRequest {
