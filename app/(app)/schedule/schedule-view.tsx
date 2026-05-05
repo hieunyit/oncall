@@ -1,7 +1,17 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { format, addDays, startOfWeek, addWeeks, subWeeks, isSameMonth, differenceInMinutes } from "date-fns";
+import {
+  format,
+  addDays,
+  startOfWeek,
+  addWeeks,
+  subWeeks,
+  isSameMonth,
+  differenceInMinutes,
+  endOfWeek,
+  endOfMonth,
+} from "date-fns";
 import { vi } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 import { MonthCalendar } from "@/components/schedule/month-calendar";
@@ -73,12 +83,54 @@ const CONFIRMATION_STATUS: Record<string, { label: string; className: string }> 
   EXPIRED: { label: "Đã hết hạn", className: "bg-gray-100 text-gray-500" },
 };
 
+const SHIFT_STATUS_LABELS: Record<string, string> = {
+  PUBLISHED: "Đã xuất bản",
+  ACTIVE: "Đang trực",
+  COMPLETED: "Hoàn thành",
+  CANCELLED: "Đã hủy",
+};
+
+const SHIFT_SOURCE_LABELS: Record<string, string> = {
+  AUTO: "Tự động",
+  MANUAL: "Thủ công",
+  SWAP: "Đổi ca",
+  OVERRIDE: "Override",
+};
+
 function formatDuration(start: Date, end: Date): string {
   const totalMins = differenceInMinutes(end, start);
   const h = Math.floor(totalMins / 60);
   const m = totalMins % 60;
   if (m === 0) return `${h} giờ`;
   return `${h}g ${m}p`;
+}
+
+function formatExportDateTime(date: Date): string {
+  return format(date, "dd/MM/yyyy HH:mm");
+}
+
+function csvEscape(value: string): string {
+  return `"${value.replace(/"/g, "\"\"")}"`;
+}
+
+function htmlEscape(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function triggerFileDownload(blob: Blob, fileName: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 function localDayKeyInBrowser(date: Date): string {
@@ -214,6 +266,152 @@ export function ScheduleView({
 
   const weekEnd = addDays(weekStart, numDays - 1);
   const weekLabel = `${format(weekStart, "dd/MM")} – ${format(weekEnd, "dd/MM/yyyy")}`;
+  const monthGridStart = useMemo(() => startOfWeek(monthStart, { weekStartsOn: 1 }), [monthStart]);
+  const monthGridEnd = useMemo(
+    () => endOfWeek(endOfMonth(monthStart), { weekStartsOn: 1 }),
+    [monthStart]
+  );
+  const exportRange = useMemo(() => {
+    const rangeStart = view === "month" ? monthGridStart : weekStart;
+    const rangeEnd = view === "month" ? monthGridEnd : weekEnd;
+
+    const start = new Date(rangeStart);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(rangeEnd);
+    end.setHours(23, 59, 59, 999);
+
+    return { start, end };
+  }, [monthGridEnd, monthGridStart, view, weekEnd, weekStart]);
+
+  const shiftsForExport = useMemo(
+    () =>
+      shifts
+        .filter((shift) => {
+          if (selectedPersonId && shift.assigneeId !== selectedPersonId) return false;
+          return shift.startsAt <= exportRange.end && shift.endsAt >= exportRange.start;
+        })
+        .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime() || a.endsAt.getTime() - b.endsAt.getTime()),
+    [exportRange.end, exportRange.start, selectedPersonId, shifts]
+  );
+
+  const exportRows = useMemo(
+    () =>
+      shiftsForExport.map((shift, idx) => {
+        const warning = getAutoScheduleWarningMessage(shift.notes);
+        return {
+          stt: String(idx + 1),
+          startsAt: formatExportDateTime(shift.startsAt),
+          endsAt: formatExportDateTime(shift.endsAt),
+          duration: formatDuration(shift.startsAt, shift.endsAt),
+          teamName: shift.teamName ?? "",
+          policyName: shift.policyName,
+          assigneeName: shift.assigneeName,
+          backupName: shift.backupName ?? "",
+          shiftStatus: shift.status ? SHIFT_STATUS_LABELS[shift.status] ?? shift.status : "",
+          confirmationStatus: shift.confirmationStatus
+            ? CONFIRMATION_STATUS[shift.confirmationStatus]?.label ?? shift.confirmationStatus
+            : "",
+          source: shift.source ? SHIFT_SOURCE_LABELS[shift.source] ?? shift.source : "",
+          note: warning ?? shift.notes ?? "",
+        };
+      }),
+    [shiftsForExport]
+  );
+
+  const exportFilePrefix = useMemo(() => {
+    if (view === "month") return `lich-truc-${format(monthStart, "yyyy-MM")}`;
+    return `lich-truc-${format(weekStart, "yyyyMMdd")}-${format(weekEnd, "yyyyMMdd")}`;
+  }, [monthStart, view, weekEnd, weekStart]);
+
+  const handleExportCsv = useCallback(() => {
+    if (exportRows.length === 0) return;
+    const headers = [
+      "STT",
+      "Bắt đầu",
+      "Kết thúc",
+      "Thời lượng",
+      "Nhóm",
+      "Chính sách",
+      "Người trực",
+      "Dự phòng",
+      "Trạng thái ca",
+      "Xác nhận",
+      "Nguồn",
+      "Ghi chú",
+    ];
+    const lines = [
+      headers.map(csvEscape).join(","),
+      ...exportRows.map((row) =>
+        [
+          row.stt,
+          row.startsAt,
+          row.endsAt,
+          row.duration,
+          row.teamName,
+          row.policyName,
+          row.assigneeName,
+          row.backupName,
+          row.shiftStatus,
+          row.confirmationStatus,
+          row.source,
+          row.note,
+        ]
+          .map((cell) => csvEscape(cell))
+          .join(",")
+      ),
+    ];
+    const csv = lines.join("\r\n");
+    const blob = new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8;" });
+    triggerFileDownload(blob, `${exportFilePrefix}.csv`);
+  }, [exportFilePrefix, exportRows]);
+
+  const handleExportExcel = useCallback(() => {
+    if (exportRows.length === 0) return;
+    const headers = [
+      "STT",
+      "Bắt đầu",
+      "Kết thúc",
+      "Thời lượng",
+      "Nhóm",
+      "Chính sách",
+      "Người trực",
+      "Dự phòng",
+      "Trạng thái ca",
+      "Xác nhận",
+      "Nguồn",
+      "Ghi chú",
+    ];
+
+    const headerHtml = headers.map((h) => `<th>${htmlEscape(h)}</th>`).join("");
+    const rowsHtml = exportRows
+      .map(
+        (row) =>
+          `<tr>${[
+            row.stt,
+            row.startsAt,
+            row.endsAt,
+            row.duration,
+            row.teamName,
+            row.policyName,
+            row.assigneeName,
+            row.backupName,
+            row.shiftStatus,
+            row.confirmationStatus,
+            row.source,
+            row.note,
+          ]
+            .map((cell) => `<td>${htmlEscape(cell)}</td>`)
+            .join("")}</tr>`
+      )
+      .join("");
+
+    const html = `<!DOCTYPE html><html><head><meta charset=\"UTF-8\" /></head><body><table border=\"1\"><thead><tr>${headerHtml}</tr></thead><tbody>${rowsHtml}</tbody></table></body></html>`;
+    const blob = new Blob(["\uFEFF", html], {
+      type: "application/vnd.ms-excel;charset=utf-8;",
+    });
+    triggerFileDownload(blob, `${exportFilePrefix}.xls`);
+  }, [exportFilePrefix, exportRows]);
 
   return (
     <>
@@ -342,6 +540,23 @@ export function ScheduleView({
             <span className={`w-2 h-2 rounded-full ${highlightMe ? "bg-indigo-500" : "bg-gray-300"}`} />
             Ca của tôi
           </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExportCsv}
+              disabled={exportRows.length === 0}
+              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Xuất CSV
+            </button>
+            <button
+              onClick={handleExportExcel}
+              disabled={exportRows.length === 0}
+              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Xuất Excel
+            </button>
+          </div>
 
           {/* Nav */}
           {view === "month" ? (

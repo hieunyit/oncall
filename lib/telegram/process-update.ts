@@ -21,11 +21,11 @@ import { validateSwapAssignmentConstraints } from "@/lib/rotation/swap-constrain
 import {
   buildBackToMainInlineKeyboard,
   buildMainMenuInlineKeyboard,
-  buildMainMenuReplyKeyboard,
 } from "@/lib/telegram/bot-config";
 
 const TZ = "Asia/Ho_Chi_Minh";
 const ACTIVE_SHIFT_STATUSES: ShiftStatus[] = [ShiftStatus.PUBLISHED, ShiftStatus.ACTIVE];
+const REMOVE_REPLY_KEYBOARD = { remove_keyboard: true };
 
 type LinkedUser = {
   id: string;
@@ -86,9 +86,9 @@ function supportText() {
   const custom = process.env.TELEGRAM_SUPPORT_TEXT?.trim();
   if (custom) return custom;
   return [
-    "<b>Ho tro</b>",
-    "- Neu can ho tro, lien he quan tri he thong.",
-    "- Dung /menu de quay lai menu chinh.",
+    "<b>Hỗ trợ</b>",
+    "- Nếu cần hỗ trợ, liên hệ quản trị hệ thống.",
+    "- Dùng /menu để quay lại menu chính.",
   ].join("\n");
 }
 
@@ -107,23 +107,18 @@ async function getLinkedUserByChatId(chatId: number): Promise<LinkedUser | null>
 
 async function sendMainMenu(chatId: number, userName?: string) {
   const intro = [
-    `👋 Xin chao${userName ? ` <b>${escapeHtml(userName)}</b>` : ""}!`,
-    "Chon chuc nang ben duoi hoac dung command:",
+    `👋 Xin chào${userName ? ` <b>${escapeHtml(userName)}</b>` : ""}!`,
+    "Chọn chức năng bên dưới hoặc dùng lệnh:",
     "/oncall, /myshifts, /checklist, /swaps, /report, /help",
   ].join("\n");
 
-  await sendTelegramMessage(
-    chatId.toString(),
-    intro,
-    "HTML",
-    buildMainMenuReplyKeyboard()
-  );
+  await sendTelegramMessage(chatId.toString(), intro, "HTML", REMOVE_REPLY_KEYBOARD);
 }
 
 async function sendMainMenuInline(chatId: number) {
   await sendTelegramMessage(
     chatId.toString(),
-    "<b>Menu chinh</b>\nChon tinh nang:",
+    "<b>Menu chính</b>\nChọn tính năng:",
     "HTML",
     buildMainMenuInlineKeyboard()
   );
@@ -136,9 +131,9 @@ async function requireLinkedUser(chatId: number): Promise<LinkedUser | null> {
   await sendTelegramMessage(
     chatId.toString(),
     [
-      "❌ Chat nay chua lien ket tai khoan On-Call.",
-      "Vao ung dung -> Ho so -> Ket noi Telegram de tao ma lien ket.",
-      "Sau do gui: <code>/link &lt;ma_lien_ket&gt;</code>",
+      "❌ Chat này chưa liên kết tài khoản On-Call.",
+      "Vào ứng dụng -> Hồ sơ -> Kết nối Telegram để tạo mã liên kết.",
+      "Sau đó gửi: <code>/link &lt;mã_liên_kết&gt;</code>",
     ].join("\n"),
     "HTML",
     buildBackToMainInlineKeyboard()
@@ -197,14 +192,14 @@ async function sendOncallNow(chatId: number) {
   if (activeShifts.length === 0) {
     await sendTelegramMessage(
       chatId.toString(),
-      "ℹ️ Hien tai khong co ca nao dang truc.",
+      "ℹ️ Hiện tại không có ca nào đang trực.",
       "HTML",
       buildBackToMainInlineKeyboard()
     );
     return;
   }
 
-  const lines = ["🟢 <b>Ca dang truc</b>", ""];
+  const lines = ["🟢 <b>Ca đang trực</b>", ""];
   for (const shift of activeShifts) {
     lines.push(
       `• <b>${escapeHtml(shift.assignee.fullName)}</b> - ${escapeHtml(shift.policy.team.name)} / ${escapeHtml(shift.policy.name)}`,
@@ -244,14 +239,14 @@ async function sendMyShifts(chatId: number, user: LinkedUser) {
   if (shifts.length === 0) {
     await sendTelegramMessage(
       chatId.toString(),
-      "ℹ️ Ban chua co ca truc trong 7 ngay gan nhat/ke tiep.",
+      "ℹ️ Bạn chưa có ca trực trong 7 ngày gần nhất/kế tiếp.",
       "HTML",
       buildBackToMainInlineKeyboard()
     );
     return;
   }
 
-  const lines = ["📅 <b>Lich truc cua toi</b>", ""];
+  const lines = ["📅 <b>Lịch trực của tôi</b>", ""];
   for (const shift of shifts) {
     let marker = "⏳";
     if (shift.startsAt <= now && shift.endsAt >= now) marker = "🟢";
@@ -273,11 +268,11 @@ async function sendMyShifts(chatId: number, user: LinkedUser) {
       inline_keyboard: [
         [
           { text: "✅ Checklist", callback_data: "menu:checklist" },
-          { text: "🔁 Doi ca", callback_data: "menu:swaps" },
+          { text: "🔁 Đổi ca", callback_data: "menu:swaps" },
         ],
         [
-          { text: "📝 Bao cao", callback_data: "menu:report" },
-          { text: "🏠 Menu chinh", callback_data: "menu:main" },
+          { text: "📝 Báo cáo", callback_data: "menu:report" },
+          { text: "🏠 Menu chính", callback_data: "menu:main" },
         ],
       ],
     }
@@ -358,7 +353,7 @@ async function sendChecklistForShift(
   });
 
   if (!shift) {
-    await sendTelegramMessage(chatId.toString(), "❌ Khong tim thay ca truc.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ Không tìm thấy ca trực.", "HTML");
     return;
   }
 
@@ -368,7 +363,7 @@ async function sendChecklistForShift(
   );
 
   if (!isAssignee && !isManager) {
-    await sendTelegramMessage(chatId.toString(), "❌ Ban khong co quyen xem checklist ca nay.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ Bạn không có quyền xem checklist ca này.", "HTML");
     return;
   }
 
@@ -378,16 +373,16 @@ async function sendChecklistForShift(
   const total = tasks.length;
 
   const lines = [
-    "✅ <b>Checklist ca truc</b>",
+    "✅ <b>Checklist ca trực</b>",
     `Ca: <b>${escapeHtml(shift.policy.team.name)} / ${escapeHtml(shift.policy.name)}</b>`,
-    `Nguoi truc: <b>${escapeHtml(shift.assignee.fullName)}</b>`,
+    `Người trực: <b>${escapeHtml(shift.assignee.fullName)}</b>`,
     `${formatShiftRange(shift.startsAt, shift.endsAt)}`,
-    `Tien do: <b>${done}/${total}</b>`,
+    `Tiến độ: <b>${done}/${total}</b>`,
     "",
   ];
 
   if (tasks.length === 0) {
-    lines.push("(Chua co checklist cho ca nay)");
+    lines.push("(Chưa có checklist cho ca này)");
   } else {
     for (const task of tasks) {
       lines.push(`${task.isCompleted ? "✅" : "⬜"} ${escapeHtml(task.title)}`);
@@ -408,7 +403,7 @@ async function sendChecklistForShift(
   }
 
   keyboardRows.push([
-    { text: "🔄 Tai lai", callback_data: `chk:s:${shift.id}` },
+    { text: "🔄 Tải lại", callback_data: `chk:s:${shift.id}` },
     { text: "🏠 Menu", callback_data: "menu:main" },
   ]);
 
@@ -428,8 +423,8 @@ async function sendChecklist(chatId: number, user: LinkedUser, editTarget?: { me
   const shift = await findChecklistShiftForUser(user.id);
   if (!shift) {
     const text = [
-      "ℹ️ Khong tim thay ca phu hop de cap nhat checklist.",
-      "Chi duoc check checklist trong vong 2 gio truoc khi ca bat dau hoac khi ca dang dien ra.",
+      "ℹ️ Không tìm thấy ca phù hợp để cập nhật checklist.",
+      "Chỉ được check checklist trong vòng 2 giờ trước khi ca bắt đầu hoặc khi ca đang diễn ra.",
     ].join("\n");
 
     if (editTarget) {
@@ -462,7 +457,7 @@ async function toggleChecklistTask(
   });
 
   if (!task) {
-    await sendTelegramMessage(chatId.toString(), "❌ Task khong ton tai.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ Task không tồn tại.", "HTML");
     return;
   }
 
@@ -471,14 +466,14 @@ async function toggleChecklistTask(
     (m) => m.teamId === task.shift.policy.teamId && m.role === TeamRole.MANAGER
   );
   if (!isAssignee && !isManager) {
-    await sendTelegramMessage(chatId.toString(), "❌ Ban khong co quyen cap nhat task nay.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ Bạn không có quyền cập nhật task này.", "HTML");
     return;
   }
 
   if (!isAssignee) {
     await sendTelegramMessage(
       chatId.toString(),
-      "❌ Chi nguoi truc cua ca moi duoc check/uncheck checklist.",
+      "❌ Chỉ người trực của ca mới được check/uncheck checklist.",
       "HTML"
     );
     return;
@@ -488,7 +483,7 @@ async function toggleChecklistTask(
   if (new Date() < earliest) {
     await sendTelegramMessage(
       chatId.toString(),
-      "❌ Chua den thoi gian check checklist (chi duoc truoc toi da 2 gio).",
+      "❌ Chưa đến thời gian check checklist (chỉ được trước tối đa 2 giờ).",
       "HTML"
     );
     return;
@@ -506,15 +501,15 @@ async function toggleChecklistTask(
 }
 
 async function sendSwapMenu(chatId: number, editTarget?: { messageId: number }) {
-  const text = ["🔁 <b>Quan ly doi ca</b>", "Chon thao tac:"].join("\n");
+  const text = ["🔁 <b>Quản lý đổi ca</b>", "Chọn thao tác:"].join("\n");
 
   const keyboard = {
     inline_keyboard: [
-      [{ text: "📤 Tao yeu cau doi ca mo", callback_data: "sw:open:list" }],
-      [{ text: "📥 Danh sach ca co the nhan", callback_data: "sw:avail:list" }],
-      [{ text: "🎯 Yeu cau gui den toi", callback_data: "sw:target:list" }],
-      [{ text: "🧾 Yeu cau cua toi", callback_data: "sw:mine:list" }],
-      [{ text: "🏠 Menu chinh", callback_data: "menu:main" }],
+      [{ text: "📤 Tạo yêu cầu đổi ca mở", callback_data: "sw:open:list" }],
+      [{ text: "📥 Danh sách ca có thể nhận", callback_data: "sw:avail:list" }],
+      [{ text: "🎯 Yêu cầu gửi đến tôi", callback_data: "sw:target:list" }],
+      [{ text: "🧾 Yêu cầu của tôi", callback_data: "sw:mine:list" }],
+      [{ text: "🏠 Menu chính", callback_data: "menu:main" }],
     ],
   };
 
@@ -541,10 +536,10 @@ async function sendOpenSwapShiftList(chatId: number, user: LinkedUser, editTarge
   });
 
   if (shifts.length === 0) {
-    const text = "ℹ️ Ban khong co ca hop le de tao yeu cau doi ca mo.";
+    const text = "ℹ️ Bạn không có ca hợp lệ để tạo yêu cầu đổi ca mở.";
     if (editTarget) {
       await editMessageText(chatId, editTarget.messageId, text, "HTML", {
-        inline_keyboard: [[{ text: "⬅️ Quay lai", callback_data: "sw:menu" }]],
+        inline_keyboard: [[{ text: "⬅️ Quay lại", callback_data: "sw:menu" }]],
       });
     } else {
       await sendTelegramMessage(chatId.toString(), text, "HTML");
@@ -552,7 +547,7 @@ async function sendOpenSwapShiftList(chatId: number, user: LinkedUser, editTarge
     return;
   }
 
-  const lines = ["📤 <b>Chon ca de tao yeu cau doi ca mo</b>", ""];
+  const lines = ["📤 <b>Chọn ca để tạo yêu cầu đổi ca mở</b>", ""];
   const keyboardRows: Array<Array<{ text: string; callback_data: string }>> = [];
 
   for (const shift of shifts) {
@@ -561,13 +556,13 @@ async function sendOpenSwapShiftList(chatId: number, user: LinkedUser, editTarge
     );
     keyboardRows.push([
       {
-        text: `Tao cho ca ${shortGuid(shift.id)}`,
+        text: `Tạo cho ca ${shortGuid(shift.id)}`,
         callback_data: `sw:open:create:${shift.id}`,
       },
     ]);
   }
 
-  keyboardRows.push([{ text: "⬅️ Quay lai", callback_data: "sw:menu" }]);
+  keyboardRows.push([{ text: "⬅️ Quay lại", callback_data: "sw:menu" }]);
 
   const text = lines.join("\n");
   if (editTarget) {
@@ -584,12 +579,12 @@ async function createOpenSwap(chatId: number, user: LinkedUser, shiftId: string)
   });
 
   if (!shift || shift.assigneeId !== user.id) {
-    await sendTelegramMessage(chatId.toString(), "❌ Khong tim thay ca cua ban de tao doi ca.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ Không tìm thấy ca của bạn để tạo đổi ca.", "HTML");
     return;
   }
 
   if (!ACTIVE_SHIFT_STATUSES.includes(shift.status)) {
-    await sendTelegramMessage(chatId.toString(), "❌ Ca nay khong o trang thai cho phep doi.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ Ca này không ở trạng thái cho phép đổi.", "HTML");
     return;
   }
 
@@ -607,7 +602,7 @@ async function createOpenSwap(chatId: number, user: LinkedUser, shiftId: string)
   if (existing) {
     await sendTelegramMessage(
       chatId.toString(),
-      `ℹ️ Ca nay da co yeu cau doi mo (#${shortGuid(existing.id)}).`,
+      `ℹ️ Ca này đã có yêu cầu đổi mở (#${shortGuid(existing.id)}).`,
       "HTML"
     );
     return;
@@ -625,14 +620,14 @@ async function createOpenSwap(chatId: number, user: LinkedUser, shiftId: string)
   await sendTelegramMessage(
     chatId.toString(),
     [
-      "✅ Tao yeu cau doi ca mo thanh cong.",
+      "✅ Tạo yêu cầu đổi ca mở thành công.",
       `ID: <code>${created.id}</code>`,
       `Ca: <b>${escapeHtml(shift.policy.team.name)} / ${escapeHtml(shift.policy.name)}</b>`,
       `${formatShiftRange(shift.startsAt, shift.endsAt)}`,
     ].join("\n"),
     "HTML",
     {
-      inline_keyboard: [[{ text: "🧾 Xem yeu cau cua toi", callback_data: "sw:mine:list" }]],
+      inline_keyboard: [[{ text: "🧾 Xem yêu cầu của tôi", callback_data: "sw:mine:list" }]],
     }
   );
 }
@@ -640,10 +635,10 @@ async function createOpenSwap(chatId: number, user: LinkedUser, shiftId: string)
 async function sendAvailableSwaps(chatId: number, user: LinkedUser, editTarget?: { messageId: number }) {
   const teamIds = user.teamMembers.map((m) => m.teamId);
   if (teamIds.length === 0) {
-    const text = "ℹ️ Ban chua thuoc team nao nen khong co doi ca de nhan.";
+    const text = "ℹ️ Bạn chưa thuộc team nào nên không có đổi ca để nhận.";
     if (editTarget) {
       await editMessageText(chatId, editTarget.messageId, text, "HTML", {
-        inline_keyboard: [[{ text: "⬅️ Quay lai", callback_data: "sw:menu" }]],
+        inline_keyboard: [[{ text: "⬅️ Quay lại", callback_data: "sw:menu" }]],
       });
     } else {
       await sendTelegramMessage(chatId.toString(), text, "HTML");
@@ -672,10 +667,10 @@ async function sendAvailableSwaps(chatId: number, user: LinkedUser, editTarget?:
   });
 
   if (swaps.length === 0) {
-    const text = "ℹ️ Hien tai khong co yeu cau doi ca mo nao.";
+    const text = "ℹ️ Hiện tại không có yêu cầu đổi ca mở nào.";
     if (editTarget) {
       await editMessageText(chatId, editTarget.messageId, text, "HTML", {
-        inline_keyboard: [[{ text: "⬅️ Quay lai", callback_data: "sw:menu" }]],
+        inline_keyboard: [[{ text: "⬅️ Quay lại", callback_data: "sw:menu" }]],
       });
     } else {
       await sendTelegramMessage(chatId.toString(), text, "HTML");
@@ -683,22 +678,22 @@ async function sendAvailableSwaps(chatId: number, user: LinkedUser, editTarget?:
     return;
   }
 
-  const lines = ["📥 <b>Yeu cau doi ca mo</b>", ""];
+  const lines = ["📥 <b>Yêu cầu đổi ca mở</b>", ""];
   const keyboardRows: Array<Array<{ text: string; callback_data: string }>> = [];
 
   for (const swap of swaps) {
     lines.push(
       `• #${shortGuid(swap.id)} - ${escapeHtml(swap.originalShift.policy.team.name)} / ${escapeHtml(swap.originalShift.policy.name)}`,
       `  ${formatShiftRange(swap.originalShift.startsAt, swap.originalShift.endsAt)}`,
-      `  Tu: ${escapeHtml(swap.requester.fullName)}`,
+      `  Từ: ${escapeHtml(swap.requester.fullName)}`,
       ""
     );
     keyboardRows.push([
-      { text: `Nhan #${shortGuid(swap.id)}`, callback_data: `sw:avail:take:${swap.id}` },
+      { text: `Nhận #${shortGuid(swap.id)}`, callback_data: `sw:avail:take:${swap.id}` },
     ]);
   }
 
-  keyboardRows.push([{ text: "⬅️ Quay lai", callback_data: "sw:menu" }]);
+  keyboardRows.push([{ text: "⬅️ Quay lại", callback_data: "sw:menu" }]);
 
   if (editTarget) {
     await editMessageText(chatId, editTarget.messageId, lines.join("\n").trim(), "HTML", {
@@ -720,23 +715,23 @@ async function takeOpenSwap(chatId: number, user: LinkedUser, swapId: string) {
   });
 
   if (!swap) {
-    await sendTelegramMessage(chatId.toString(), "❌ Swap khong ton tai.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ Swap không tồn tại.", "HTML");
     return;
   }
 
   if (swap.targetUserId !== null || swap.requesterId === user.id) {
-    await sendTelegramMessage(chatId.toString(), "❌ Swap nay khong hop le de nhan.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ Swap này không hợp lệ để nhận.", "HTML");
     return;
   }
 
   if (swap.status !== SwapStatus.REQUESTED || swap.expiresAt <= new Date()) {
-    await sendTelegramMessage(chatId.toString(), "❌ Swap nay da het han hoac da thay doi.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ Swap này đã hết hạn hoặc đã thay đổi.", "HTML");
     return;
   }
 
   const inTeam = user.teamMembers.some((m) => m.teamId === swap.originalShift.policy.teamId);
   if (!inTeam) {
-    await sendTelegramMessage(chatId.toString(), "❌ Ban khong thuoc team cua ca nay.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ Bạn không thuộc team của ca này.", "HTML");
     return;
   }
 
@@ -752,7 +747,7 @@ async function takeOpenSwap(chatId: number, user: LinkedUser, swapId: string) {
     select: { id: true },
   });
   if (crossPolicyConflict) {
-    await sendTelegramMessage(chatId.toString(), "❌ Ban da co ca khac policy bi trung gio.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ Bạn đã có ca khác policy bị trùng giờ.", "HTML");
     return;
   }
 
@@ -785,13 +780,13 @@ async function takeOpenSwap(chatId: number, user: LinkedUser, swapId: string) {
   });
 
   if (updated.count === 0) {
-    await sendTelegramMessage(chatId.toString(), "❌ Swap vua thay doi boi nguoi khac.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ Swap vừa thay đổi bởi người khác.", "HTML");
     return;
   }
 
   await sendTelegramMessage(
     chatId.toString(),
-    "✅ Ban da nhan swap. Dang cho manager phe duyet.",
+    "✅ Bạn đã nhận swap. Đang chờ manager phê duyệt.",
     "HTML"
   );
 }
@@ -816,10 +811,10 @@ async function sendTargetedSwaps(chatId: number, user: LinkedUser, editTarget?: 
   });
 
   if (swaps.length === 0) {
-    const text = "ℹ️ Khong co yeu cau doi ca nao gui den ban.";
+    const text = "ℹ️ Không có yêu cầu đổi ca nào gửi đến bạn.";
     if (editTarget) {
       await editMessageText(chatId, editTarget.messageId, text, "HTML", {
-        inline_keyboard: [[{ text: "⬅️ Quay lai", callback_data: "sw:menu" }]],
+        inline_keyboard: [[{ text: "⬅️ Quay lại", callback_data: "sw:menu" }]],
       });
     } else {
       await sendTelegramMessage(chatId.toString(), text, "HTML");
@@ -827,24 +822,24 @@ async function sendTargetedSwaps(chatId: number, user: LinkedUser, editTarget?: 
     return;
   }
 
-  const lines = ["🎯 <b>Yeu cau doi ca gui den ban</b>", ""];
+  const lines = ["🎯 <b>Yêu cầu đổi ca gửi đến bạn</b>", ""];
   const keyboardRows: Array<Array<{ text: string; callback_data: string }>> = [];
 
   for (const swap of swaps) {
     lines.push(
       `• #${shortGuid(swap.id)} - ${escapeHtml(swap.originalShift.policy.team.name)} / ${escapeHtml(swap.originalShift.policy.name)}`,
       `  ${formatShiftRange(swap.originalShift.startsAt, swap.originalShift.endsAt)}`,
-      `  Nguoi yeu cau: ${escapeHtml(swap.requester.fullName)}`,
+      `  Người yêu cầu: ${escapeHtml(swap.requester.fullName)}`,
       ""
     );
 
     keyboardRows.push([
-      { text: `Chap nhan #${shortGuid(swap.id)}`, callback_data: `sw:target:accept:${swap.id}` },
-      { text: `Tu choi #${shortGuid(swap.id)}`, callback_data: `sw:target:decline:${swap.id}` },
+      { text: `Chấp nhận #${shortGuid(swap.id)}`, callback_data: `sw:target:accept:${swap.id}` },
+      { text: `Từ chối #${shortGuid(swap.id)}`, callback_data: `sw:target:decline:${swap.id}` },
     ]);
   }
 
-  keyboardRows.push([{ text: "⬅️ Quay lai", callback_data: "sw:menu" }]);
+  keyboardRows.push([{ text: "⬅️ Quay lại", callback_data: "sw:menu" }]);
 
   if (editTarget) {
     await editMessageText(chatId, editTarget.messageId, lines.join("\n").trim(), "HTML", {
@@ -867,12 +862,12 @@ async function respondTargetedSwap(chatId: number, user: LinkedUser, swapId: str
   });
 
   if (!swap || swap.targetUserId !== user.id) {
-    await sendTelegramMessage(chatId.toString(), "❌ Khong tim thay yeu cau doi ca cua ban.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ Không tìm thấy yêu cầu đổi ca của bạn.", "HTML");
     return;
   }
 
   if (swap.status !== SwapStatus.REQUESTED || swap.expiresAt <= new Date()) {
-    await sendTelegramMessage(chatId.toString(), "❌ Yeu cau doi ca nay da het han hoac da xu ly.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ Yêu cầu đổi ca này đã hết hạn hoặc đã xử lý.", "HTML");
     return;
   }
 
@@ -908,15 +903,15 @@ async function respondTargetedSwap(chatId: number, user: LinkedUser, swapId: str
   });
 
   if (updated.count === 0) {
-    await sendTelegramMessage(chatId.toString(), "❌ Yeu cau da thay doi. Hay thu lai.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ Yêu cầu đã thay đổi. Hãy thử lại.", "HTML");
     return;
   }
 
   await sendTelegramMessage(
     chatId.toString(),
     accept
-      ? "✅ Ban da chap nhan yeu cau doi ca. Dang cho manager phe duyet."
-      : "✅ Ban da tu choi yeu cau doi ca.",
+      ? "✅ Bạn đã chấp nhận yêu cầu đổi ca. Đang chờ manager phê duyệt."
+      : "✅ Bạn đã từ chối yêu cầu đổi ca.",
     "HTML"
   );
 }
@@ -941,10 +936,10 @@ async function sendMySwapRequests(chatId: number, user: LinkedUser, editTarget?:
   });
 
   if (swaps.length === 0) {
-    const text = "ℹ️ Ban khong co yeu cau doi ca dang mo nao.";
+    const text = "ℹ️ Bạn không có yêu cầu đổi ca đang mở nào.";
     if (editTarget) {
       await editMessageText(chatId, editTarget.messageId, text, "HTML", {
-        inline_keyboard: [[{ text: "⬅️ Quay lai", callback_data: "sw:menu" }]],
+        inline_keyboard: [[{ text: "⬅️ Quay lại", callback_data: "sw:menu" }]],
       });
     } else {
       await sendTelegramMessage(chatId.toString(), text, "HTML");
@@ -952,22 +947,22 @@ async function sendMySwapRequests(chatId: number, user: LinkedUser, editTarget?:
     return;
   }
 
-  const lines = ["🧾 <b>Yeu cau doi ca cua toi</b>", ""];
+  const lines = ["🧾 <b>Yêu cầu đổi ca của tôi</b>", ""];
   const keyboardRows: Array<Array<{ text: string; callback_data: string }>> = [];
 
   for (const swap of swaps) {
     lines.push(
       `• #${shortGuid(swap.id)} - ${escapeHtml(swap.originalShift.policy.team.name)} / ${escapeHtml(swap.originalShift.policy.name)}`,
       `  ${formatShiftRange(swap.originalShift.startsAt, swap.originalShift.endsAt)}`,
-      `  Target: ${escapeHtml(swap.targetUser?.fullName ?? "(mo)")}`,
+      `  Người nhận: ${escapeHtml(swap.targetUser?.fullName ?? "(mở)")}`,
       ""
     );
     keyboardRows.push([
-      { text: `Huy #${shortGuid(swap.id)}`, callback_data: `sw:mine:cancel:${swap.id}` },
+      { text: `Hủy #${shortGuid(swap.id)}`, callback_data: `sw:mine:cancel:${swap.id}` },
     ]);
   }
 
-  keyboardRows.push([{ text: "⬅️ Quay lai", callback_data: "sw:menu" }]);
+  keyboardRows.push([{ text: "⬅️ Quay lại", callback_data: "sw:menu" }]);
 
   if (editTarget) {
     await editMessageText(chatId, editTarget.messageId, lines.join("\n").trim(), "HTML", {
@@ -996,13 +991,13 @@ async function cancelMySwap(chatId: number, user: LinkedUser, swapId: string) {
   if (updated.count === 0) {
     await sendTelegramMessage(
       chatId.toString(),
-      "❌ Khong the huy yeu cau (co the da duoc xu ly truoc do).",
+      "❌ Không thể hủy yêu cầu (có thể đã được xử lý trước đó).",
       "HTML"
     );
     return;
   }
 
-  await sendTelegramMessage(chatId.toString(), "✅ Da huy yeu cau doi ca.", "HTML");
+  await sendTelegramMessage(chatId.toString(), "✅ Đã hủy yêu cầu đổi ca.", "HTML");
 }
 
 async function sendReportShiftList(chatId: number, user: LinkedUser, editTarget?: { messageId: number }) {
@@ -1024,10 +1019,10 @@ async function sendReportShiftList(chatId: number, user: LinkedUser, editTarget?
   });
 
   if (shifts.length === 0) {
-    const text = "ℹ️ Khong co ca nao de tao report.";
+    const text = "ℹ️ Không có ca nào để tạo report.";
     if (editTarget) {
       await editMessageText(chatId, editTarget.messageId, text, "HTML", {
-        inline_keyboard: [[{ text: "⬅️ Quay lai", callback_data: "menu:main" }]],
+        inline_keyboard: [[{ text: "⬅️ Quay lại", callback_data: "menu:main" }]],
       });
     } else {
       await sendTelegramMessage(chatId.toString(), text, "HTML");
@@ -1036,8 +1031,8 @@ async function sendReportShiftList(chatId: number, user: LinkedUser, editTarget?
   }
 
   const lines = [
-    "📝 <b>Chon ca de tao report</b>",
-    "Sau khi chon, bot gui mau lenh /report de ban dien nhanh.",
+    "📝 <b>Chọn ca để tạo report</b>",
+    "Sau khi chọn, bot gửi mẫu lệnh /report để bạn điền nhanh.",
     "",
   ];
 
@@ -1051,7 +1046,7 @@ async function sendReportShiftList(chatId: number, user: LinkedUser, editTarget?
     ]);
   }
 
-  keyboardRows.push([{ text: "🏠 Menu chinh", callback_data: "menu:main" }]);
+  keyboardRows.push([{ text: "🏠 Menu chính", callback_data: "menu:main" }]);
 
   const text = lines.join("\n");
   if (editTarget) {
@@ -1068,19 +1063,19 @@ async function sendReportTemplate(chatId: number, user: LinkedUser, shiftId: str
   });
 
   if (!shift || shift.assigneeId !== user.id) {
-    await sendTelegramMessage(chatId.toString(), "❌ Ban chi co the tao report cho ca cua chinh ban.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ Bạn chỉ có thể tạo report cho ca của chính bạn.", "HTML");
     return;
   }
 
   const template = [
-    "📝 <b>Mau tao report theo ca</b>",
+    "📝 <b>Mẫu tạo report theo ca</b>",
     `Ca: <b>${escapeHtml(shift.policy.team.name)} / ${escapeHtml(shift.policy.name)}</b>`,
     `${formatShiftRange(shift.startsAt, shift.endsAt)}`,
     "",
-    "Gui theo cu phap:",
-    `<code>/report ${shift.id} | MEDIUM | Tieu de su co | Mo ta ngan | Impact | Root cause | Action items</code>`,
+    "Gửi theo cú pháp:",
+    `<code>/report ${shift.id} | MEDIUM | Tiêu đề sự cố | Mô tả ngắn | Impact | Root cause | Action items</code>`,
     "",
-    "Severity hop le: LOW, MEDIUM, HIGH, CRITICAL",
+    "Severity hợp lệ: LOW, MEDIUM, HIGH, CRITICAL",
   ].join("\n");
 
   await sendTelegramMessage(chatId.toString(), template, "HTML", {
@@ -1093,14 +1088,14 @@ async function handleReportCommand(chatId: number, user: LinkedUser, payload: st
     await sendTelegramMessage(
       chatId.toString(),
       [
-        "📝 Dung /report theo cu phap:",
+        "📝 Dùng /report theo cú pháp:",
         "<code>/report &lt;shiftId&gt; | &lt;severity&gt; | &lt;title&gt; | &lt;description&gt; | &lt;impact&gt; | &lt;rootCause&gt; | &lt;actionItems&gt;</code>",
-        "Vi du:",
-        "<code>/report 11111111-1111-1111-1111-111111111111 | HIGH | API timeout | Anh huong login | 20% user loi | DB lock | Tang ket noi + toi uu query</code>",
+        "Ví dụ:",
+        "<code>/report 11111111-1111-1111-1111-111111111111 | HIGH | API timeout | Ảnh hưởng login | 20% user lỗi | DB lock | Tăng kết nối + tối ưu query</code>",
       ].join("\n"),
       "HTML",
       {
-        inline_keyboard: [[{ text: "Chon ca de tao report", callback_data: "rpt:list" }]],
+        inline_keyboard: [[{ text: "Chọn ca để tạo report", callback_data: "rpt:list" }]],
       }
     );
     return;
@@ -1108,26 +1103,26 @@ async function handleReportCommand(chatId: number, user: LinkedUser, payload: st
 
   const parts = payload.split("|").map((p) => p.trim());
   if (parts.length < 3) {
-    await sendTelegramMessage(chatId.toString(), "❌ Thieu du lieu. Can it nhat: shiftId | severity | title", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ Thiếu dữ liệu. Cần ít nhất: shiftId | severity | title", "HTML");
     return;
   }
 
   const shiftId = parts[0];
   if (!isUuid(shiftId)) {
-    await sendTelegramMessage(chatId.toString(), "❌ shiftId khong hop le.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ shiftId không hợp lệ.", "HTML");
     return;
   }
 
   const severityRaw = (parts[1] || "MEDIUM").toUpperCase();
   if (!isSeverity(severityRaw)) {
-    await sendTelegramMessage(chatId.toString(), "❌ severity phai la LOW/MEDIUM/HIGH/CRITICAL.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ severity phải là LOW/MEDIUM/HIGH/CRITICAL.", "HTML");
     return;
   }
   const severity = severityRaw as IncidentSeverity;
 
   const title = parts[2];
   if (!title || title.length < 3) {
-    await sendTelegramMessage(chatId.toString(), "❌ title phai toi thieu 3 ky tu.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ title phải tối thiểu 3 ký tự.", "HTML");
     return;
   }
 
@@ -1144,12 +1139,12 @@ async function handleReportCommand(chatId: number, user: LinkedUser, payload: st
   });
 
   if (!shift) {
-    await sendTelegramMessage(chatId.toString(), "❌ Khong tim thay shift.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ Không tìm thấy shift.", "HTML");
     return;
   }
 
   if (shift.assigneeId !== user.id) {
-    await sendTelegramMessage(chatId.toString(), "❌ Chi nguoi truc cua ca nay moi duoc tao report.", "HTML");
+    await sendTelegramMessage(chatId.toString(), "❌ Chỉ người trực của ca này mới được tạo report.", "HTML");
     return;
   }
 
@@ -1178,7 +1173,7 @@ async function handleReportCommand(chatId: number, user: LinkedUser, payload: st
         fromStatus: null,
         toStatus: IncidentStatus.OPEN,
         changedById: user.id,
-        note: "Tao incident tu Telegram",
+        note: "Tạo incident từ Telegram",
       },
     });
 
@@ -1187,17 +1182,17 @@ async function handleReportCommand(chatId: number, user: LinkedUser, payload: st
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
   const lines = [
-    "✅ Tao report thanh cong.",
+    "✅ Tạo report thành công.",
     `Incident ID: <code>${incident.id}</code>`,
     `Ca: <b>${escapeHtml(shift.policy.team.name)} / ${escapeHtml(shift.policy.name)}</b>`,
     `Severity: <b>${severityRaw}</b>`,
   ];
   if (appUrl) {
-    lines.push(`Xem tong hop: <a href="${appUrl}/incidents">${appUrl}/incidents</a>`);
+    lines.push(`Xem tổng hợp: <a href="${appUrl}/incidents">${appUrl}/incidents</a>`);
   }
 
   await sendTelegramMessage(chatId.toString(), lines.join("\n"), "HTML", {
-    inline_keyboard: [[{ text: "📝 Tao report tiep", callback_data: "rpt:list" }]],
+    inline_keyboard: [[{ text: "📝 Tạo report tiếp", callback_data: "rpt:list" }]],
   });
 }
 
@@ -1213,25 +1208,56 @@ function mapMenuShortcut(text: string):
   const normalized = text.trim().toLowerCase();
   if (!normalized) return null;
 
-  if (normalized === "🏠 menu chinh" || normalized === "menu chinh" || normalized === "menu") {
+  if (
+    normalized === "🏠 menu chính" ||
+    normalized === "menu chính" ||
+    normalized === "🏠 menu chinh" ||
+    normalized === "menu chinh" ||
+    normalized === "menu"
+  ) {
     return "menu";
   }
-  if (normalized === "📅 lich truc cua toi" || normalized === "lich truc cua toi") {
+  if (
+    normalized === "📅 lịch trực của tôi" ||
+    normalized === "lịch trực của tôi" ||
+    normalized === "📅 lich truc cua toi" ||
+    normalized === "lich truc cua toi"
+  ) {
     return "myshifts";
   }
-  if (normalized === "🟢 ca dang truc" || normalized === "ca dang truc") {
+  if (
+    normalized === "🟢 ca đang trực" ||
+    normalized === "ca đang trực" ||
+    normalized === "🟢 ca dang truc" ||
+    normalized === "ca dang truc"
+  ) {
     return "oncall";
   }
-  if (normalized === "🔁 doi ca" || normalized === "doi ca") {
+  if (
+    normalized === "🔁 đổi ca" ||
+    normalized === "đổi ca" ||
+    normalized === "🔁 doi ca" ||
+    normalized === "doi ca"
+  ) {
     return "swaps";
   }
   if (normalized === "✅ checklist" || normalized === "checklist") {
     return "checklist";
   }
-  if (normalized === "📝 bao cao" || normalized === "bao cao") {
+  if (
+    normalized === "📝 báo cáo" ||
+    normalized === "báo cáo" ||
+    normalized === "📝 bao cao" ||
+    normalized === "bao cao"
+  ) {
     return "report";
   }
-  if (normalized === "🆘 ho tro" || normalized === "ho tro") {
+  if (
+    normalized === "🆘 hỗ trợ" ||
+    normalized === "hỗ trợ" ||
+    normalized === "🆘 ho tro" ||
+    normalized === "ho tro"
+  ) {
     return "help";
   }
 
@@ -1273,7 +1299,7 @@ async function handleLegacyCallbackActions(update: TelegramUpdate): Promise<bool
     });
 
     if (!confirmation || confirmation.status !== ConfirmationStatus.PENDING) {
-      await answerCallbackQuery(cbId, "Ca nay da duoc xu ly roi.", true);
+      await answerCallbackQuery(cbId, "Ca này đã được xử lý rồi.", true);
       return true;
     }
 
@@ -1282,7 +1308,7 @@ async function handleLegacyCallbackActions(update: TelegramUpdate): Promise<bool
         where: { id: confirmation.id },
         data: { status: ConfirmationStatus.EXPIRED },
       });
-      await answerCallbackQuery(cbId, "Xac nhan da het han.", true);
+      await answerCallbackQuery(cbId, "Xác nhận đã hết hạn.", true);
       return true;
     }
 
@@ -1294,19 +1320,19 @@ async function handleLegacyCallbackActions(update: TelegramUpdate): Promise<bool
     });
 
     const icon = action === "confirm" ? "✅" : "❌";
-    const label = action === "confirm" ? "Da xac nhan" : "Da tu choi";
+    const label = action === "confirm" ? "Đã xác nhận" : "Đã từ chối";
     const updatedText = [
-      `${icon} <b>${label} ca truc</b>`,
+      `${icon} <b>${label} ca trực</b>`,
       "",
       `Ca: <b>${escapeHtml(confirmation.shift.policy.name)}</b>`,
-      `Bat dau: ${formatDateTime(confirmation.shift.startsAt)}`,
-      `Ket thuc: ${formatDateTime(confirmation.shift.endsAt)}`,
+      `Bắt đầu: ${formatDateTime(confirmation.shift.startsAt)}`,
+      `Kết thúc: ${formatDateTime(confirmation.shift.endsAt)}`,
       "",
-      `Nguoi thuc hien: ${escapeHtml(from.first_name ?? "Telegram user")}`,
+      `Người thực hiện: ${escapeHtml(from.first_name ?? "Telegram user")}`,
     ].join("\n");
 
     await editMessageText(chatId, msgId, updatedText, "HTML", { inline_keyboard: [] });
-    await answerCallbackQuery(cbId, `${icon} ${label} thanh cong!`);
+    await answerCallbackQuery(cbId, `${icon} ${label} thành công!`);
 
     const otherDeliveries = await prisma.notificationDelivery.findMany({
       where: {
@@ -1349,7 +1375,7 @@ async function handleLegacyCallbackActions(update: TelegramUpdate): Promise<bool
 
     const alert = await prisma.alert.findUnique({ where: { id: alertId } });
     if (!alert || alert.status !== "FIRING") {
-      await answerCallbackQuery(cbId, "Canh bao nay da duoc xu ly roi.", true);
+      await answerCallbackQuery(cbId, "Cảnh báo này đã được xử lý rồi.", true);
       return true;
     }
 
@@ -1368,15 +1394,15 @@ async function handleLegacyCallbackActions(update: TelegramUpdate): Promise<bool
 
     const ackLabel = telegramUser?.fullName ?? from.first_name ?? "ai do";
     const updatedText = [
-      "👍 <b>Canh bao da duoc nhan</b>",
+      "👍 <b>Cảnh báo đã được nhận</b>",
       "",
       `<b>${escapeHtml(alert.title)}</b>`,
       ...(alert.message ? [escapeHtml(alert.message), ""] : []),
-      `Nhan boi: <b>${escapeHtml(ackLabel)}</b>`,
+      `Nhận bởi: <b>${escapeHtml(ackLabel)}</b>`,
     ].join("\n");
 
     await editMessageText(chatId, msgId, updatedText, "HTML", { inline_keyboard: [] });
-    await answerCallbackQuery(cbId, `👍 Da nhan boi ${ackLabel}`);
+    await answerCallbackQuery(cbId, `👍 Đã nhận bởi ${ackLabel}`);
     return true;
   }
 
@@ -1397,7 +1423,7 @@ async function handleMenuCallback(update: TelegramUpdate): Promise<boolean> {
 
   const user = await requireLinkedUser(chatId);
   if (!user) {
-    await answerCallbackQuery(cb.id, "Chat chua lien ket tai khoan", true);
+    await answerCallbackQuery(cb.id, "Chat chưa liên kết tài khoản", true);
     return true;
   }
 
@@ -1520,7 +1546,7 @@ async function handleMenuCallback(update: TelegramUpdate): Promise<boolean> {
     if (data.startsWith("chk:t:")) {
       const [, , taskId, rawNext] = data.split(":");
       if (!taskId || (rawNext !== "0" && rawNext !== "1")) {
-        await answerCallbackQuery(cb.id, "Task action khong hop le", true);
+        await answerCallbackQuery(cb.id, "Task action không hợp lệ", true);
         return true;
       }
       await answerCallbackQuery(cb.id);
@@ -1539,7 +1565,7 @@ async function handleMenuCallback(update: TelegramUpdate): Promise<boolean> {
     return true;
   } catch (error) {
     console.error("[telegram] callback handler error:", error);
-    await answerCallbackQuery(cb.id, "Co loi khi xu ly thao tac", true).catch(() => {});
+    await answerCallbackQuery(cb.id, "Có lỗi khi xử lý thao tác", true).catch(() => {});
     return true;
   }
 }
@@ -1558,11 +1584,13 @@ async function handleTextCommand(update: TelegramUpdate): Promise<void> {
       if (linkedUser) {
         await sendTelegramMessage(
           chatId.toString(),
-          `✅ Tai khoan <b>${escapeHtml(linkedUser.fullName)}</b> da lien ket thanh cong!`,
-          "HTML"
+          [
+            `✅ Tài khoản <b>${escapeHtml(linkedUser.fullName)}</b> đã liên kết thành công!`,
+            "Nhập <code>/menu</code> để mở menu chính.",
+          ].join("\n"),
+          "HTML",
+          REMOVE_REPLY_KEYBOARD
         );
-        await sendMainMenu(chatId, linkedUser.fullName);
-        await sendMainMenuInline(chatId);
       } else {
         const existingLinkedUser = await prisma.user.findFirst({
           where: { telegramChatId: BigInt(chatId) },
@@ -1572,8 +1600,12 @@ async function handleTextCommand(update: TelegramUpdate): Promise<void> {
         if (existingLinkedUser) {
           await sendTelegramMessage(
             chatId.toString(),
-            `ℹ️ Chat nay dang lien ket voi tai khoan <b>${escapeHtml(existingLinkedUser.fullName)}</b>.`,
-            "HTML"
+            [
+              `ℹ️ Chat này đang liên kết với tài khoản <b>${escapeHtml(existingLinkedUser.fullName)}</b>.`,
+              "Nhập <code>/menu</code> để mở menu chính.",
+            ].join("\n"),
+            "HTML",
+            REMOVE_REPLY_KEYBOARD
           );
           return;
         }
@@ -1581,11 +1613,12 @@ async function handleTextCommand(update: TelegramUpdate): Promise<void> {
         await sendTelegramMessage(
           chatId.toString(),
           [
-            "❌ Ma lien ket khong hop le hoac da het han (10 phut).",
-            "Vui long vao ung dung -> Ho so -> Ket noi Telegram de tao ma moi.",
-            "Sau do gui lai: <code>/link &lt;ma_lien_ket&gt;</code>",
+            "❌ Mã liên kết không hợp lệ hoặc đã hết hạn (10 phút).",
+            "Vui lòng vào ứng dụng -> Hồ sơ -> Kết nối Telegram để tạo mã mới.",
+            "Sau đó gửi lại: <code>/link &lt;mã_liên_kết&gt;</code>",
           ].join("\n"),
-          "HTML"
+          "HTML",
+          REMOVE_REPLY_KEYBOARD
         );
       }
       return;
@@ -1593,17 +1626,25 @@ async function handleTextCommand(update: TelegramUpdate): Promise<void> {
 
     const linkedUser = await getLinkedUserByChatId(chatId);
     if (linkedUser) {
-      await sendMainMenu(chatId, linkedUser.fullName);
-      await sendMainMenuInline(chatId);
+      await sendTelegramMessage(
+        chatId.toString(),
+        [
+          `👋 Xin chào <b>${escapeHtml(linkedUser.fullName)}</b>!`,
+          "Tài khoản đã liên kết. Nhập <code>/menu</code> để mở menu chính.",
+        ].join("\n"),
+        "HTML",
+        REMOVE_REPLY_KEYBOARD
+      );
     } else {
       await sendTelegramMessage(
         chatId.toString(),
         [
-          "👋 Xin chao! De lien ket Telegram:",
-          "1) Vao ung dung -> Ho so -> Ket noi Telegram",
-          "2) Gui: <code>/link &lt;ma_lien_ket&gt;</code>",
+          "👋 Xin chào! Để liên kết Telegram:",
+          "1) Vào ứng dụng -> Hồ sơ -> Kết nối Telegram",
+          "2) Gửi: <code>/link &lt;mã_liên_kết&gt;</code>",
         ].join("\n"),
-        "HTML"
+        "HTML",
+        REMOVE_REPLY_KEYBOARD
       );
     }
     return;
@@ -1679,7 +1720,7 @@ async function handleTextCommand(update: TelegramUpdate): Promise<void> {
     default:
       await sendTelegramMessage(
         chatId.toString(),
-        "ℹ️ Lenh khong duoc ho tro. Dung /menu de mo danh sach chuc nang.",
+        "ℹ️ Lệnh không được hỗ trợ. Dùng /menu để mở danh sách chức năng.",
         "HTML"
       );
   }
@@ -1694,4 +1735,3 @@ export async function processTelegramUpdate(update: TelegramUpdate): Promise<voi
 
   await handleTextCommand(update);
 }
-

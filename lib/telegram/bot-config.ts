@@ -1,21 +1,21 @@
 export const TELEGRAM_BOT_COMMANDS = [
-  { command: "menu", description: "Mo menu chinh" },
-  { command: "oncall", description: "Xem ca dang truc hien tai" },
-  { command: "myshifts", description: "Xem lich truc cua toi" },
-  { command: "checklist", description: "Cap nhat checklist ca truc" },
-  { command: "swaps", description: "Tao/nhan doi ca" },
-  { command: "report", description: "Tao report theo ca" },
-  { command: "help", description: "Huong dan su dung bot" },
+  { command: "menu", description: "Mở menu chính" },
+  { command: "oncall", description: "Xem ca đang trực hiện tại" },
+  { command: "myshifts", description: "Xem lịch trực của tôi" },
+  { command: "checklist", description: "Cập nhật checklist ca trực" },
+  { command: "swaps", description: "Tạo/nhận đổi ca" },
+  { command: "report", description: "Tạo report theo ca" },
+  { command: "help", description: "Hướng dẫn sử dụng bot" },
 ] as const;
 
 export const TELEGRAM_MENU_TEXT = {
-  MAIN: "🏠 Menu chinh",
-  SHIFTS: "📅 Lich truc cua toi",
-  ONCALL: "🟢 Ca dang truc",
-  SWAPS: "🔁 Doi ca",
+  MAIN: "🏠 Menu chính",
+  SHIFTS: "📅 Lịch trực của tôi",
+  ONCALL: "🟢 Ca đang trực",
+  SWAPS: "🔁 Đổi ca",
   CHECKLIST: "✅ Checklist",
-  REPORT: "📝 Bao cao",
-  HELP: "🆘 Ho tro",
+  REPORT: "📝 Báo cáo",
+  HELP: "🆘 Hỗ trợ",
 } as const;
 
 export function buildMainMenuReplyKeyboard(): object {
@@ -28,7 +28,7 @@ export function buildMainMenuReplyKeyboard(): object {
     ],
     resize_keyboard: true,
     is_persistent: true,
-    input_field_placeholder: "Chon tinh nang...",
+    input_field_placeholder: "Chọn tính năng...",
   };
 }
 
@@ -58,4 +58,3 @@ export function buildBackToMainInlineKeyboard(): object {
     ],
   };
 }
-
