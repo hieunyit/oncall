@@ -1,4 +1,4 @@
-import Redis from "ioredis";
+import Redis, { type RedisOptions } from "ioredis";
 
 type RedisGlobalState = {
   redis?: Redis | null;
@@ -43,7 +43,7 @@ function attachRedisEventHandlers(client: Redis, label: string) {
   });
 }
 
-function createClient(label: string, opts?: Partial<ConstructorParameters<typeof Redis>[1]>) {
+function createClient(label: string, opts?: Partial<RedisOptions>) {
   const client = new Redis(redisUrl(), {
     maxRetriesPerRequest: 1,
     enableReadyCheck: true,
