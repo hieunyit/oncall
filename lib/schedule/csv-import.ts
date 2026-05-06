@@ -1,4 +1,4 @@
-export type ScheduleCsvField =
+﻿export type ScheduleCsvField =
   | "startDate"
   | "startTime"
   | "endDate"
@@ -23,6 +23,8 @@ export type ScheduleCsvError = {
   field: ScheduleCsvField | "header" | "file";
   message: string;
 };
+
+export type ScheduleCsvMetadata = Record<string, string>;
 
 type ParseCsvResult = {
   rows: string[][];
@@ -213,10 +215,12 @@ export function combineScheduleDateTime(dateText: string, timeText: string): Dat
 export function parseScheduleCsv(content: string): {
   rows: ScheduleCsvRow[];
   errors: ScheduleCsvError[];
+  metadata: ScheduleCsvMetadata;
 } {
   const normalizedContent = content.replace(/^\uFEFF/, "");
   const { rows: rawRows, unclosedQuote } = parseCsv(normalizedContent);
   const errors: ScheduleCsvError[] = [];
+  const metadata: ScheduleCsvMetadata = {};
 
   if (unclosedQuote) {
     errors.push({
@@ -224,21 +228,38 @@ export function parseScheduleCsv(content: string): {
       field: "file",
       message: "CSV không hợp lệ: thiếu dấu nháy đóng (\")",
     });
-    return { rows: [], errors };
+    return { rows: [], errors, metadata };
   }
 
-  const firstRow = rawRows[0];
-  if (!firstRow || isRowEmpty(firstRow)) {
+  let headerRowIndex = -1;
+  for (let index = 0; index < rawRows.length; index += 1) {
+    const row = rawRows[index];
+    if (!row || isRowEmpty(row)) continue;
+
+    const marker = normalizeText(row[0] ?? "");
+    if (marker === "meta") {
+      const key = (row[1] ?? "").trim();
+      const value = (row[2] ?? "").trim();
+      if (key) metadata[key] = value;
+      continue;
+    }
+
+    headerRowIndex = index;
+    break;
+  }
+
+  const headerRow = headerRowIndex >= 0 ? rawRows[headerRowIndex] : null;
+  if (!headerRow || isRowEmpty(headerRow)) {
     errors.push({
       line: 1,
       field: "file",
       message: "CSV không có dữ liệu",
     });
-    return { rows: [], errors };
+    return { rows: [], errors, metadata };
   }
 
   const fieldIndexes: Partial<Record<ScheduleCsvField, number>> = {};
-  firstRow.forEach((header, index) => {
+  headerRow.forEach((header, index) => {
     const field = detectHeaderField(header);
     if (!field) return;
     if (fieldIndexes[field] === undefined) {
@@ -249,17 +270,17 @@ export function parseScheduleCsv(content: string): {
   for (const required of REQUIRED_FIELDS) {
     if (fieldIndexes[required] === undefined) {
       errors.push({
-        line: 1,
+        line: headerRowIndex + 1,
         field: "header",
         message: `Thiếu cột bắt buộc: ${required}`,
       });
     }
   }
 
-  if (errors.length > 0) return { rows: [], errors };
+  if (errors.length > 0) return { rows: [], errors, metadata };
 
   const parsedRows: ScheduleCsvRow[] = [];
-  for (let index = 1; index < rawRows.length; index += 1) {
+  for (let index = headerRowIndex + 1; index < rawRows.length; index += 1) {
     const row = rawRows[index];
     if (!row || isRowEmpty(row)) continue;
 
@@ -304,7 +325,7 @@ export function parseScheduleCsv(content: string): {
 
   if (parsedRows.length === 0) {
     errors.push({
-      line: 1,
+      line: headerRowIndex + 1,
       field: "file",
       message: "CSV không có dòng dữ liệu hợp lệ",
     });
@@ -313,6 +334,7 @@ export function parseScheduleCsv(content: string): {
   return {
     rows: parsedRows,
     errors,
+    metadata,
   };
 }
 

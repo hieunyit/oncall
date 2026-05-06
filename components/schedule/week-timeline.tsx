@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { addDays, format, differenceInMinutes, isSameDay } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -8,6 +8,7 @@ interface ShiftBlock {
   id: string;
   assigneeName: string;
   assigneeId: string;
+  assigneeEmail: string;
   policyId: string;
   teamId: string;
   policyName: string;
@@ -196,7 +197,7 @@ export function WeekTimeline({
   if (userOrder.length === 0) {
     return (
       <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-sm text-gray-400">
-        Không có ca trực nào trong khoảng thời gian này.
+        KhÃ´ng cÃ³ ca trá»±c nÃ o trong khoáº£ng thá»i gian nÃ y.
       </div>
     );
   }
@@ -333,7 +334,7 @@ export function WeekTimeline({
                 const autoWarningMessage = getAutoScheduleWarningMessage(shift.notes);
                 const sameDayDuplicate = hasSameDayDuplicate(shift);
                 const peopleWarningMessage =
-                  autoWarningMessage ?? (sameDayDuplicate ? "Một người bị xếp nhiều hơn 1 ca trong ngày." : null);
+                  autoWarningMessage ?? (sameDayDuplicate ? "Má»™t ngÆ°á»i bá»‹ xáº¿p nhiá»u hÆ¡n 1 ca trong ngÃ y." : null);
                 const hasPeopleWarning = Boolean(peopleWarningMessage);
                 const checklistIncomplete =
                   shift.checklistRequired &&
@@ -356,18 +357,18 @@ export function WeekTimeline({
                     className="absolute top-1.5 bottom-1.5 rounded cursor-pointer hover:brightness-110 px-2 flex items-center gap-1.5 overflow-hidden transition-all z-20 shadow-sm"
                     title={
                       conflict
-                        ? `⚠ Chồng chéo chính sách! ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
+                        ? `âš  Chá»“ng chÃ©o chÃ­nh sÃ¡ch! ${shift.policyName} Â· ${format(shift.startsAt, "HH:mm dd/MM")} â€“ ${format(shift.endsAt, "HH:mm dd/MM")}`
                         : checklistIncomplete
-                          ? `! Checklist chưa hoàn thành · ${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
+                          ? `! Checklist chÆ°a hoÃ n thÃ nh Â· ${shift.assigneeName} Â· ${shift.policyName} Â· ${format(shift.startsAt, "HH:mm dd/MM")} â€“ ${format(shift.endsAt, "HH:mm dd/MM")}`
                           : hasPeopleWarning
-                            ? `⚠ ${peopleWarningMessage} · ${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
-                            : `${shift.assigneeName} · ${shift.policyName}${isSwap ? " · Đổi ca" : ""} · ${format(shift.startsAt, "HH:mm dd/MM")} – ${format(shift.endsAt, "HH:mm dd/MM")}`
+                            ? `âš  ${peopleWarningMessage} Â· ${shift.assigneeName} Â· ${shift.policyName} Â· ${format(shift.startsAt, "HH:mm dd/MM")} â€“ ${format(shift.endsAt, "HH:mm dd/MM")}`
+                            : `${shift.assigneeName} Â· ${shift.policyName}${isSwap ? " Â· Äá»•i ca" : ""} Â· ${format(shift.startsAt, "HH:mm dd/MM")} â€“ ${format(shift.endsAt, "HH:mm dd/MM")}`
                     }
                   >
-                    {conflict && <span className="shrink-0 text-[11px]">⚠</span>}
+                    {conflict && <span className="shrink-0 text-[11px]">âš </span>}
                     {!conflict && checklistIncomplete && <span className="shrink-0 text-[11px]">!</span>}
-                    {!conflict && !checklistIncomplete && hasPeopleWarning && <span className="shrink-0 text-[11px] text-amber-200">⚠</span>}
-                    {!conflict && !checklistIncomplete && !hasPeopleWarning && isSwap && <span className="shrink-0 text-[11px]">⇄</span>}
+                    {!conflict && !checklistIncomplete && hasPeopleWarning && <span className="shrink-0 text-[11px] text-amber-200">âš </span>}
+                    {!conflict && !checklistIncomplete && !hasPeopleWarning && isSwap && <span className="shrink-0 text-[11px]">â‡„</span>}
                     <span className="text-[11px] font-semibold text-white truncate leading-tight flex-1 flex items-center gap-1 min-w-0">
                       <span className="truncate">{shift.policyName}</span>
                       <span className="opacity-70 shrink-0 hidden sm:inline">
@@ -381,7 +382,7 @@ export function WeekTimeline({
                         {!hasPeopleWarning && declined && <span className="w-1.5 h-1.5 rounded-full bg-red-300" />}
                         {(shift.checklistTotal ?? 0) > 0 ? (
                           <span className={`text-[9px] ml-0.5 ${allChecklistDone ? "text-green-300" : checklistIncomplete ? "text-orange-200 font-bold" : "text-white/70"}`}>
-                            ✓{shift.checklistDone}/{shift.checklistTotal}
+                            âœ“{shift.checklistDone}/{shift.checklistTotal}
                           </span>
                         ) : null}
                       </span>
@@ -396,3 +397,6 @@ export function WeekTimeline({
     </div>
   );
 }
+
+
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { addDays, format, isSameDay, isSameMonth, startOfDay, startOfMonth, startOfWeek, endOfMonth, endOfWeek } from "date-fns";
@@ -9,6 +9,7 @@ interface ShiftBlock {
   id: string;
   assigneeName: string;
   assigneeId: string;
+  assigneeEmail: string;
   policyId: string;
   teamId: string;
   policyName: string;
@@ -161,9 +162,9 @@ export function MonthCalendar({
                     {dayWarningCount > 0 && (
                       <span
                         className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700"
-                        title={`${dayWarningCount} ca cảnh báo thiếu người trong ngày`}
+                        title={`${dayWarningCount} ca cáº£nh bÃ¡o thiáº¿u ngÆ°á»i trong ngÃ y`}
                       >
-                        <span className="leading-none">⚠</span>
+                        <span className="leading-none">âš </span>
                         <span>{dayWarningCount}</span>
                       </span>
                     )}
@@ -207,7 +208,7 @@ export function MonthCalendar({
                     const autoWarningMessage = getAutoScheduleWarningMessage(shift.notes);
                     const sameDayDuplicate = duplicateAssigneeIds.has(shift.assigneeId);
                     const peopleWarningMessage =
-                      autoWarningMessage ?? (sameDayDuplicate ? "Một người bị xếp nhiều hơn 1 ca trong ngày." : null);
+                      autoWarningMessage ?? (sameDayDuplicate ? "Má»™t ngÆ°á»i bá»‹ xáº¿p nhiá»u hÆ¡n 1 ca trong ngÃ y." : null);
                     const hasPeopleWarning = Boolean(peopleWarningMessage);
 
                     return (
@@ -230,25 +231,25 @@ export function MonthCalendar({
                         }`}
                         title={
                           conflict
-                            ? `⚠ Chồng chéo chính sách! ${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`
+                            ? `âš  Chá»“ng chÃ©o chÃ­nh sÃ¡ch! ${shift.assigneeName} Â· ${shift.policyName} Â· ${format(shift.startsAt, "HH:mm")}â€“${format(shift.endsAt, "HH:mm")}`
                             : checklistIncomplete
-                              ? `! Checklist chưa hoàn thành · ${shift.assigneeName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`
+                              ? `! Checklist chÆ°a hoÃ n thÃ nh Â· ${shift.assigneeName} Â· ${format(shift.startsAt, "HH:mm")}â€“${format(shift.endsAt, "HH:mm")}`
                               : hasPeopleWarning
-                                ? `⚠ ${peopleWarningMessage} · ${shift.assigneeName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`
-                                : `${shift.assigneeName} · ${shift.policyName} · ${format(shift.startsAt, "HH:mm")}–${format(shift.endsAt, "HH:mm")}`
+                                ? `âš  ${peopleWarningMessage} Â· ${shift.assigneeName} Â· ${format(shift.startsAt, "HH:mm")}â€“${format(shift.endsAt, "HH:mm")}`
+                                : `${shift.assigneeName} Â· ${shift.policyName} Â· ${format(shift.startsAt, "HH:mm")}â€“${format(shift.endsAt, "HH:mm")}`
                         }
                       >
-                        {conflict && <span className="shrink-0 text-[10px]">⚠</span>}
+                        {conflict && <span className="shrink-0 text-[10px]">âš </span>}
                         {!conflict && checklistIncomplete && <span className="shrink-0 text-[10px]">!</span>}
-                        {!conflict && !checklistIncomplete && hasPeopleWarning && <span className="shrink-0 text-[10px] text-amber-200">⚠</span>}
-                        {!conflict && !checklistIncomplete && !hasPeopleWarning && isSwap && <span className="shrink-0 text-[10px]">⇄</span>}
+                        {!conflict && !checklistIncomplete && hasPeopleWarning && <span className="shrink-0 text-[10px] text-amber-200">âš </span>}
+                        {!conflict && !checklistIncomplete && !hasPeopleWarning && isSwap && <span className="shrink-0 text-[10px]">â‡„</span>}
                         {!conflict && !checklistIncomplete && !hasPeopleWarning && !isSwap && confirmed && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-green-300" />}
                         {!conflict && !checklistIncomplete && !hasPeopleWarning && !isSwap && declined && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-red-300" />}
                         {!conflict && !checklistIncomplete && !hasPeopleWarning && !isSwap && pending && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-yellow-200" />}
                         <span className="truncate">{shift.assigneeName}</span>
                         {hasChecklist && (
                           <span className={`text-[9px] shrink-0 ml-auto ${allChecklistDone ? "text-green-300" : checklistIncomplete ? "text-orange-200 font-bold" : "opacity-70"}`}>
-                            ✓{shift.checklistDone}/{shift.checklistTotal}
+                            âœ“{shift.checklistDone}/{shift.checklistTotal}
                           </span>
                         )}
                       </div>
@@ -260,7 +261,7 @@ export function MonthCalendar({
                       onClick={(e) => { e.stopPropagation(); toggleExpanded(dayKey); }}
                       className="text-[10px] text-indigo-500 hover:text-indigo-700 pl-1 cursor-pointer w-full text-left"
                     >
-                      +{dayShifts.length - 4} ca nữa{hiddenWarningCount > 0 ? ` · ⚠${hiddenWarningCount}` : ""}
+                      +{dayShifts.length - 4} ca ná»¯a{hiddenWarningCount > 0 ? ` Â· âš ${hiddenWarningCount}` : ""}
                     </button>
                   )}
                   {isExpanded && dayShifts.length > 4 && (
@@ -269,7 +270,7 @@ export function MonthCalendar({
                       onClick={(e) => { e.stopPropagation(); toggleExpanded(dayKey); }}
                       className="text-[10px] text-indigo-400 hover:text-indigo-600 pl-1 cursor-pointer w-full text-left"
                     >
-                      Thu gọn
+                      Thu gá»n
                     </button>
                   )}
                 </div>
@@ -281,3 +282,6 @@ export function MonthCalendar({
     </div>
   );
 }
+
+
+

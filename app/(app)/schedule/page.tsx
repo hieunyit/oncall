@@ -66,7 +66,7 @@ export default async function SchedulePage({ searchParams }: PageProps) {
   const shifts = await prisma.shift.findMany({
     where: shiftWhere,
     include: {
-      assignee: { select: { id: true, fullName: true } },
+      assignee: { select: { id: true, fullName: true, email: true } },
       backup: { select: { id: true, fullName: true } },
       policy: { select: { name: true, teamId: true, team: { select: { name: true } } } },
       confirmation: { select: { status: true, token: true, dueAt: true, respondedAt: true } },
@@ -187,6 +187,7 @@ export default async function SchedulePage({ searchParams }: PageProps) {
         id: s.id,
         assigneeName: s.assignee.fullName,
         assigneeId: s.assignee.id,
+        assigneeEmail: s.assignee.email,
         policyId: s.policyId,
         teamId: s.policy?.teamId ?? "",
         teamName: s.policy?.team?.name ?? null,

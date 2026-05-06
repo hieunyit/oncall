@@ -45,6 +45,21 @@ describe("parseScheduleCsv", () => {
     expect(result.rows).toEqual([]);
     expect(result.errors.some((error) => error.field === "header")).toBe(true);
   });
+
+  it("supports metadata rows before header", () => {
+    const csv = [
+      "meta,schema,oncall-backup-v1",
+      "meta,teamName,Ops Team",
+      "startDate,startTime,endDate,endTime,assignee,notes",
+      "2026-06-01,08:00,2026-06-01,20:00,member1@example.com,Ca ngay",
+    ].join("\n");
+
+    const result = parseScheduleCsv(csv);
+    expect(result.errors).toEqual([]);
+    expect(result.rows).toHaveLength(1);
+    expect(result.metadata.schema).toBe("oncall-backup-v1");
+    expect(result.metadata.teamName).toBe("Ops Team");
+  });
 });
 
 describe("parseScheduleDate", () => {
