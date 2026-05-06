@@ -121,17 +121,17 @@ interface Props {
 }
 
 const CONFIRMATION_STATUS: Record<string, { label: string; className: string }> = {
-  PENDING: { label: "Chá» xÃ¡c nháº­n", className: "bg-yellow-100 text-yellow-700" },
-  CONFIRMED: { label: "ÄÃ£ xÃ¡c nháº­n", className: "bg-green-100 text-green-700" },
-  DECLINED: { label: "ÄÃ£ tá»« chá»‘i", className: "bg-red-100 text-red-700" },
-  EXPIRED: { label: "ÄÃ£ háº¿t háº¡n", className: "bg-gray-100 text-gray-500" },
+  PENDING: { label: "Chờ xác nhận", className: "bg-yellow-100 text-yellow-700" },
+  CONFIRMED: { label: "Đã xác nhận", className: "bg-green-100 text-green-700" },
+  DECLINED: { label: "Đã từ chối", className: "bg-red-100 text-red-700" },
+  EXPIRED: { label: "Đã hết hạn", className: "bg-gray-100 text-gray-500" },
 };
 
 function formatDuration(start: Date, end: Date): string {
   const totalMins = differenceInMinutes(end, start);
   const h = Math.floor(totalMins / 60);
   const m = totalMins % 60;
-  if (m === 0) return `${h} giá»`;
+  if (m === 0) return `${h} giờ`;
   return `${h}g ${m}p`;
 }
 
@@ -279,7 +279,7 @@ export function ScheduleView({
   }, []);
 
   const weekEnd = addDays(weekStart, numDays - 1);
-  const weekLabel = `${format(weekStart, "dd/MM")} â€“ ${format(weekEnd, "dd/MM/yyyy")}`;
+  const weekLabel = `${format(weekStart, "dd/MM")} – ${format(weekEnd, "dd/MM/yyyy")}`;
   const monthGridStart = useMemo(() => startOfWeek(monthStart, { weekStartsOn: 1 }), [monthStart]);
   const monthGridEnd = useMemo(
     () => endOfWeek(endOfMonth(monthStart), { weekStartsOn: 1 }),
@@ -358,7 +358,7 @@ export function ScheduleView({
 
   const handleExportBackupCsv = useCallback(async () => {
     if (!policyId) {
-      alert("Vui lÃ²ng chá»n Ä‘Ãºng 1 chÃ­nh sÃ¡ch trÆ°á»›c khi xuáº¥t file backup/restore.");
+      alert("Vui lòng chọn đúng 1 chính sách trước khi xuất file backup/restore.");
       return;
     }
 
@@ -369,7 +369,7 @@ export function ScheduleView({
       })
       .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime() || a.endsAt.getTime() - b.endsAt.getTime());
     if (shiftsForBackup.length === 0) {
-      alert("KhÃ´ng cÃ³ ca trá»±c trong pháº¡m vi Ä‘ang xem Ä‘á»ƒ xuáº¥t backup.");
+      alert("Không có ca trực trong phạm vi đang xem để xuất backup.");
       return;
     }
 
@@ -379,8 +379,8 @@ export function ScheduleView({
       if (!response.ok) {
         const message =
           payload && typeof payload === "object" && "error" in payload
-            ? String((payload as { error?: unknown }).error ?? "KhÃ´ng thá»ƒ táº£i thÃ´ng tin chÃ­nh sÃ¡ch.")
-            : "KhÃ´ng thá»ƒ táº£i thÃ´ng tin chÃ­nh sÃ¡ch.";
+            ? String((payload as { error?: unknown }).error ?? "Không thể tải thông tin chính sách.")
+            : "Không thể tải thông tin chính sách.";
         alert(message);
         return;
       }
@@ -390,7 +390,7 @@ export function ScheduleView({
           ? ((payload as { data?: unknown }).data as PolicyBackupPayload | undefined)
           : undefined;
       if (!policy) {
-        alert("KhÃ´ng nháº­n Ä‘Æ°á»£c dá»¯ liá»‡u chÃ­nh sÃ¡ch Ä‘á»ƒ export backup.");
+        alert("Không nhận được dữ liệu chính sách để export backup.");
         return;
       }
 
@@ -446,7 +446,7 @@ export function ScheduleView({
       const blob = new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8;" });
       triggerFileDownload(blob, `${exportFilePrefix}-backup.csv`);
     } catch {
-      alert("KhÃ´ng thá»ƒ export backup lÃºc nÃ y. Vui lÃ²ng thá»­ láº¡i.");
+      alert("Không thể export backup lúc này. Vui lòng thử lại.");
     }
   }, [exportFilePrefix, exportRange.end, exportRange.start, policyId, shifts]);
 
@@ -459,19 +459,19 @@ export function ScheduleView({
             className={`w-2 h-2 rounded-full shrink-0 ${onCallNow ? "bg-green-500 animate-pulse" : "bg-gray-300"}`}
           />
           <span className="text-sm font-medium text-gray-700">
-            {onCallNow ? "Äang trá»±c" : "KhÃ´ng Ä‘ang trá»±c"}
+            {onCallNow ? "Đang trực" : "Không đang trực"}
           </span>
         </div>
         <span className="hidden sm:block w-px h-4 bg-indigo-200" />
         <span className="text-sm text-gray-600">
-          <span className="font-semibold text-indigo-700">{upcomingCount}</span> ca trong 7 ngÃ y tá»›i
+          <span className="font-semibold text-indigo-700">{upcomingCount}</span> ca trong 7 ngày tới
         </span>
         {pendingCount > 0 && (
           <>
             <span className="hidden sm:block w-px h-4 bg-indigo-200" />
             <span className="flex items-center gap-1.5 text-sm text-amber-700">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-              <span className="font-semibold">{pendingCount}</span> ca chá» xÃ¡c nháº­n
+              <span className="font-semibold">{pendingCount}</span> ca chờ xác nhận
             </span>
           </>
         )}
@@ -479,8 +479,8 @@ export function ScheduleView({
           <>
             <span className="hidden sm:block w-px h-4 bg-indigo-200" />
             <span className="flex items-center gap-1.5 text-sm text-amber-700">
-              <span className="text-[12px] leading-none">âš </span>
-              <span className="font-semibold">{warningCount}</span> ca cáº£nh bÃ¡o thiáº¿u ngÆ°á»i
+              <span className="text-[12px] leading-none">⚠</span>
+              <span className="font-semibold">{warningCount}</span> ca cảnh báo thiếu người
             </span>
           </>
         )}
@@ -488,7 +488,7 @@ export function ScheduleView({
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-gray-900">Lá»‹ch trá»±c</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Lịch trực</h1>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Team filter */}
@@ -505,7 +505,7 @@ export function ScheduleView({
               }}
               className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700"
             >
-              <option value="">Táº¥t cáº£ nhÃ³m</option>
+              <option value="">Tất cả nhóm</option>
               {myTeams.map((t) => (
                 <option key={t.id} value={t.id}>{t.name}</option>
               ))}
@@ -524,7 +524,7 @@ export function ScheduleView({
               }}
               className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700"
             >
-              <option value="">Táº¥t cáº£ chÃ­nh sÃ¡ch</option>
+              <option value="">Tất cả chính sách</option>
               {policyOptions
                 .filter((policy) => !teamId || policy.teamId === teamId)
                 .map((policy) => (
@@ -542,7 +542,7 @@ export function ScheduleView({
               onChange={(e) => setSelectedPersonId(e.target.value || null)}
               className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700"
             >
-              <option value="">Táº¥t cáº£ ngÆ°á»i trá»±c</option>
+              <option value="">Tất cả người trực</option>
               {teamMembers.map((m) => (
                 <option key={m.id} value={m.id}>{m.fullName}</option>
               ))}
@@ -561,7 +561,7 @@ export function ScheduleView({
                     : "bg-white text-gray-600 hover:bg-gray-50"
                 }`}
               >
-                {v === "week" ? "Tuáº§n" : v === "2week" ? "2 Tuáº§n" : "ThÃ¡ng"}
+                {v === "week" ? "Tuần" : v === "2week" ? "2 Tuần" : "Tháng"}
               </button>
             ))}
           </div>
@@ -576,7 +576,7 @@ export function ScheduleView({
             }`}
           >
             <span className={`w-2 h-2 rounded-full ${highlightMe ? "bg-indigo-500" : "bg-gray-300"}`} />
-            Ca cá»§a tÃ´i
+            Ca của tôi
           </button>
 
           <div className="flex items-center gap-2">
@@ -615,26 +615,26 @@ export function ScheduleView({
             <div className="flex items-center gap-2">
               <button
                 onClick={prevPeriod}
-                title="â† Arrow key"
+                title="← Arrow key"
                 className="px-2 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600"
               >
-                â€¹
+                ‹
               </button>
               <span className="text-sm font-medium text-gray-800 min-w-36 text-center">
                 {weekLabel}
               </span>
               <button
                 onClick={nextPeriod}
-                title="â†’ Arrow key"
+                title="→ Arrow key"
                 className="px-2 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600"
               >
-                â€º
+                ›
               </button>
               <button
                 onClick={goToday}
                 className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-500"
               >
-                HÃ´m nay
+                Hôm nay
               </button>
             </div>
           )}
@@ -669,20 +669,20 @@ export function ScheduleView({
 
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-3 py-2.5 bg-gray-50 rounded-lg border border-gray-100 text-xs text-gray-500">
-        <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">ChÃº thÃ­ch:</span>
-        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-400 inline-block" /> ÄÃ£ xÃ¡c nháº­n</span>
-        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-300 inline-block" /> Chá» xÃ¡c nháº­n</span>
-        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" /> Tá»« chá»‘i</span>
+        <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Chú thích:</span>
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-400 inline-block" /> Đã xác nhận</span>
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-300 inline-block" /> Chờ xác nhận</span>
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" /> Từ chối</span>
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-400 inline-block" /> Override</span>
-        <span className="flex items-center gap-1.5"><span className="text-xs font-bold text-gray-500">â‡„</span> Äá»•i ca</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-blue-50 border border-blue-200 inline-block" /> Thá»© 7 / CN</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded border-2 border-orange-400 inline-block" /> Checklist chÆ°a xong</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-50 border border-red-100 inline-block" /> KhÃ´ng cÃ³ ca trá»±c</span>
-        <span className="flex items-center gap-1.5"><span className="text-xs font-bold text-amber-600">âš </span> Cáº£nh bÃ¡o thiáº¿u ngÆ°á»i</span>
+        <span className="flex items-center gap-1.5"><span className="text-xs font-bold text-gray-500">⇄</span> Đổi ca</span>
+        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-blue-50 border border-blue-200 inline-block" /> Thứ 7 / CN</span>
+        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded border-2 border-orange-400 inline-block" /> Checklist chưa xong</span>
+        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-50 border border-red-100 inline-block" /> Không có ca trực</span>
+        <span className="flex items-center gap-1.5"><span className="text-xs font-bold text-amber-600">⚠</span> Cảnh báo thiếu người</span>
         {view !== "month" && (
-          <span className="text-[10px] text-gray-400">â† â†’ Ä‘á»ƒ chuyá»ƒn tuáº§n</span>
+          <span className="text-[10px] text-gray-400">← → để chuyển tuần</span>
         )}
-        <span className="text-[10px] text-gray-400 ml-auto">Má»—i ngÆ°á»i trá»±c cÃ³ mÃ u riÃªng</span>
+        <span className="text-[10px] text-gray-400 ml-auto">Mỗi người trực có màu riêng</span>
       </div>
 
       {overrideShift && (
@@ -756,7 +756,7 @@ function DayDetailModal({
       >
         <div className="px-5 py-4 border-b border-gray-100 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Lá»‹ch trá»±c trong ngÃ y</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Lịch trực trong ngày</h2>
             <p className="text-sm text-gray-500 mt-1">
               {format(date, "EEEE, dd/MM/yyyy", { locale: vi })}
             </p>
@@ -765,18 +765,18 @@ function DayDetailModal({
             onClick={onClose}
             className="text-sm text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg px-3 py-1.5 bg-white"
           >
-            ÄÃ³ng
+            Đóng
           </button>
         </div>
 
         <div className="px-5 py-4 space-y-3 max-h-[70vh] overflow-y-auto">
           <div className="text-sm text-gray-600">
-            Tá»•ng sá»‘ ca: <span className="font-semibold text-gray-900">{sortedShifts.length}</span>
+            Tổng số ca: <span className="font-semibold text-gray-900">{sortedShifts.length}</span>
           </div>
 
           {sortedShifts.length === 0 ? (
             <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-sm text-gray-500">
-              NgÃ y nÃ y khÃ´ng cÃ³ ca trá»±c.
+              Ngày này không có ca trực.
             </div>
           ) : (
             <div className="space-y-2">
@@ -795,11 +795,11 @@ function DayDetailModal({
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 space-y-1">
                         <p className="text-sm font-semibold text-gray-900 truncate">
-                          {shift.teamName ? `${shift.teamName} Â· ${shift.policyName}` : shift.policyName}
+                          {shift.teamName ? `${shift.teamName} · ${shift.policyName}` : shift.policyName}
                         </p>
                         <p className="text-sm text-gray-700 truncate">
                           {shift.assigneeName}
-                          {shift.assigneeId === currentUserId ? " (Báº¡n)" : ""}
+                          {shift.assigneeId === currentUserId ? " (Bạn)" : ""}
                         </p>
                         <p className="text-xs text-gray-500">
                           {format(shift.startsAt, "HH:mm dd/MM/yyyy")} - {format(shift.endsAt, "HH:mm dd/MM/yyyy")}
@@ -808,12 +808,12 @@ function DayDetailModal({
                       <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
                         {autoWarningMessage && (
                           <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
-                            âš  Thiáº¿u ngÆ°á»i
+                            ⚠ Thiếu người
                           </span>
                         )}
                         {shift.source === "SWAP" && (
                           <span className="text-[11px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
-                            Äá»•i ca
+                            Đổi ca
                           </span>
                         )}
                         {shift.isOverride && (
@@ -893,7 +893,7 @@ function ShiftDetailModal({
       .then((r) => r.json())
       .then((d) => { setTasks(d.data ?? []); setTasksLoaded(true); })
       .catch(() => {
-        setTaskError("KhÃ´ng thá»ƒ táº£i checklist.");
+        setTaskError("Không thể tải checklist.");
         setTasksLoaded(true);
       });
   }, [shift.id]);
@@ -913,7 +913,7 @@ function ShiftDetailModal({
       router.refresh();
     } else {
       const d = await res.json().catch(() => ({}));
-      setConfirmError(d.error ?? "KhÃ´ng thá»ƒ xá»­ lÃ½ yÃªu cáº§u.");
+      setConfirmError(d.error ?? "Không thể xử lý yêu cầu.");
     }
   }
 
@@ -934,7 +934,7 @@ function ShiftDetailModal({
       router.refresh();
     } else {
       const d = await res.json().catch(() => ({}));
-      setSwapError(d.error ?? "KhÃ´ng thá»ƒ táº¡o yÃªu cáº§u Ä‘á»•i ca.");
+      setSwapError(d.error ?? "Không thể tạo yêu cầu đổi ca.");
     }
   }
 
@@ -957,7 +957,7 @@ function ShiftDetailModal({
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
-      setTaskError(getApiError(json, "KhÃ´ng thá»ƒ thÃªm má»¥c checklist."));
+      setTaskError(getApiError(json, "Không thể thêm mục checklist."));
       setAddingTask(false);
       return;
     }
@@ -983,7 +983,7 @@ function ShiftDetailModal({
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
-      setTaskError(getApiError(json, "KhÃ´ng thá»ƒ cáº­p nháº­t checklist."));
+      setTaskError(getApiError(json, "Không thể cập nhật checklist."));
       return;
     }
 
@@ -1048,7 +1048,7 @@ function ShiftDetailModal({
     );
 
     if (failed > 0) {
-      setTaskError(`KhÃ´ng thá»ƒ cáº­p nháº­t ${failed}/${targetTasks.length} má»¥c.`);
+      setTaskError(`Không thể cập nhật ${failed}/${targetTasks.length} mục.`);
     }
     setBulkUpdating(false);
   }
@@ -1075,7 +1075,7 @@ function ShiftDetailModal({
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
-      setTaskError(getApiError(json, "KhÃ´ng thá»ƒ cáº­p nháº­t tiÃªu Ä‘á» checklist."));
+      setTaskError(getApiError(json, "Không thể cập nhật tiêu đề checklist."));
       return;
     }
     const updated = (json as { data?: (typeof tasks)[number] }).data;
@@ -1095,7 +1095,7 @@ function ShiftDetailModal({
       if (editingTaskId === taskId) cancelEditingTask();
     } else {
       const json = await res.json().catch(() => ({}));
-      setTaskError(getApiError(json, "KhÃ´ng thá»ƒ xÃ³a má»¥c checklist."));
+      setTaskError(getApiError(json, "Không thể xóa mục checklist."));
     }
     setDeletingTaskId(null);
   }
@@ -1149,11 +1149,11 @@ function ShiftDetailModal({
         {/* Header */}
         <div className="px-5 py-4 border-b flex items-center justify-between sticky top-0 bg-white z-10">
           <div className="flex items-center gap-2">
-            <h2 className="font-semibold text-gray-900">Chi tiáº¿t ca trá»±c</h2>
+            <h2 className="font-semibold text-gray-900">Chi tiết ca trực</h2>
             {isActive && (
               <span className="flex items-center gap-1 text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded-full font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                Äang diá»…n ra
+                Đang diễn ra
               </span>
             )}
           </div>
@@ -1168,14 +1168,14 @@ function ShiftDetailModal({
         <div className="px-5 py-4 space-y-3 border-b border-gray-100">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">NgÆ°á»i trá»±c</p>
+              <p className="text-xs text-gray-400 mb-0.5">Người trực</p>
               <p className="font-bold text-gray-900 text-base leading-tight">{shift.assigneeName}</p>
-              {isMe && <p className="text-xs text-indigo-600 font-medium mt-0.5">Báº¡n</p>}
+              {isMe && <p className="text-xs text-indigo-600 font-medium mt-0.5">Bạn</p>}
             </div>
             <div className="flex flex-wrap gap-1.5 justify-end mt-0.5">
               {autoWarningMessage && (
                 <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700">
-                  âš  Thiáº¿u ngÆ°á»i
+                  ⚠ Thiếu người
                 </span>
               )}
               {confirmInfo && (
@@ -1190,27 +1190,27 @@ function ShiftDetailModal({
           </div>
 
           <div>
-            <p className="text-xs text-gray-400 mb-0.5">NhÃ³m / ChÃ­nh sÃ¡ch</p>
+            <p className="text-xs text-gray-400 mb-0.5">Nhóm / Chính sách</p>
             <p className="text-sm text-gray-700">
               {shift.teamName && <span className="font-medium">{shift.teamName}</span>}
-              {shift.teamName && <span className="text-gray-400 mx-1.5">Â·</span>}
+              {shift.teamName && <span className="text-gray-400 mx-1.5">·</span>}
               {shift.policyName}
             </p>
           </div>
 
           <div>
-            <p className="text-xs text-gray-400 mb-0.5">Thá»i gian</p>
+            <p className="text-xs text-gray-400 mb-0.5">Thời gian</p>
             <p className="text-sm text-gray-700">
               {format(shift.startsAt, "HH:mm dd/MM/yyyy")}
-              <span className="text-gray-400 mx-1">â†’</span>
+              <span className="text-gray-400 mx-1">→</span>
               {format(shift.endsAt, "HH:mm dd/MM/yyyy")}
             </p>
-            <p className="text-xs text-gray-400 mt-0.5">Thá»i lÆ°á»£ng: {duration}</p>
+            <p className="text-xs text-gray-400 mt-0.5">Thời lượng: {duration}</p>
           </div>
 
           {shift.backupName && (
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">NgÆ°á»i dá»± phÃ²ng</p>
+              <p className="text-xs text-gray-400 mb-0.5">Người dự phòng</p>
               <p className="text-sm text-gray-700 flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -1222,17 +1222,17 @@ function ShiftDetailModal({
 
           {displayNotes && (
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">Ghi chÃº</p>
+              <p className="text-xs text-gray-400 mb-0.5">Ghi chú</p>
               <p className="text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-2 leading-relaxed">{displayNotes}</p>
             </div>
           )}
 
           {/* Lifecycle */}
           <div className="pt-1 border-t border-gray-100 space-y-1.5">
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">VÃ²ng Ä‘á»i</p>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Vòng đời</p>
             {shift.source === "SWAP" && (
               <div className="flex items-center gap-2 text-xs text-indigo-700 bg-indigo-50 rounded px-2 py-1">
-                <span>â‡„</span><span>Ca Ä‘Æ°á»£c táº¡o tá»« Ä‘á»•i ca</span>
+                <span>⇄</span><span>Ca được tạo từ đổi ca</span>
               </div>
             )}
             {shift.isOverride && (
@@ -1242,13 +1242,13 @@ function ShiftDetailModal({
             )}
             {autoWarningMessage && (
               <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 rounded px-2 py-1">
-                <span>âš </span>
+                <span>⚠</span>
                 <span>{autoWarningMessage}</span>
               </div>
             )}
             {shift.confirmationDueAt && (
               <p className="text-xs text-gray-500">
-                Háº¡n xÃ¡c nháº­n:{" "}
+                Hạn xác nhận:{" "}
                 <span className="font-medium text-gray-700">
                   {format(shift.confirmationDueAt, "HH:mm dd/MM/yyyy")}
                 </span>
@@ -1256,7 +1256,7 @@ function ShiftDetailModal({
             )}
             {shift.confirmationRespondedAt && (
               <p className="text-xs text-gray-500">
-                {localConfirmStatus === "CONFIRMED" ? "ÄÃ£ xÃ¡c nháº­n" : "ÄÃ£ tá»« chá»‘i"} lÃºc:{" "}
+                {localConfirmStatus === "CONFIRMED" ? "Đã xác nhận" : "Đã từ chối"} lúc:{" "}
                 <span className="font-medium text-gray-700">
                   {format(shift.confirmationRespondedAt, "HH:mm dd/MM/yyyy")}
                 </span>
@@ -1268,7 +1268,7 @@ function ShiftDetailModal({
         {/* Actions */}
         {(isMe || isManager) && (
           <div className="px-5 py-4 border-b border-gray-100 space-y-2">
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Thao tÃ¡c</p>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Thao tác</p>
 
             {/* Confirm / Decline */}
             {isMe && isPending && shift.confirmationToken && (
@@ -1279,14 +1279,14 @@ function ShiftDetailModal({
                     disabled={!!confirmLoading}
                     className="flex-1 py-2.5 px-3 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
                   >
-                    {confirmLoading === "confirm" ? "Äang xá»­ lÃ½..." : "âœ“ XÃ¡c nháº­n ca trá»±c"}
+                    {confirmLoading === "confirm" ? "Đang xử lý..." : "✓ Xác nhận ca trực"}
                   </button>
                   <button
                     onClick={() => handleConfirmAction("decline")}
                     disabled={!!confirmLoading}
                     className="flex-1 py-2.5 px-3 bg-white border border-red-300 text-red-600 text-sm font-medium rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
                   >
-                    {confirmLoading === "decline" ? "Äang xá»­ lÃ½..." : "âœ— Tá»« chá»‘i ca"}
+                    {confirmLoading === "decline" ? "Đang xử lý..." : "✗ Từ chối ca"}
                   </button>
                 </div>
                 {confirmError && (
@@ -1306,17 +1306,17 @@ function ShiftDetailModal({
                     <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                     </svg>
-                    YÃªu cáº§u Ä‘á»•i ca
+                    Yêu cầu đổi ca
                   </button>
                 ) : (
                   <div className="border border-indigo-200 rounded-lg p-3 space-y-3 bg-indigo-50/40">
                     <p className="text-xs font-medium text-gray-700">
-                      ÄÄƒng yÃªu cáº§u Ä‘á»•i ca â€” báº¥t ká»³ thÃ nh viÃªn nÃ o trong nhÃ³m cÃ³ thá»ƒ nháº­n
+                      Đăng yêu cầu đổi ca — bất kỳ thành viên nào trong nhóm có thể nhận
                     </p>
                     <textarea
                       value={swapNote}
                       onChange={(e) => setSwapNote(e.target.value)}
-                      placeholder="LÃ½ do Ä‘á»•i ca (tuá»³ chá»n)..."
+                      placeholder="Lý do đổi ca (tuỳ chọn)..."
                       rows={2}
                       className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
                     />
@@ -1327,13 +1327,13 @@ function ShiftDetailModal({
                         disabled={swapLoading}
                         className="flex-1 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
                       >
-                        {swapLoading ? "Äang gá»­i..." : "Gá»­i yÃªu cáº§u"}
+                        {swapLoading ? "Đang gửi..." : "Gửi yêu cầu"}
                       </button>
                       <button
                         onClick={() => setShowSwapForm(false)}
                         className="px-3 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 bg-white"
                       >
-                        Há»§y
+                        Hủy
                       </button>
                     </div>
                   </div>
@@ -1346,7 +1346,7 @@ function ShiftDetailModal({
                 <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                YÃªu cáº§u Ä‘á»•i ca Ä‘Ã£ Ä‘Æ°á»£c Ä‘Äƒng
+                Yêu cầu đổi ca đã được đăng
               </div>
             )}
 
@@ -1359,7 +1359,7 @@ function ShiftDetailModal({
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                Override ca trá»±c
+                Override ca trực
               </button>
             )}
           </div>
@@ -1385,17 +1385,17 @@ function ShiftDetailModal({
               <div>
                 <h3 className="text-sm font-semibold text-gray-900">Checklist theo ca</h3>
                 <p className="text-[11px] text-gray-500 mt-0.5">
-                  Háº¡n checklist: {format(shift.endsAt, "HH:mm dd/MM/yyyy")}
+                  Hạn checklist: {format(shift.endsAt, "HH:mm dd/MM/yyyy")}
                 </p>
               </div>
               <div className="flex items-center gap-1.5 flex-wrap justify-end">
                 {shift.checklistRequired ? (
                   <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
-                    Báº¯t buá»™c
+                    Bắt buộc
                   </span>
                 ) : (
                   <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">
-                    TÃ¹y chá»n
+                    Tùy chọn
                   </span>
                 )}
                 <span
@@ -1403,7 +1403,7 @@ function ShiftDetailModal({
                     allDone ? "bg-green-100 text-green-700" : totalTasks === 0 ? "bg-gray-100 text-gray-600" : "bg-blue-100 text-blue-700"
                   }`}
                 >
-                  {totalTasks === 0 ? "ChÆ°a cÃ³ má»¥c" : allDone ? "HoÃ n táº¥t" : `${doneTasks}/${totalTasks}`}
+                  {totalTasks === 0 ? "Chưa có mục" : allDone ? "Hoàn tất" : `${doneTasks}/${totalTasks}`}
                 </span>
               </div>
             </div>
@@ -1411,7 +1411,7 @@ function ShiftDetailModal({
             {tasksLoaded && totalTasks > 0 && (
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-[11px] text-gray-500">
-                  <span>Tiáº¿n Ä‘á»™</span>
+                  <span>Tiến độ</span>
                   <span className="font-medium text-gray-700">{completionPercent}%</span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
@@ -1431,12 +1431,12 @@ function ShiftDetailModal({
 
             {isMe && !canEditChecklist && (
               <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2.5 py-1.5">
-                Checklist chá»‰ má»Ÿ trÆ°á»›c 2h khi báº¯t Ä‘áº§u ca trá»±c.
+                Checklist chỉ mở trước 2h khi bắt đầu ca trực.
               </p>
             )}
 
             {!tasksLoaded ? (
-              <p className="text-xs text-gray-500">Äang táº£i checklist...</p>
+              <p className="text-xs text-gray-500">Đang tải checklist...</p>
             ) : (
               <>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -1448,7 +1448,7 @@ function ShiftDetailModal({
                         taskTab === "open" ? "bg-indigo-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
                       }`}
                     >
-                      ChÆ°a xong ({openTasks.length})
+                      Chưa xong ({openTasks.length})
                     </button>
                     <button
                       type="button"
@@ -1457,7 +1457,7 @@ function ShiftDetailModal({
                         taskTab === "done" ? "bg-indigo-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
                       }`}
                     >
-                      ÄÃ£ xong ({doneTasksList.length})
+                      Đã xong ({doneTasksList.length})
                     </button>
                   </div>
 
@@ -1469,7 +1469,7 @@ function ShiftDetailModal({
                         disabled={bulkUpdating || openTasks.length === 0}
                         className="text-[11px] px-2 py-1 rounded border border-green-200 text-green-700 bg-green-50 hover:bg-green-100 disabled:opacity-50"
                       >
-                        HoÃ n táº¥t táº¥t cáº£
+                        Hoàn tất tất cả
                       </button>
                       <button
                         type="button"
@@ -1477,7 +1477,7 @@ function ShiftDetailModal({
                         disabled={bulkUpdating || doneTasksList.length === 0}
                         className="text-[11px] px-2 py-1 rounded border border-gray-200 text-gray-600 bg-white hover:bg-gray-50 disabled:opacity-50"
                       >
-                        Má»Ÿ láº¡i táº¥t cáº£
+                        Mở lại tất cả
                       </button>
                     </div>
                   )}
@@ -1485,7 +1485,7 @@ function ShiftDetailModal({
 
                 {visibleTasks.length === 0 ? (
                   <p className="text-xs text-gray-500">
-                    {taskTab === "open" ? "KhÃ´ng cÃ²n má»¥c Ä‘ang má»Ÿ." : "ChÆ°a cÃ³ má»¥c nÃ o hoÃ n thÃ nh."}
+                    {taskTab === "open" ? "Không còn mục đang mở." : "Chưa có mục nào hoàn thành."}
                   </p>
                 ) : (
                   <div className="space-y-1.5">
@@ -1510,7 +1510,7 @@ function ShiftDetailModal({
                               onChange={() => handleToggleTask(task.id, task.isCompleted)}
                               disabled={!canEditChecklist || bulkUpdating}
                               className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
-                              title={canEditChecklist ? undefined : "Chá»‰ cÃ³ ngÆ°á»i trá»±c má»›i Ä‘Æ°á»£c tick checklist"}
+                              title={canEditChecklist ? undefined : "Chỉ có người trực mới được tick checklist"}
                             />
 
                             <div className="flex-1 min-w-0">
@@ -1538,14 +1538,14 @@ function ShiftDetailModal({
                                       onClick={() => saveTaskTitle(task.id)}
                                       className="text-[11px] px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
                                     >
-                                      LÆ°u
+                                      Lưu
                                     </button>
                                     <button
                                       type="button"
                                       onClick={cancelEditingTask}
                                       className="text-[11px] px-2 py-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-50"
                                     >
-                                      Há»§y
+                                      Hủy
                                     </button>
                                   </div>
                                 </div>
@@ -1555,7 +1555,7 @@ function ShiftDetailModal({
                                     {task.title}
                                   </p>
                                   {task.isCompleted && completedAt && (
-                                    <p className="text-[11px] text-green-700 mt-0.5">HoÃ n thÃ nh lÃºc {completedAt}</p>
+                                    <p className="text-[11px] text-green-700 mt-0.5">Hoàn thành lúc {completedAt}</p>
                                   )}
                                 </>
                               )}
@@ -1568,7 +1568,7 @@ function ShiftDetailModal({
                                   onClick={() => startEditingTask(task)}
                                   className="text-[11px] px-1.5 py-0.5 rounded border border-gray-200 text-gray-500 hover:text-indigo-700 hover:border-indigo-200"
                                 >
-                                  Sá»­a
+                                  Sửa
                                 </button>
                                 <button
                                   type="button"
@@ -1576,7 +1576,7 @@ function ShiftDetailModal({
                                   disabled={deletingTaskId === task.id}
                                   className="text-[11px] px-1.5 py-0.5 rounded border border-red-200 text-red-500 hover:bg-red-50 disabled:opacity-50"
                                 >
-                                  XÃ³a
+                                  Xóa
                                 </button>
                               </div>
                             )}
@@ -1591,7 +1591,7 @@ function ShiftDetailModal({
                   <div className="flex items-center gap-2 pt-1">
                     <input
                       type="text"
-                      placeholder="ThÃªm má»¥c checklist má»›i..."
+                      placeholder="Thêm mục checklist mới..."
                       value={newTaskTitle}
                       onChange={(e) => setNewTaskTitle(e.target.value)}
                       onKeyDown={handleTaskInputKeyDown}
@@ -1604,11 +1604,11 @@ function ShiftDetailModal({
                       disabled={addingTask || !newTaskTitle.trim()}
                       className="px-3 py-2 text-xs font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
                     >
-                      ThÃªm
+                      Thêm
                     </button>
                   </div>
                 ) : (
-                  <p className="text-xs text-gray-500">Chá»‰ ngÆ°á»i trá»±c hoáº·c quáº£n lÃ½ má»›i Ä‘Æ°á»£c sá»­a checklist.</p>
+                  <p className="text-xs text-gray-500">Chỉ người trực hoặc quản lý mới được sửa checklist.</p>
                 )}
               </>
             )}

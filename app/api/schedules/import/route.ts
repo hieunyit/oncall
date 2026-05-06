@@ -172,7 +172,7 @@ function resolveUserFromCsv(
   if (looksLikeEmail) {
     const user = index.byEmail.get(lower);
     if (!user) {
-      pushError(errors, line, `${fieldLabel} "${identifier}" khÃ´ng thuá»™c team cá»§a policy`);
+      pushError(errors, line, `${fieldLabel} "${identifier}" không thuộc team của policy`);
       return null;
     }
     return user;
@@ -180,14 +180,14 @@ function resolveUserFromCsv(
 
   const candidates = index.byName.get(normalizeScheduleIdentity(trimmed)) ?? [];
   if (candidates.length === 0) {
-    pushError(errors, line, `${fieldLabel} "${identifier}" khÃ´ng thuá»™c team cá»§a policy`);
+    pushError(errors, line, `${fieldLabel} "${identifier}" không thuộc team của policy`);
     return null;
   }
   if (candidates.length > 1) {
     pushError(
       errors,
       line,
-      `${fieldLabel} "${identifier}" bá»‹ trÃ¹ng tÃªn. Vui lÃ²ng dÃ¹ng email Ä‘á»ƒ import.`
+      `${fieldLabel} "${identifier}" bị trùng tên. Vui lòng dùng email để import.`
     );
     return null;
   }
@@ -250,7 +250,7 @@ function parseRestoreMetadata(metadata: ScheduleCsvMetadata): {
   const errors: ConflictError[] = [];
   const schema = metadata.schema?.trim();
   if (schema !== SCHEDULE_BACKUP_SCHEMA) {
-    pushError(errors, 1, `schema backup khÃ´ng há»£p lá»‡. Cáº§n: ${SCHEDULE_BACKUP_SCHEMA}`);
+    pushError(errors, 1, `schema backup không hợp lệ. Cần: ${SCHEDULE_BACKUP_SCHEMA}`);
     return { data: null, errors };
   }
 
@@ -258,12 +258,12 @@ function parseRestoreMetadata(metadata: ScheduleCsvMetadata): {
   const policyName = (metadata.policyName ?? "").trim();
   const cadenceRaw = (metadata.cadence ?? "").trim().toUpperCase();
 
-  if (!teamName) pushError(errors, 1, "Thiáº¿u metadata teamName");
-  if (!policyName) pushError(errors, 1, "Thiáº¿u metadata policyName");
+  if (!teamName) pushError(errors, 1, "Thiếu metadata teamName");
+  if (!policyName) pushError(errors, 1, "Thiếu metadata policyName");
 
   const cadenceValues = Object.values(CadenceKind);
   if (!cadenceValues.includes(cadenceRaw as CadenceKind)) {
-    pushError(errors, 1, `cadence khÃ´ng há»£p lá»‡: ${cadenceRaw || "(trá»‘ng)"}`);
+    pushError(errors, 1, `cadence không hợp lệ: ${cadenceRaw || "(trống)"}`);
   }
 
   const cronExpressionRaw = (metadata.cronExpression ?? "").trim();
@@ -272,12 +272,12 @@ function parseRestoreMetadata(metadata: ScheduleCsvMetadata): {
     ? cronExpressionRaw || null
     : null;
   if (cadence === CadenceKind.CUSTOM_CRON && !cronExpression) {
-    pushError(errors, 1, "cadence CUSTOM_CRON nhÆ°ng thiáº¿u cronExpression");
+    pushError(errors, 1, "cadence CUSTOM_CRON nhưng thiếu cronExpression");
   }
 
   const teamMembersRaw = parseJsonArray(metadata.teamMembers);
   if (!teamMembersRaw || teamMembersRaw.length === 0) {
-    pushError(errors, 1, "Thiáº¿u metadata teamMembers");
+    pushError(errors, 1, "Thiếu metadata teamMembers");
   }
 
   const teamMembers: ScheduleBackupTeamMember[] = (teamMembersRaw ?? [])
@@ -298,7 +298,7 @@ function parseRestoreMetadata(metadata: ScheduleCsvMetadata): {
     .filter((item): item is ScheduleBackupTeamMember => Boolean(item));
 
   if (teamMembers.length === 0) {
-    pushError(errors, 1, "Metadata teamMembers khÃ´ng cÃ³ email há»£p lá»‡");
+    pushError(errors, 1, "Metadata teamMembers không có email hợp lệ");
   }
 
   const participantEmailsRaw = parseJsonArray(metadata.participantUserEmails);
@@ -407,8 +407,8 @@ async function createPolicyFromBackupMetadata(input: {
 
   if (dedupedTeamMembers.length === 0) {
     return {
-      response: badRequest("KhÃ´ng cÃ³ team member há»£p lá»‡ trong backup", [
-        { line: 1, message: "Metadata teamMembers rá»—ng" },
+      response: badRequest("Không có team member hợp lệ trong backup", [
+        { line: 1, message: "Metadata teamMembers rỗng" },
       ]),
     };
   }
@@ -466,8 +466,8 @@ async function createPolicyFromBackupMetadata(input: {
 
   if (teamMembers.length === 0) {
     return {
-      response: badRequest("KhÃ´ng cÃ³ team member há»£p lá»‡ trong backup", [
-        { line: 1, message: "Metadata teamMembers rá»—ng" },
+      response: badRequest("Không có team member hợp lệ trong backup", [
+        { line: 1, message: "Metadata teamMembers rỗng" },
       ]),
     };
   }
@@ -660,7 +660,7 @@ async function createPolicyFromBackupMetadata(input: {
 
   if (!policy) {
     return {
-      response: notFound("KhÃ´ng Ä‘á»c Ä‘Æ°á»£c policy sau khi restore"),
+      response: notFound("Không đọc được policy sau khi restore"),
     };
   }
 
@@ -693,20 +693,20 @@ export async function POST(req: NextRequest) {
 
     const policyId = typeof policyIdRaw === "string" ? policyIdRaw.trim() : "";
     if (!(csvFileRaw instanceof File)) {
-      return badRequest("Vui lÃ²ng chá»n file CSV Ä‘á»ƒ import");
+      return badRequest("Vui lòng chọn file CSV để import");
     }
     if (csvFileRaw.size <= 0) {
-      return badRequest("File CSV rá»—ng");
+      return badRequest("File CSV rỗng");
     }
     if (csvFileRaw.size > MAX_CSV_BYTES) {
-      return badRequest("File CSV vÆ°á»£t quÃ¡ 2MB");
+      return badRequest("File CSV vượt quá 2MB");
     }
 
     const csvText = await csvFileRaw.text();
     const parsed = parseScheduleCsv(csvText);
     if (parsed.errors.length > 0) {
       return badRequest(
-        "CSV khÃ´ng há»£p lá»‡",
+        "CSV không hợp lệ",
         parsed.errors.slice(0, MAX_ERRORS).map((error) => ({
           line: error.line,
           field: error.field,
@@ -737,9 +737,9 @@ export async function POST(req: NextRequest) {
         },
       }) as PolicyWithTeamMembers | null;
 
-      if (!found) return notFound("Policy khÃ´ng tá»“n táº¡i");
+      if (!found) return notFound("Policy không tồn tại");
       if (!found.isActive) {
-        return conflict("Policy Ä‘ang inactive. HÃ£y kÃ­ch hoáº¡t policy trÆ°á»›c khi import.", "POLICY_INACTIVE");
+        return conflict("Policy đang inactive. Hãy kích hoạt policy trước khi import.", "POLICY_INACTIVE");
       }
 
       const roleCheck = await requireTeamRole(found.teamId, TeamRole.MANAGER);
@@ -747,12 +747,12 @@ export async function POST(req: NextRequest) {
       policy = found;
     } else {
       if (actor.systemRole !== SystemRole.ADMIN) {
-        return forbidden("Chá»‰ admin má»›i cÃ³ quyá»n restore backup tá»± táº¡o team/policy");
+        return forbidden("Chỉ admin mới có quyền restore backup tự tạo team/policy");
       }
 
       const parsedMetadata = parseRestoreMetadata(parsed.metadata);
       if (parsedMetadata.errors.length > 0 || !parsedMetadata.data) {
-        return badRequest("Backup CSV khÃ´ng há»£p lá»‡", parsedMetadata.errors.slice(0, MAX_ERRORS));
+        return badRequest("Backup CSV không hợp lệ", parsedMetadata.errors.slice(0, MAX_ERRORS));
       }
 
       const restoreResult = await createPolicyFromBackupMetadata({
@@ -771,7 +771,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!policy) {
-      return badRequest("KhÃ´ng xÃ¡c Ä‘á»‹nh Ä‘Æ°á»£c policy Ä‘á»ƒ import");
+      return badRequest("Không xác định được policy để import");
     }
 
     const selectedParticipantUserIds = await getPolicyParticipantUserIds(policy.id);
@@ -780,7 +780,7 @@ export async function POST(req: NextRequest) {
       selectedParticipantUserIds
     );
     if (eligibleMembers.length === 0) {
-      return badRequest("ChÃ­nh sÃ¡ch nÃ y chÆ°a cÃ³ thÃ nh viÃªn Ã¡p dá»¥ng");
+      return badRequest("Chính sách này chưa có thành viên áp dụng");
     }
 
     const participantSet = new Set(eligibleMembers.map((member) => member.user.id));
@@ -803,7 +803,7 @@ export async function POST(req: NextRequest) {
         pushError(
           rowErrors,
           row.line,
-          `startDate/startTime \"${row.startDateText} ${row.startTimeText}\" khÃ´ng Ä‘Ãºng Ä‘á»‹nh dáº¡ng`
+          `startDate/startTime \"${row.startDateText} ${row.startTimeText}\" không đúng định dạng`
         );
         continue;
       }
@@ -813,13 +813,13 @@ export async function POST(req: NextRequest) {
         pushError(
           rowErrors,
           row.line,
-          `endDate/endTime \"${row.endDateText} ${row.endTimeText}\" khÃ´ng Ä‘Ãºng Ä‘á»‹nh dáº¡ng`
+          `endDate/endTime \"${row.endDateText} ${row.endTimeText}\" không đúng định dạng`
         );
         continue;
       }
 
       if (endsAt <= startsAt) {
-        pushError(rowErrors, row.line, "endsAt pháº£i lá»›n hÆ¡n startsAt");
+        pushError(rowErrors, row.line, "endsAt phải lớn hơn startsAt");
         continue;
       }
 
@@ -836,7 +836,7 @@ export async function POST(req: NextRequest) {
         pushError(
           rowErrors,
           row.line,
-          `assignee \"${row.assigneeText}\" chÆ°a Ä‘Æ°á»£c chá»n trong danh sÃ¡ch participant cá»§a policy`
+          `assignee \"${row.assigneeText}\" chưa được chọn trong danh sách participant của policy`
         );
         continue;
       }
@@ -853,10 +853,10 @@ export async function POST(req: NextRequest) {
     }
 
     if (rowErrors.length > 0) {
-      return badRequest("CSV cÃ³ dá»¯ liá»‡u khÃ´ng há»£p lá»‡", rowErrors.slice(0, MAX_ERRORS));
+      return badRequest("CSV có dữ liệu không hợp lệ", rowErrors.slice(0, MAX_ERRORS));
     }
     if (shiftDrafts.length === 0) {
-      return badRequest("CSV khÃ´ng cÃ³ ca trá»±c há»£p lá»‡ Ä‘á»ƒ import");
+      return badRequest("CSV không có ca trực hợp lệ để import");
     }
 
     const timezone = policy.timezone ?? "Asia/Ho_Chi_Minh";
@@ -873,7 +873,7 @@ export async function POST(req: NextRequest) {
           pushError(
             internalConflicts,
             draft.line,
-            `assignee \"${assigneeLabel}\" trÃ¹ng ngÃ y ${dayKey} vá»›i dÃ²ng ${previous.line} (${formatRangeInTimezone(previous.startsAt, previous.endsAt, timezone)})`
+            `assignee \"${assigneeLabel}\" trùng ngày ${dayKey} với dòng ${previous.line} (${formatRangeInTimezone(previous.startsAt, previous.endsAt, timezone)})`
           );
           break;
         }
@@ -902,14 +902,14 @@ export async function POST(req: NextRequest) {
           pushError(
             internalConflicts,
             current.line,
-            `assignee \"${assigneeLabel}\" trÃ¹ng thá»i gian vá»›i dÃ²ng ${previous.line}: ${formatRangeInTimezone(overlapStart, overlapEnd, timezone)}`
+            `assignee \"${assigneeLabel}\" trùng thời gian với dòng ${previous.line}: ${formatRangeInTimezone(overlapStart, overlapEnd, timezone)}`
           );
         }
       }
     }
 
     if (internalConflicts.length > 0) {
-      return badRequest("CSV cÃ³ xung Ä‘á»™t ná»™i bá»™", internalConflicts.slice(0, MAX_ERRORS));
+      return badRequest("CSV có xung đột nội bộ", internalConflicts.slice(0, MAX_ERRORS));
     }
 
     const rangeStart = shiftDrafts.reduce(
@@ -932,7 +932,7 @@ export async function POST(req: NextRequest) {
     });
     if (overlapBatch) {
       return conflict(
-        "Khoáº£ng thá»i gian import bá»‹ trÃ¹ng vá»›i batch Ä‘Ã£ publish. HÃ£y rollback/reschedule batch cÅ© trÆ°á»›c.",
+        "Khoảng thời gian import bị trùng với batch đã publish. Hãy rollback/reschedule batch cũ trước.",
         "BATCH_OVERLAP"
       );
     }
@@ -971,7 +971,7 @@ export async function POST(req: NextRequest) {
           pushError(
             externalConflicts,
             draft.line,
-            `assignee \"${assigneeLabel}\" trÃ¹ng ca Ä‘Ã£ cÃ³ tá»« ${formatRangeInTimezone(overlapStart, overlapEnd, timezone)} (ca cÅ©: ${formatRangeInTimezone(existing.startsAt, existing.endsAt, timezone)})`
+            `assignee \"${assigneeLabel}\" trùng ca đã có từ ${formatRangeInTimezone(overlapStart, overlapEnd, timezone)} (ca cũ: ${formatRangeInTimezone(existing.startsAt, existing.endsAt, timezone)})`
           );
           break;
         }
@@ -982,7 +982,7 @@ export async function POST(req: NextRequest) {
           pushError(
             externalConflicts,
             draft.line,
-            `assignee \"${assigneeLabel}\" trÃ¹ng ngÃ y ${sharedDay ?? "?"} vá»›i ca Ä‘Ã£ cÃ³ (${formatRangeInTimezone(existing.startsAt, existing.endsAt, timezone)})`
+            `assignee \"${assigneeLabel}\" trùng ngày ${sharedDay ?? "?"} với ca đã có (${formatRangeInTimezone(existing.startsAt, existing.endsAt, timezone)})`
           );
           break;
         }
@@ -991,7 +991,7 @@ export async function POST(req: NextRequest) {
 
     if (externalConflicts.length > 0) {
       return badRequest(
-        "CSV bá»‹ xung Ä‘á»™t vá»›i ca trá»±c Ä‘Ã£ tá»“n táº¡i",
+        "CSV bị xung đột với ca trực đã tồn tại",
         externalConflicts.slice(0, MAX_ERRORS)
       );
     }

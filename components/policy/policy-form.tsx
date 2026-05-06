@@ -200,7 +200,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
   function addSlot() {
     setTimeSlots((prev) => [
       ...prev,
-      { label: "Ca má»›i", startHour: 8, startMinute: 0, endHour: 16, endMinute: 0 },
+      { label: "Ca mới", startHour: 8, startMinute: 0, endHour: 16, endMinute: 0 },
     ]);
   }
 
@@ -541,17 +541,17 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
 
     if (!isEdit && importCsvFile) {
       if (previewingCsv) {
-        setError("Äang phÃ¢n tÃ­ch CSV, vui lÃ²ng chá» xong rá»“i lÆ°u.");
+        setError("Đang phân tích CSV, vui lòng chờ xong rồi lưu.");
         setLoading(false);
         return;
       }
       if (csvPreviewRows.length === 0) {
-        setError("File CSV chÆ°a cÃ³ dá»¯ liá»‡u há»£p lá»‡ Ä‘á»ƒ import.");
+        setError("File CSV chưa có dữ liệu hợp lệ để import.");
         setLoading(false);
         return;
       }
       if (csvPreviewErrors.length > 0) {
-        setError("CSV Ä‘ang cÃ³ lá»—i. Vui lÃ²ng sá»­a lá»—i trÆ°á»›c khi táº¡o chÃ­nh sÃ¡ch.");
+        setError("CSV đang có lỗi. Vui lòng sửa lỗi trước khi tạo chính sách.");
         setLoading(false);
         return;
       }
@@ -568,7 +568,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
 
     if (!res.ok) {
       const d = await res.json();
-      setError(d.error ?? "CÃ³ lá»—i xáº£y ra");
+      setError(d.error ?? "Có lỗi xảy ra");
       setLoading(false);
       return;
     }
@@ -589,7 +589,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
     } else {
       const createdPolicyId = data?.data?.id as string | undefined;
       if (!createdPolicyId) {
-        setError("KhÃ´ng nháº­n Ä‘Æ°á»£c policy id sau khi táº¡o chÃ­nh sÃ¡ch");
+        setError("Không nhận được policy id sau khi tạo chính sách");
         setLoading(false);
         return;
       }
@@ -609,7 +609,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
           const message =
             importPayload && typeof importPayload === "object" && "error" in importPayload
               ? String((importPayload as { error?: unknown }).error ?? "")
-              : "Import CSV tháº¥t báº¡i";
+              : "Import CSV thất bại";
           const details =
             importPayload &&
             typeof importPayload === "object" &&
@@ -620,7 +620,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
                   .map((item) => {
                     if (!item) return null;
                     if (!item.message) return null;
-                    return `DÃ²ng ${item.line ?? "?"}: ${item.message}`;
+                    return `Dòng ${item.line ?? "?"}: ${item.message}`;
                   })
                   .filter((line): line is string => Boolean(line))
                   .join("\n")
@@ -628,8 +628,8 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
 
           alert(
             details
-              ? `Táº¡o chÃ­nh sÃ¡ch thÃ nh cÃ´ng nhÆ°ng import ca tháº¥t báº¡i:\n${message}\n${details}`
-              : `Táº¡o chÃ­nh sÃ¡ch thÃ nh cÃ´ng nhÆ°ng import ca tháº¥t báº¡i:\n${message}`
+              ? `Tạo chính sách thành công nhưng import ca thất bại:\n${message}\n${details}`
+              : `Tạo chính sách thành công nhưng import ca thất bại:\n${message}`
           );
           router.push(`/policies/${createdPolicyId}`);
           return;
@@ -647,8 +647,8 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
 
         alert(
           importedCount > 0
-            ? `Táº¡o chÃ­nh sÃ¡ch vÃ  import thÃ nh cÃ´ng ${importedCount} ca trá»±c.`
-            : "Táº¡o chÃ­nh sÃ¡ch vÃ  import thÃ nh cÃ´ng."
+            ? `Tạo chính sách và import thành công ${importedCount} ca trực.`
+            : "Tạo chính sách và import thành công."
         );
       }
 
@@ -672,7 +672,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
         if (options?.silentIfNoBatch && (code === "NO_PUBLISHED_BATCH" || code === "BATCH_EXPIRED")) {
           return "skipped";
         }
-        setRescheduleError(json.error ?? "KhÃ´ng thá»ƒ táº¡o láº¡i lá»‹ch trá»±c.");
+        setRescheduleError(json.error ?? "Không thể tạo lại lịch trực.");
         return "error";
       }
 
@@ -680,7 +680,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
       setRescheduleResult({ removedShifts: d.removedShifts, newShifts: d.newShifts });
       return "ok";
     } catch {
-      setRescheduleError("KhÃ´ng thá»ƒ káº¿t ná»‘i Ä‘áº¿n mÃ¡y chá»§.");
+      setRescheduleError("Không thể kết nối đến máy chủ.");
       return "error";
     } finally {
       setRescheduling(false);
@@ -697,9 +697,9 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
       {showReschedulePrompt && isEdit && !rescheduleResult && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex items-start justify-between gap-4">
           <div className="flex-1">
-            <p className="text-sm font-medium text-amber-900">ChÃ­nh sÃ¡ch Ä‘Ã£ Ä‘Æ°á»£c cáº­p nháº­t.</p>
+            <p className="text-sm font-medium text-amber-900">Chính sách đã được cập nhật.</p>
             <p className="text-xs text-amber-700 mt-0.5">
-              Lá»‹ch trá»±c hiá»‡n táº¡i chÆ°a pháº£n Ã¡nh thay Ä‘á»•i. Báº¡n cÃ³ muá»‘n táº¡o láº¡i cÃ¡c ca tÆ°Æ¡ng lai tá»« hÃ´m nay khÃ´ng?
+              Lịch trực hiện tại chưa phản ánh thay đổi. Bạn có muốn tạo lại các ca tương lai từ hôm nay không?
             </p>
             {rescheduleError && (
               <p className="text-xs text-red-600 mt-1">{rescheduleError}</p>
@@ -717,14 +717,14 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
               disabled={rescheduling}
               className="px-3 py-1.5 text-xs font-medium bg-amber-600 hover:bg-amber-700 text-white rounded-lg disabled:opacity-50 transition-colors"
             >
-              {rescheduling ? "Äang táº¡o láº¡i..." : "Táº¡o láº¡i lá»‹ch"}
+              {rescheduling ? "Đang tạo lại..." : "Tạo lại lịch"}
             </button>
             <button
               type="button"
               onClick={() => setShowReschedulePrompt(false)}
               className="px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 rounded-lg transition-colors"
             >
-              Bá» qua
+              Bỏ qua
             </button>
           </div>
         </div>
@@ -733,15 +733,15 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
       {rescheduleResult && (
         <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 flex items-center justify-between gap-4">
           <p className="text-sm text-green-800">
-            âœ“ ÄÃ£ xÃ³a <strong>{rescheduleResult.removedShifts}</strong> ca cÅ© vÃ  táº¡o{" "}
-            <strong>{rescheduleResult.newShifts}</strong> ca má»›i theo chÃ­nh sÃ¡ch hiá»‡n táº¡i.
+            ✓ Đã xóa <strong>{rescheduleResult.removedShifts}</strong> ca cũ và tạo{" "}
+            <strong>{rescheduleResult.newShifts}</strong> ca mới theo chính sách hiện tại.
           </p>
           <button
             type="button"
             onClick={() => setRescheduleResult(null)}
             className="text-xs text-green-700 hover:text-green-900 shrink-0"
           >
-            âœ•
+            ✕
           </button>
         </div>
       )}
@@ -752,7 +752,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
         </div>
       )}
 
-      <Field label="NhÃ³m">
+      <Field label="Nhóm">
         <select
           required
           value={form.teamId}
@@ -760,7 +760,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
           className="input"
           disabled={isEdit}
         >
-          <option value="">Chá»n nhÃ³m...</option>
+          <option value="">Chọn nhóm...</option>
           {teams.map((t) => (
             <option key={t.id} value={t.id}>{t.name}</option>
           ))}
@@ -818,7 +818,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
         </div>
       </Field>
 
-      <Field label="TÃªn chÃ­nh sÃ¡ch">
+      <Field label="Tên chính sách">
         <input
           required
           type="text"
@@ -968,11 +968,11 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
         </>
       )}
 
-      <Field label="Chu ká»³">
+      <Field label="Chu kỳ">
         <select value={form.cadence} onChange={(e) => set("cadence", e.target.value)} className="input">
-          <option value="DAILY">HÃ ng ngÃ y</option>
-          <option value="WEEKLY">HÃ ng tuáº§n</option>
-          <option value="CUSTOM_CRON">TÃ¹y chá»‰nh (Cron)</option>
+          <option value="DAILY">Hàng ngày</option>
+          <option value="WEEKLY">Hàng tuần</option>
+          <option value="CUSTOM_CRON">Tùy chỉnh (Cron)</option>
         </select>
       </Field>
 
@@ -982,61 +982,61 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
             type="text"
             value={form.cronExpression}
             onChange={(e) => set("cronExpression", e.target.value)}
-            placeholder="0 9 * * 1 (má»—i thá»© Hai lÃºc 9:00)"
+            placeholder="0 9 * * 1 (mỗi thứ Hai lúc 9:00)"
             className="input"
           />
         </Field>
       )}
 
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Äá»™ dÃ i ca (giá»)">
+        <Field label="Độ dài ca (giờ)">
           <input required type="number" min={1} max={168} value={form.shiftDurationHours}
             onChange={(e) => set("shiftDurationHours", e.target.value)} className="input" />
         </Field>
-        <Field label="Offset bÃ n giao (phÃºt)">
+        <Field label="Offset bàn giao (phút)">
           <input type="number" min={0} value={form.handoverOffsetMinutes}
             onChange={(e) => set("handoverOffsetMinutes", e.target.value)} className="input" />
         </Field>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <Field label="XÃ¡c nháº­n trÆ°á»›c (giá»)">
+        <Field label="Xác nhận trước (giờ)">
           <input required type="number" min={1} value={form.confirmationDueHours}
             onChange={(e) => set("confirmationDueHours", e.target.value)} className="input" />
         </Field>
-        <Field label="Nháº¯c nhá»Ÿ trÆ°á»›c (giá», cÃ¡ch nhau dáº¥u pháº©y)">
+        <Field label="Nhắc nhở trước (giờ, cách nhau dấu phẩy)">
           <input type="text" value={form.reminderLeadHoursRaw}
             onChange={(e) => set("reminderLeadHoursRaw", e.target.value)}
             placeholder="48, 24, 2" className="input" />
         </Field>
       </div>
 
-      <Field label="Táº¡o trÆ°á»›c tá»‘i Ä‘a (tuáº§n)">
+      <Field label="Tạo trước tối đa (tuần)">
         <input type="number" min={1} max={52} value={form.maxGenerateWeeks}
           onChange={(e) => set("maxGenerateWeeks", e.target.value)} className="input" />
       </Field>
 
-      <Field label="Escalation Chain (tuá»³ chá»n)">
+      <Field label="Escalation Chain (tuỳ chọn)">
         <select
           value={form.escalationPolicyId}
           onChange={(e) => set("escalationPolicyId", e.target.value)}
           className="input"
         >
-          <option value="">â€” KhÃ´ng dÃ¹ng escalation â€”</option>
+          <option value="">— Không dùng escalation —</option>
           {teamEscalationPolicies.map((ep) => (
             <option key={ep.id} value={ep.id}>{ep.name}</option>
           ))}
         </select>
         {form.teamId && teamEscalationPolicies.length === 0 && (
           <p className="text-xs text-gray-400 mt-1">
-            NhÃ³m nÃ y chÆ°a cÃ³ escalation chain.{" "}
-            <a href="/escalation/new" className="text-indigo-600 hover:underline">Táº¡o ngay â†’</a>
+            Nhóm này chưa có escalation chain.{" "}
+            <a href="/escalation/new" className="text-indigo-600 hover:underline">Tạo ngay →</a>
           </p>
         )}
       </Field>
 
       <div className="border border-gray-200 rounded-lg p-4 space-y-3">
-        <p className="text-sm font-medium text-gray-700">TÃ¹y chá»n xÃ¡c nháº­n ca & Telegram</p>
+        <p className="text-sm font-medium text-gray-700">Tùy chọn xác nhận ca & Telegram</p>
         <div className="space-y-2 text-sm">
           <label className="flex items-start gap-2">
             <input
@@ -1046,7 +1046,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
               className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600"
             />
             <span className="text-gray-700">
-              YÃªu cáº§u upload áº£nh check-in khi xÃ¡c nháº­n ca trá»±c (Web + Telegram)
+              Yêu cầu upload ảnh check-in khi xác nhận ca trực (Web + Telegram)
             </span>
           </label>
 
@@ -1058,7 +1058,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
               className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600"
             />
             <span className="text-gray-700">
-              Gá»­i nháº¯c háº¿t ca qua Telegram
+              Gửi nhắc hết ca qua Telegram
             </span>
           </label>
 
@@ -1071,7 +1071,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
               className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 disabled:opacity-50"
             />
             <span className="text-gray-700">
-              Khi nháº¯c háº¿t ca, yÃªu cáº§u áº£nh check-out Ä‘á»ƒ xÃ¡c nháº­n káº¿t ca
+              Khi nhắc hết ca, yêu cầu ảnh check-out để xác nhận kết ca
             </span>
           </label>
         </div>
@@ -1089,14 +1089,14 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
               className="w-4 h-4 rounded border-gray-300 text-blue-600"
             />
             <label htmlFor="useTimeSlots" className="text-sm font-medium text-gray-700">
-              DÃ¹ng khung giá» cá»‘ Ä‘á»‹nh
+              Dùng khung giờ cố định
             </label>
           </div>
 
           {useTimeSlots && (
             <div className="space-y-2">
               <p className="text-xs text-gray-500">
-                Má»—i ngÃ y trong khoáº£ng táº¡o lá»‹ch sáº½ cÃ³ cÃ¡c ca theo khung giá» dÆ°á»›i Ä‘Ã¢y.
+                Mỗi ngày trong khoảng tạo lịch sẽ có các ca theo khung giờ dưới đây.
               </p>
               {timeSlots.map((slot, index) => (
                 <div key={index} className="border border-gray-200 rounded-lg p-3 space-y-2 bg-gray-50/50">
@@ -1105,7 +1105,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
                       type="text"
                       value={slot.label}
                       onChange={(e) => updateSlot(index, "label", e.target.value)}
-                      placeholder="TÃªn ca"
+                      placeholder="Tên ca"
                       className="input text-sm w-28"
                     />
                     <div className="flex items-center gap-0.5">
@@ -1129,7 +1129,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
                         ))}
                       </select>
                     </div>
-                    <span className="text-gray-400 text-sm">â€“</span>
+                    <span className="text-gray-400 text-sm">–</span>
                     <div className="flex items-center gap-0.5">
                       <select
                         value={slot.endHour}
@@ -1156,11 +1156,11 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
                       onClick={() => removeSlot(index)}
                       className="ml-auto text-xs px-2 py-1 text-red-500 hover:bg-red-50 rounded"
                     >
-                      XoÃ¡
+                      Xoá
                     </button>
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-xs text-gray-500 mr-1">Ãp dá»¥ng:</span>
+                    <span className="text-xs text-gray-500 mr-1">Áp dụng:</span>
                     {[
                       { dow: 1, label: "T2" }, { dow: 2, label: "T3" }, { dow: 3, label: "T4" },
                       { dow: 4, label: "T5" }, { dow: 5, label: "T6" }, { dow: 6, label: "T7" }, { dow: 0, label: "CN" },
@@ -1182,7 +1182,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
                       );
                     })}
                     <span className="text-xs text-gray-400 ml-1">
-                      {(!slot.daysOfWeek || slot.daysOfWeek.length === 0) ? "(má»i ngÃ y)" : ""}
+                      {(!slot.daysOfWeek || slot.daysOfWeek.length === 0) ? "(mọi ngày)" : ""}
                     </span>
                   </div>
                 </div>
@@ -1192,14 +1192,14 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
                 onClick={addSlot}
                 className="text-xs px-3 py-1.5 bg-gray-50 border border-gray-200 text-gray-600 rounded hover:bg-gray-100"
               >
-                + ThÃªm khung giá»
+                + Thêm khung giờ
               </button>
             </div>
           )}
         </div>
       ) : (
         <div className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs text-indigo-700">
-          Äang dÃ¹ng import CSV nÃªn pháº§n "DÃ¹ng khung giá» cá»‘ Ä‘á»‹nh" Ä‘Æ°á»£c áº©n.
+          Đang dùng import CSV nên phần "Dùng khung giờ cố định" được ẩn.
         </div>
       )}
 
@@ -1214,13 +1214,13 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
             className="w-4 h-4 rounded border-gray-300 text-blue-600"
           />
           <label htmlFor="checklistRequired" className="text-sm font-medium text-gray-700">
-            Báº¯t buá»™c hoÃ n thÃ nh checklist trÆ°á»›c khi ca káº¿t thÃºc
+            Bắt buộc hoàn thành checklist trước khi ca kết thúc
           </label>
         </div>
 
         <div className="space-y-2">
           <p className="text-xs text-gray-500">
-            CÃ¡c má»¥c dÆ°á»›i Ä‘Ã¢y sáº½ tá»± Ä‘á»™ng táº¡o checklist cho má»—i ca khi sinh lá»‹ch.
+            Các mục dưới đây sẽ tự động tạo checklist cho mỗi ca khi sinh lịch.
           </p>
           {templateTasks.map((task, i) => (
             <div key={i} className="flex items-center gap-2">
@@ -1229,7 +1229,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
                 type="text"
                 value={task}
                 onChange={(e) => setTemplateTasks((prev) => prev.map((t, j) => j === i ? e.target.value : t))}
-                placeholder="TÃªn cÃ´ng viá»‡c..."
+                placeholder="Tên công việc..."
                 className="input text-sm flex-1"
               />
               <button
@@ -1237,7 +1237,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
                 onClick={() => setTemplateTasks((prev) => prev.filter((_, j) => j !== i))}
                 className="text-xs px-2 py-1 text-red-500 hover:bg-red-50 rounded"
               >
-                XoÃ¡
+                Xoá
               </button>
             </div>
           ))}
@@ -1246,7 +1246,7 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
             onClick={() => setTemplateTasks((prev) => [...prev, ""])}
             className="text-xs px-3 py-1.5 bg-gray-50 border border-gray-200 text-gray-600 rounded hover:bg-gray-100"
           >
-            + ThÃªm má»¥c checklist
+            + Thêm mục checklist
           </button>
         </div>
       </div>
@@ -1257,10 +1257,10 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
           disabled={loading}
           className="px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50"
         >
-          {loading ? "Äang lÆ°u..." : isEdit ? "Cáº­p nháº­t" : "Táº¡o chÃ­nh sÃ¡ch"}
+          {loading ? "Đang lưu..." : isEdit ? "Cập nhật" : "Tạo chính sách"}
         </button>
         <button type="button" onClick={() => router.back()} className="px-4 py-2.5 text-gray-600 hover:text-gray-900">
-          Huá»·
+          Huỷ
         </button>
       </div>
     </form>
