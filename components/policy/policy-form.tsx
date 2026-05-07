@@ -147,8 +147,6 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
   const [rescheduling, setRescheduling] = useState(false);
   const [rescheduleResult, setRescheduleResult] = useState<{ removedShifts: number; newShifts: number } | null>(null);
   const [rescheduleError, setRescheduleError] = useState<string | null>(null);
-  const [restoreCsvFile, setRestoreCsvFile] = useState<File | null>(null);
-  const [restoringBackup, setRestoringBackup] = useState(false);
   const [importCsvFile, setImportCsvFile] = useState<File | null>(null);
   const [csvPreviewRows, setCsvPreviewRows] = useState<CsvPreviewRow[]>([]);
   const [csvPreviewErrors, setCsvPreviewErrors] = useState<string[]>([]);
@@ -425,81 +423,6 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
     ].join("\r\n");
     const blob = new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8;" });
     triggerFileDownload(blob, "mau-import-ca-truc.csv");
-  }
-
-  async function handleRestoreBackup() {
-    if (!restoreCsvFile) {
-      setError("Vui lòng chọn file backup CSV để khôi phục.");
-      return;
-    }
-
-    setRestoringBackup(true);
-    setError(null);
-    try {
-      const formData = new FormData();
-      formData.append("file", restoreCsvFile);
-
-      const res = await fetch("/api/schedules/import", {
-        method: "POST",
-        body: formData,
-      });
-      const payload = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        const message =
-          payload && typeof payload === "object" && "error" in payload
-            ? String((payload as { error?: unknown }).error ?? "Khôi phục thất bại")
-            : "Khôi phục thất bại";
-        const details =
-          payload &&
-          typeof payload === "object" &&
-          "details" in payload &&
-          Array.isArray((payload as { details?: unknown }).details)
-            ? ((payload as { details?: Array<{ line?: number; message?: string }> }).details ?? [])
-                .slice(0, 5)
-                .map((item) => {
-                  if (!item?.message) return null;
-                  return `Dòng ${item.line ?? "?"}: ${item.message}`;
-                })
-                .filter((line): line is string => Boolean(line))
-                .join("\n")
-            : "";
-        setError(details ? `${message}\n${details}` : message);
-        return;
-      }
-
-      const createdPolicyId =
-        payload &&
-        typeof payload === "object" &&
-        "data" in payload &&
-        payload.data &&
-        typeof payload.data === "object" &&
-        "policyId" in payload.data
-          ? String((payload.data as { policyId?: unknown }).policyId ?? "")
-          : "";
-
-      const importedCount =
-        payload &&
-        typeof payload === "object" &&
-        "data" in payload &&
-        payload.data &&
-        typeof payload.data === "object" &&
-        "importedShiftCount" in payload.data
-          ? Number((payload.data as { importedShiftCount?: unknown }).importedShiftCount ?? 0)
-          : 0;
-
-      alert(
-        importedCount > 0
-          ? `Khôi phục backup thành công ${importedCount} ca trực.`
-          : "Khôi phục backup thành công."
-      );
-      if (createdPolicyId) {
-        router.push(`/policies/${createdPolicyId}`);
-      } else {
-        router.refresh();
-      }
-    } finally {
-      setRestoringBackup(false);
-    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -831,44 +754,6 @@ export function PolicyForm({ teams, defaultTeamId, escalationPolicies = [], init
 
       {!isEdit && (
         <>
-          <Field label="Khôi phục backup CSV (tự tạo team + chính sách)">
-            <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-3 space-y-3">
-              <p className="text-xs text-indigo-800">
-                Dùng file <code className="text-[11px] bg-indigo-100 px-1 py-0.5 rounded">Backup CSV</code> đã xuất từ màn hình Lịch trực để khôi phục đầy đủ team, policy và ca trực.
-              </p>
-              <div className="flex items-center gap-2 flex-wrap">
-                <input
-                  type="file"
-                  accept=".csv,text/csv"
-                  onChange={(e) => setRestoreCsvFile(e.target.files?.[0] ?? null)}
-                  className="text-xs text-slate-700 file:mr-2 file:rounded file:border file:border-indigo-200 file:bg-white file:px-2 file:py-1 file:text-xs file:text-slate-700 hover:file:bg-indigo-100"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    void handleRestoreBackup();
-                  }}
-                  disabled={!restoreCsvFile || restoringBackup || loading}
-                  className="text-xs px-2.5 py-1.5 border border-indigo-200 rounded bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
-                >
-                  {restoringBackup ? "Đang khôi phục..." : "Khôi phục"}
-                </button>
-                {restoreCsvFile && (
-                  <button
-                    type="button"
-                    onClick={() => setRestoreCsvFile(null)}
-                    className="text-xs px-2 py-1 border border-indigo-200 rounded bg-white text-slate-600 hover:bg-indigo-100"
-                  >
-                    Bỏ file
-                  </button>
-                )}
-              </div>
-              {restoreCsvFile && (
-                <p className="text-xs text-indigo-800">Đã chọn: {restoreCsvFile.name}</p>
-              )}
-            </div>
-          </Field>
-
           <Field label="Import ca trực từ CSV (tùy chọn)">
             <div className="rounded-lg border border-slate-300 bg-white p-3 space-y-3">
               <p className="text-xs text-slate-700">

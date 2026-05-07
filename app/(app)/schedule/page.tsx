@@ -220,6 +220,7 @@ export default async function SchedulePage({ searchParams }: PageProps) {
       shifts={shiftBlocks}
       currentUserId={currentUser.id}
       isManager={isManager}
+      canRestoreBackup={isAdmin}
       teamMembers={teamMembers}
       myTeams={myTeams}
       teamId={selectedTeamId}

@@ -113,6 +113,7 @@ interface Props {
   shifts: ShiftBlock[];
   currentUserId: string;
   isManager: boolean;
+  canRestoreBackup: boolean;
   teamMembers: TeamMember[];
   myTeams: Team[];
   teamId?: string;
@@ -214,6 +215,7 @@ export function ScheduleView({
   shifts,
   currentUserId,
   isManager,
+  canRestoreBackup,
   teamMembers,
   myTeams,
   teamId,
@@ -233,6 +235,8 @@ export function ScheduleView({
   const [overrideShift, setOverrideShift] = useState<ShiftBlock | null>(null);
   const [selectedShift, setSelectedShift] = useState<ShiftBlock | null>(null);
   const [selectedDay, setSelectedDay] = useState<{ date: Date; shifts: ShiftBlock[] } | null>(null);
+  const [restoreCsvFile, setRestoreCsvFile] = useState<File | null>(null);
+  const [restoringBackup, setRestoringBackup] = useState(false);
 
   const numDays = view === "2week" ? 14 : 7;
 
@@ -450,6 +454,70 @@ export function ScheduleView({
     }
   }, [exportFilePrefix, exportRange.end, exportRange.start, policyId, shifts]);
 
+  const handleRestoreBackupCsv = useCallback(async () => {
+    if (!canRestoreBackup) return;
+    if (!restoreCsvFile) {
+      alert("Vui lòng chọn file Backup CSV để khôi phục.");
+      return;
+    }
+
+    setRestoringBackup(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", restoreCsvFile);
+
+      const res = await fetch("/api/schedules/import", {
+        method: "POST",
+        body: formData,
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const message =
+          payload && typeof payload === "object" && "error" in payload
+            ? String((payload as { error?: unknown }).error ?? "Khôi phục thất bại")
+            : "Khôi phục thất bại";
+        const details =
+          payload &&
+          typeof payload === "object" &&
+          "details" in payload &&
+          Array.isArray((payload as { details?: unknown }).details)
+            ? ((payload as { details?: Array<{ line?: number; message?: string }> }).details ?? [])
+                .slice(0, 8)
+                .map((item) => {
+                  if (!item?.message) return null;
+                  return `Dòng ${item.line ?? "?"}: ${item.message}`;
+                })
+                .filter((line): line is string => Boolean(line))
+                .join("\n")
+            : "";
+
+        alert(details ? `${message}\n${details}` : message);
+        return;
+      }
+
+      const data =
+        payload && typeof payload === "object" && "data" in payload && payload.data && typeof payload.data === "object"
+          ? (payload.data as { policyId?: unknown; importedShiftCount?: unknown })
+          : {};
+      const createdPolicyId = typeof data.policyId === "string" ? data.policyId : "";
+      const importedShiftCount = Number(data.importedShiftCount ?? 0);
+
+      alert(
+        importedShiftCount > 0
+          ? `Khôi phục backup thành công ${importedShiftCount} ca trực.`
+          : "Khôi phục backup thành công."
+      );
+      setRestoreCsvFile(null);
+      if (createdPolicyId) {
+        router.push(`/policies/${createdPolicyId}`);
+      } else {
+        router.refresh();
+      }
+    } finally {
+      setRestoringBackup(false);
+    }
+  }, [canRestoreBackup, restoreCsvFile, router]);
+
   return (
     <>
       {/* Stats bar */}
@@ -640,6 +708,40 @@ export function ScheduleView({
           )}
         </div>
       </div>
+
+      {canRestoreBackup && (
+        <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-indigo-900">
+            Khôi phục Backup CSV (tự tạo team + policy nếu chưa có)
+          </span>
+          <input
+            type="file"
+            accept=".csv,text/csv"
+            onChange={(e) => setRestoreCsvFile(e.target.files?.[0] ?? null)}
+            className="text-xs text-slate-700 file:mr-2 file:rounded file:border file:border-indigo-200 file:bg-white file:px-2 file:py-1 file:text-xs file:text-slate-700 hover:file:bg-indigo-100"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              void handleRestoreBackupCsv();
+            }}
+            disabled={!restoreCsvFile || restoringBackup}
+            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-indigo-300 bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {restoringBackup ? "Đang khôi phục..." : "Restore Backup"}
+          </button>
+          {restoreCsvFile && (
+            <button
+              type="button"
+              onClick={() => setRestoreCsvFile(null)}
+              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-indigo-200 bg-white text-slate-700 hover:bg-indigo-100"
+            >
+              Bỏ file
+            </button>
+          )}
+          {restoreCsvFile && <span className="text-xs text-indigo-700">Đã chọn: {restoreCsvFile.name}</span>}
+        </div>
+      )}
 
       {/* Calendar / Timeline */}
       {view === "month" ? (
